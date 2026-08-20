@@ -1,12 +1,32 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
 import { DOMUS_BASE_URL_EXPRESSION, DOMUS_CREDENTIAL_NAME } from './constants';
+import {
+	searchBusinessTypes,
+	searchCities,
+	searchNeighborhoods,
+	searchPropertyTypes,
+	searchZones,
+} from './methods';
 import { propertyDescription } from './resources/property';
 
 export class Domus implements INodeType {
+	methods = {
+		listSearch: {
+			searchBusinessTypes,
+			searchCities,
+			searchNeighborhoods,
+			searchPropertyTypes,
+			searchZones,
+		},
+	};
+
 	description: INodeTypeDescription = {
 		displayName: 'Domus',
 		name: 'domus',
-		icon: 'file:domus.png',
+		icon: {
+			light: 'file:domus.svg',
+			dark: 'file:domus.dark.svg',
+		},
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',

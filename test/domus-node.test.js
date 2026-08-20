@@ -8,8 +8,32 @@ const {
 } = require('../dist/nodes/Domus/constants.js');
 const { DomusApi } = require('../dist/credentials/DomusApi.credentials.js');
 const { Domus } = require('../dist/nodes/Domus/Domus.node.js');
+const {
+	searchBusinessTypes,
+	searchCities,
+	searchNeighborhoods,
+	searchPropertyTypes,
+	searchZones,
+} = require('../dist/nodes/Domus/methods/listSearch.js');
 
 const getProperty = (properties, name) => properties.find((property) => property.name === name);
+
+const createListSearchContext = ({ data, entireAgency = true, filters = {} }) => {
+	const requests = [];
+	const context = {
+		getCredentials: async () => ({ environment: DOMUS_PRODUCTION_BASE_URL }),
+		getCurrentNodeParameter: (name) => (name === 'entireAgency' ? entireAgency : undefined),
+		getCurrentNodeParameters: () => ({ filters }),
+		helpers: {
+			httpRequestWithAuthentication: async (credentialName, options) => {
+				requests.push({ credentialName, options });
+				return { data };
+			},
+		},
+	};
+
+	return { context, requests };
+};
 
 describe('Domus API credentials', () => {
 	it('stores the token as a password and supports both environments', () => {
@@ -92,6 +116,7 @@ describe('Domus property search node', () => {
 			'reference',
 			'stratum',
 			'type',
+			'zone',
 		]);
 		assert.deepEqual(limit.displayOptions.show.returnAll, [false]);
 		assert.equal(limit.routing.request.headers.Perpage, '={{$value}}');
@@ -131,7 +156,81 @@ describe('Domus property search node', () => {
 				keyword: 'keyword',
 				reference: 'reference',
 				propertyType: 'type',
+				zone: 'zone',
 			},
 		);
+	});
+
+	it('exposes searchable dynamic filters with a manual-code fallback', () => {
+		const node = new Domus();
+		const filters = getProperty(node.description.properties, 'filters').options;
+		const expectedMethods = {
+			businessType: 'searchBusinessTypes',
+			city: 'searchCities',
+			neighborhoodCode: 'searchNeighborhoods',
+			propertyType: 'searchPropertyTypes',
+			zone: 'searchZones',
+		};
+
+		for (const [filterName, methodName] of Object.entries(expectedMethods)) {
+			const filter = getProperty(filters, filterName);
+			assert.equal(filter.type, 'resourceLocator');
+			assert.equal(filter.modes[0].typeOptions.searchListMethod, methodName);
+			assert.equal(filter.modes[0].typeOptions.searchable, true);
+			assert.equal(filter.modes[1].name, 'id');
+			assert.equal(typeof node.methods.listSearch[methodName], 'function');
+		}
+	});
+
+	it('loads, filters, and sorts cities through authenticated Domus requests', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [
+				{ code: 11001, name: 'Bogotá', state_name: 'Bogotá' },
+				{ code: 76001, name: 'Cali', state_name: 'Valle del Cauca' },
+				{ code: 76001, name: 'Cali duplicada' },
+				{ invalid: true },
+			],
+		});
+
+		const result = await searchCities.call(context, 'cali');
+
+		assert.deepEqual(result, {
+			results: [{ name: 'Cali — Valle del Cauca', value: '76001' }],
+		});
+		assert.equal(requests.length, 1);
+		assert.equal(requests[0].credentialName, 'domusApi');
+		assert.equal(requests[0].options.baseURL, DOMUS_PRODUCTION_BASE_URL);
+		assert.equal(requests[0].options.url, '/search/cities');
+		assert.equal(requests[0].options.headers.Inmobiliaria, 1);
+		assert.equal(requests[0].options.headers.Authorization, undefined);
+	});
+
+	it('uses the documented Domus search endpoint for every dynamic filter', async () => {
+		const methods = [
+			[searchBusinessTypes, '/search/biz'],
+			[searchPropertyTypes, '/search/types'],
+			[searchZones, '/search/zones'],
+		];
+
+		for (const [method, endpoint] of methods) {
+			const { context, requests } = createListSearchContext({ data: [] });
+			await method.call(context);
+			assert.equal(requests[0].options.url, endpoint);
+		}
+	});
+
+	it('scopes neighborhood options to the selected city', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [{ code: 4174, name: 'Urbanización Colseguros', city_name: 'Cali' }],
+			filters: { city: { mode: 'list', value: '76001' } },
+		});
+
+		const result = await searchNeighborhoods.call(context, 'colseguros');
+
+		assert.deepEqual(result, {
+			results: [{ name: 'Urbanización Colseguros — Cali', value: '4174' }],
+		});
+		assert.deepEqual(requests[0].options.qs, { city: '76001' });
+		assert.equal(requests[0].options.url, '/search/neighborhoods');
 	});
 });

@@ -16,7 +16,9 @@ Esta primera versión implementa:
 - recurso `Inmueble`;
 - operación `Buscar`, que consume `GET /properties`;
 - límite de resultados y paginación automática con `Devolver Todos`;
-- página inicial y filtros iniciales.
+- página inicial y filtros iniciales;
+- selectores dinámicos para ciudad, tipo, gestión, zona y barrio, con entrada
+  manual de códigos como alternativa.
 
 Cada inmueble de la propiedad `data` de Domus se entrega como un item separado
 de n8n. Esto permite conectar la salida directamente con otros nodos.
@@ -25,6 +27,10 @@ La búsqueda y el encadenamiento de su salida se validaron manualmente contra
 Domus API con inmuebles reales: el nodo entregó 10 items y un nodo
 `Edit Fields` posterior pudo consumir `codpro`, `reference` y `city`. Esta
 comprobación no almacena el token ni datos de la respuesta en el repositorio.
+También se validó la paginación real: `Límite = 3` entregó exactamente 3 items
+y `Devolver Todos` reunió 115 items a través de varias páginas. El selector
+dinámico de ciudad se validó eligiendo Bogotá y devolvió tres inmuebles reales
+al aplicar ese límite.
 
 ## Requisitos
 
@@ -110,7 +116,8 @@ Consulta `GET /properties` con los headers propios de Domus (`Perpage`,
 - tipo de inmueble;
 - gestión;
 - estrato;
-- barrio y código de barrio.
+- zona;
+- barrio por nombre o código.
 
 Con `Devolver Todos` desactivado, `Límite` controla tanto el máximo de items
 como el tamaño solicitado a Domus. Al activarlo, el nodo sigue automáticamente
@@ -118,9 +125,11 @@ como el tamaño solicitado a Domus. Al activarlo, el nodo sigue automáticamente
 tamaño de cada petición. En ambos modos, `Página` indica desde dónde comenzar.
 Los filtros se conservan en todas las páginas.
 
-Los campos de ciudad, tipo de inmueble y gestión aceptan por ahora códigos
-manuales. En una fase posterior podrán migrar a búsquedas dinámicas usando los
-endpoints auxiliares de Domus.
+Ciudad, tipo de inmueble, gestión, zona y barrio consultan los endpoints
+`/search` de Domus para mostrar únicamente opciones que tienen inmuebles en la
+sucursal o inmobiliaria seleccionada. Cada campo permite cambiar a `Por Código`
+para introducir uno o varios códigos separados por comas. Zona y barrio se
+acotan a la ciudad seleccionada cuando corresponde.
 
 ## Docker
 

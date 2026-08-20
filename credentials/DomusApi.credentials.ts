@@ -15,7 +15,7 @@ export class DomusApi implements ICredentialType {
 
 	displayName = 'Domus API';
 
-	icon = 'file:../nodes/Domus/domus.png' as const;
+	icon = 'file:../nodes/Domus/domus.svg' as const;
 
 	documentationUrl = 'https://apiv3get.domus.la/docs/3.0/comenzar';
 
