@@ -2,16 +2,16 @@
 	"node": "n8n-nodes-domus",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
-	"categories": ["Development", "Developer Tools"],
+	"categories": ["Sales", "Productivity"],
 	"resources": {
 		"credentialDocumentation": [
 			{
-				"url": "https://github.com/org/repo?tab=readme-ov-file#credentials"
+				"url": "https://apiv3get.domus.la/docs/3.0/comenzar"
 			}
 		],
 		"primaryDocumentation": [
 			{
-				"url": "https://github.com/org/repo?tab=readme-ov-file"
+				"url": "https://apiv3get.domus.la/docs/3.0/"
 			}
 		]
 	}

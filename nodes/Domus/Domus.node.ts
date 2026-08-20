@@ -1,6 +1,6 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
-import { userDescription } from './resources/user';
-import { companyDescription } from './resources/company';
+import { DOMUS_BASE_URL_EXPRESSION, DOMUS_CREDENTIAL_NAME } from './constants';
+import { propertyDescription } from './resources/property';
 
 export class Domus implements INodeType {
 	description: INodeTypeDescription = {
@@ -9,20 +9,19 @@ export class Domus implements INodeType {
 		icon: { light: 'file:domus.svg', dark: 'file:domus.dark.svg' },
 		group: ['transform'],
 		version: 1,
-		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Interact with the Domus API',
+		subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',
+		description: 'Consulta Domus CRM mediante Domus API 3.0',
 		defaults: {
 			name: 'Domus',
 		},
 		usableAsTool: true,
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
-		credentials: [{ name: 'domusApi', required: true }],
+		credentials: [{ name: DOMUS_CREDENTIAL_NAME, required: true }],
 		requestDefaults: {
-			baseURL: 'https://api.example.com/v2',
+			baseURL: DOMUS_BASE_URL_EXPRESSION,
 			headers: {
 				Accept: 'application/json',
-				'Content-Type': 'application/json',
 			},
 		},
 		properties: [
@@ -33,18 +32,13 @@ export class Domus implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
-						name: 'User',
-						value: 'user',
-					},
-					{
-						name: 'Company',
-						value: 'company',
+						name: 'Inmueble',
+						value: 'property',
 					},
 				],
-				default: 'user',
+				default: 'property',
 			},
-			...userDescription,
-			...companyDescription,
+			...propertyDescription,
 		],
 	};
 }

@@ -1,22 +1,28 @@
 {
-  "name": "n8n-nodes-domus",
-  "version": "0.1.0",
-  "description": "",
-  "license": "MIT",
-  "homepage": "",
-  "keywords": ["n8n-community-node-package"],
-  "author": { "name": "Sebastian Pineda", "email": "sebaspi0922@gmail.com" },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
-  },
-  "scripts": {
-    "build": "n8n-node build",
-    "build:watch": "tsc --watch",
-    "dev": "n8n-node dev",
-    "lint": "n8n-node lint",
-    "lint:fix": "n8n-node lint --fix",
-    "release": "n8n-node release",
+	"name": "n8n-nodes-domus",
+	"version": "0.1.0",
+	"description": "Community node for integrating n8n workflows with Domus CRM API 3.0",
+	"license": "MIT",
+	"homepage": "https://apiv3get.domus.la/docs/3.0/",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"domus",
+		"crm",
+		"real-estate",
+		"colombia"
+	],
+	"author": { "name": "Sebastian Pineda", "email": "sebaspi0922@gmail.com" },
+	"engines": { "node": ">=22.22.0" },
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"test": "npm run build && npm run test:unit",
+		"test:unit": "node --test test/**/*.test.js",
+		"release": "n8n-node release",
     "prepublishOnly": "n8n-node prerelease"
   },
   "files": ["dist"],
