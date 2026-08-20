@@ -66,15 +66,48 @@ describe('Domus property search node', () => {
 		]);
 	});
 
-	it('maps pagination, Domus headers, and initial filters correctly', () => {
+	it('configures automatic pagination and a bounded result mode', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const returnAll = getProperty(properties, 'returnAll');
+		const limit = getProperty(properties, 'limit');
+		const perPage = getProperty(properties, 'perPage');
+		const pagination = returnAll.routing.operations.pagination;
+		const paginationQuery = pagination.properties.request.qs;
+
+		assert.equal(returnAll.routing.send.paginate, '={{$value}}');
+		assert.equal(pagination.type, 'generic');
+		assert.match(pagination.properties.continue, /current_page/);
+		assert.match(pagination.properties.continue, /last_page/);
+		assert.match(paginationQuery.page, /current_page/);
+		assert.match(paginationQuery.page, /\$request\.qs\?\.page/);
+		assert.deepEqual(Object.keys(paginationQuery).sort(), [
+			'biz',
+			'city',
+			'codpro',
+			'keyword',
+			'neighborhood',
+			'neighborhood_code',
+			'page',
+			'reference',
+			'stratum',
+			'type',
+		]);
+		assert.deepEqual(limit.displayOptions.show.returnAll, [false]);
+		assert.equal(limit.routing.request.headers.Perpage, '={{$value}}');
+		assert.equal(limit.routing.output.maxResults, '={{$value}}');
+		assert.deepEqual(perPage.displayOptions.show.returnAll, [true]);
+		assert.equal(
+			perPage.routing.request.headers.Perpage,
+			'={{$value}}',
+		);
+	});
+
+	it('maps Domus headers and initial filters correctly', () => {
 		const node = new Domus();
 		const properties = node.description.properties;
 		const filters = getProperty(properties, 'filters').options;
 
-		assert.equal(
-			getProperty(properties, 'perPage').routing.request.headers.Perpage,
-			'={{$value}}',
-		);
 		assert.equal(getProperty(properties, 'page').routing.send.property, 'page');
 		assert.equal(getProperty(properties, 'page').routing.send.type, 'query');
 		assert.equal(

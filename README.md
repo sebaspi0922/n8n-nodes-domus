@@ -15,12 +15,16 @@ Esta primera versión implementa:
 - prueba de credenciales contra `GET /general/countries`;
 - recurso `Inmueble`;
 - operación `Buscar`, que consume `GET /properties`;
-- paginación manual por página y filtros iniciales.
+- límite de resultados y paginación automática con `Devolver Todos`;
+- página inicial y filtros iniciales.
 
 Cada inmueble de la propiedad `data` de Domus se entrega como un item separado
-de n8n. Esto permite conectar la salida directamente con otros nodos. La
-paginación automática con `Return All` y `Limit` queda prevista para una fase
-posterior.
+de n8n. Esto permite conectar la salida directamente con otros nodos.
+
+La búsqueda y el encadenamiento de su salida se validaron manualmente contra
+Domus API con inmuebles reales: el nodo entregó 10 items y un nodo
+`Edit Fields` posterior pudo consumir `codpro`, `reference` y `city`. Esta
+comprobación no almacena el token ni datos de la respuesta en el repositorio.
 
 ## Requisitos
 
@@ -33,7 +37,7 @@ instancia local de desarrollo.
 
 El proyecto fija Node `24.19.0` en `.node-version`, que es la versión LTS con
 la que se verificó esta etapa. Node 26 todavía no es compatible con
-`isolated-vm` 6.x, dependencia nativa usada por n8n 2.35.4 para evaluar
+`isolated-vm` 6.x, dependencia nativa usada por n8n 2.35.x para evaluar
 expresiones. Usa Node 24 con tu gestor de versiones antes de ejecutar el modo
 de desarrollo; no se recomienda desactivar el aislamiento de expresiones como
 solución permanente.
@@ -63,7 +67,7 @@ npm run build
 npm test
 ```
 
-Esta etapa se verificó con `@n8n/node-cli` 0.44.3, n8n 2.35.4 y Node 24.19.0.
+Esta etapa se verificó con `@n8n/node-cli` 0.44.3, n8n 2.35.5 y Node 24.19.0.
 
 ## Credenciales
 
@@ -88,7 +92,8 @@ No guardes tokens en el repositorio, archivos `.env`, fixtures, logs o capturas.
 3. Añade el nodo **Domus**.
 4. Selecciona las credenciales `Domus API`.
 5. Elige `Inmueble` como recurso y `Buscar` como operación.
-6. Configura página, resultados por página y los filtros que necesites.
+6. Elige entre un límite de resultados o `Devolver Todos`, y configura la
+   página inicial y los filtros que necesites.
 7. Ejecuta el nodo.
 
 ## Operaciones
@@ -106,6 +111,12 @@ Consulta `GET /properties` con los headers propios de Domus (`Perpage`,
 - gestión;
 - estrato;
 - barrio y código de barrio.
+
+Con `Devolver Todos` desactivado, `Límite` controla tanto el máximo de items
+como el tamaño solicitado a Domus. Al activarlo, el nodo sigue automáticamente
+`current_page` y `last_page`; `Resultados Por Página` permite controlar el
+tamaño de cada petición. En ambos modos, `Página` indica desde dónde comenzar.
+Los filtros se conservan en todas las páginas.
 
 Los campos de ciudad, tipo de inmueble y gestión aceptan por ahora códigos
 manuales. En una fase posterior podrán migrar a búsquedas dinámicas usando los

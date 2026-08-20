@@ -1,11 +1,101 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type {
+	IDataObject,
+	IN8nRequestOperationPaginationGeneric,
+	INodeProperties,
+} from 'n8n-workflow';
 
 const showOnlyForPropertySearch = {
 	operation: ['search'],
 	resource: ['property'],
 };
 
+const showOnlyWhenReturningAll = {
+	...showOnlyForPropertySearch,
+	returnAll: [true],
+};
+
+const showOnlyWhenLimitingResults = {
+	...showOnlyForPropertySearch,
+	returnAll: [false],
+};
+
+const propertySearchQueryParameters = [
+	'neighborhood',
+	'city',
+	'neighborhood_code',
+	'codpro',
+	'stratum',
+	'biz',
+	'keyword',
+	'reference',
+	'type',
+] as const;
+
+const paginationQuery = {
+	...Object.fromEntries(
+		propertySearchQueryParameters.map((parameter) => [
+			parameter,
+			`={{ $request.qs?.["${parameter}"] }}`,
+		]),
+	),
+	page:
+		'={{ $response.body?.current_page ? Number($response.body.current_page) + 1 : Number($request.qs?.page ?? 1) }}',
+} as IDataObject;
+
+const propertySearchPagination: IN8nRequestOperationPaginationGeneric = {
+	type: 'generic',
+	properties: {
+		continue:
+			'={{ Number($response.body?.current_page ?? 0) < Number($response.body?.last_page ?? 0) }}',
+		request: {
+			qs: paginationQuery,
+		},
+	},
+};
+
 export const propertySearchDescription: INodeProperties[] = [
+	{
+		displayName: 'Devolver Todos',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		description: 'Whether to return all properties from the selected page onward',
+		displayOptions: {
+			show: showOnlyForPropertySearch,
+		},
+		routing: {
+			send: {
+				paginate: '={{$value}}',
+			},
+			operations: {
+				pagination: propertySearchPagination,
+			},
+		},
+	},
+	{
+		displayName: 'Límite',
+		name: 'limit',
+		type: 'number',
+		typeOptions: {
+			minValue: 1,
+		},
+		required: true,
+		default: 10,
+		description: 'Número máximo de inmuebles que se devolverán',
+		displayOptions: {
+			show: showOnlyWhenLimitingResults,
+		},
+		routing: {
+			request: {
+				headers: {
+					Perpage: '={{$value}}',
+				},
+			},
+			output: {
+				maxResults: '={{$value}}',
+			},
+		},
+	},
 	{
 		displayName: 'Resultados Por Página',
 		name: 'perPage',
@@ -16,7 +106,7 @@ export const propertySearchDescription: INodeProperties[] = [
 		default: 12,
 		description: 'Cantidad de inmuebles solicitados en esta página',
 		displayOptions: {
-			show: showOnlyForPropertySearch,
+			show: showOnlyWhenReturningAll,
 		},
 		routing: {
 			request: {
@@ -34,7 +124,8 @@ export const propertySearchDescription: INodeProperties[] = [
 			minValue: 1,
 		},
 		default: 1,
-		description: 'Número de la página que se desea consultar',
+		description:
+			'Página inicial; al devolver todos, la consulta continúa automáticamente hasta la última página',
 		displayOptions: {
 			show: showOnlyForPropertySearch,
 		},
