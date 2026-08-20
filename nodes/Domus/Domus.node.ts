@@ -6,7 +6,7 @@ export class Domus implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Domus',
 		name: 'domus',
-		icon: { light: 'file:domus.svg', dark: 'file:domus.dark.svg' },
+		icon: 'file:domus.png',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',
