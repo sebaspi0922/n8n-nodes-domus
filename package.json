@@ -13,7 +13,7 @@
 		"colombia"
 	],
 	"author": { "name": "Sebastian Pineda", "email": "sebaspi0922@gmail.com" },
-	"engines": { "node": ">=22.22.0" },
+	"engines": { "node": ">=22.22.0 <26" },
 	"scripts": {
 		"build": "n8n-node build",
 		"build:watch": "tsc --watch",
@@ -23,21 +23,21 @@
 		"test": "npm run build && npm run test:unit",
 		"test:unit": "node --test test/**/*.test.js",
 		"release": "n8n-node release",
-    "prepublishOnly": "n8n-node prerelease"
-  },
-  "files": ["dist"],
-  "n8n": {
-    "n8nNodesApiVersion": 1,
-    "strict": true,
-    "credentials": ["dist/credentials/DomusApi.credentials.js"],
-    "nodes": ["dist/nodes/Domus/Domus.node.js"]
-  },
-  "devDependencies": {
-    "@n8n/node-cli": "*",
-    "eslint": "9.32.0",
-    "prettier": "3.6.2",
-    "release-it": "^19.0.4",
-    "typescript": "5.9.2"
-  },
-  "peerDependencies": { "n8n-workflow": "*" }
+		"prepublishOnly": "n8n-node prerelease"
+	},
+	"files": ["dist"],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": ["dist/credentials/DomusApi.credentials.js"],
+		"nodes": ["dist/nodes/Domus/Domus.node.js"]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "*",
+		"eslint": "9.32.0",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2"
+	},
+	"peerDependencies": { "n8n-workflow": "*" }
 }

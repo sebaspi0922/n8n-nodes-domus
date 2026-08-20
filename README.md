@@ -24,12 +24,19 @@ posterior.
 
 ## Requisitos
 
-- Node.js 22.22.0 o superior
+- Node.js 24 LTS recomendado (rango soportado actualmente: `>=22.22.0 <26`)
 - npm
 - Git
 
 No hace falta instalar n8n globalmente: `@n8n/node-cli` proporciona la
 instancia local de desarrollo.
+
+El proyecto fija Node `24.19.0` en `.node-version`, que es la versión LTS con
+la que se verificó esta etapa. Node 26 todavía no es compatible con
+`isolated-vm` 6.x, dependencia nativa usada por n8n 2.35.4 para evaluar
+expresiones. Usa Node 24 con tu gestor de versiones antes de ejecutar el modo
+de desarrollo; no se recomienda desactivar el aislamiento de expresiones como
+solución permanente.
 
 ## Desarrollo local
 
@@ -55,6 +62,8 @@ npm run lint
 npm run build
 npm test
 ```
+
+Esta etapa se verificó con `@n8n/node-cli` 0.44.3, n8n 2.35.4 y Node 24.19.0.
 
 ## Credenciales
 
@@ -111,9 +120,17 @@ base para empaquetar el Community Node y probar posteriormente esta secuencia:
 paquete compilado → n8n Docker limpio → instalación → workflow → Domus API
 ```
 
+## Publicación futura
+
+La interfaz y este README están en español para este primer vertical slice.
+Antes de solicitar la verificación oficial como Community Node habrá que
+traducir el contenido visible al inglés, tal como exigen actualmente las
+reglas de verificación de n8n, y completar la prueba de instalación en una
+instancia Docker limpia.
+
 ## Recursos
 
 - [Domus API 3.0](https://apiv3get.domus.la/docs/3.0/)
 - [Lista de inmuebles](https://apiv3get.domus.la/docs/3.0/inmuebles/lista)
 - [Desarrollo de Community Nodes de n8n](https://docs.n8n.io/integrations/community-nodes/build-community-nodes/)
-- [CLI oficial para nodos n8n](https://docs.n8n.io/integrations/creating-nodes/build/n8n-node/)
+- [CLI oficial para nodos n8n](https://docs.n8n.io/connect/create-nodes/build-your-node/using-the-n8n-node-tool/)
