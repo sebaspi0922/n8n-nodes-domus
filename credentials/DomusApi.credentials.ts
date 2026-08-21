@@ -27,24 +27,24 @@ export class DomusApi implements ICredentialType {
 			typeOptions: { password: true },
 			required: true,
 			default: '',
-			description: 'Token de acceso proporcionado por Domus',
+			description: 'Access token provided by Domus',
 		},
 		{
-			displayName: 'Entorno',
+			displayName: 'Environment',
 			name: 'environment',
 			type: 'options',
 			options: [
 				{
-					name: 'Pruebas',
+					name: 'Testing',
 					value: DOMUS_TEST_BASE_URL,
 				},
 				{
-					name: 'Producción',
+					name: 'Production',
 					value: DOMUS_PRODUCTION_BASE_URL,
 				},
 			],
 			default: DOMUS_TEST_BASE_URL,
-			description: 'Entorno de Domus API al que se enviarán las peticiones',
+			description: 'Domus API environment to send requests to',
 		},
 	];
 

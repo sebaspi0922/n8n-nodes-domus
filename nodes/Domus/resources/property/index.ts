@@ -8,7 +8,7 @@ const showOnlyForProperties = {
 
 export const propertyDescription: INodeProperties[] = [
 	{
-		displayName: 'Operación',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
@@ -17,10 +17,10 @@ export const propertyDescription: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'Buscar',
+				name: 'Search',
 				value: 'search',
-				action: 'Buscar inmuebles',
-				description: 'Busca inmuebles y devuelve cada resultado como un item de n8n',
+				action: 'Search properties',
+				description: 'Search for properties and return each result as an n8n item',
 				routing: {
 					request: {
 						method: 'GET',
@@ -39,10 +39,10 @@ export const propertyDescription: INodeProperties[] = [
 				},
 			},
 			{
-				name: 'Obtener',
+				name: 'Get',
 				value: 'get',
-				action: 'Obtener un inmueble',
-				description: 'Obtiene el detalle completo de un inmueble por su código',
+				action: 'Get a property',
+				description: 'Get full property details by property code',
 				routing: {
 					request: {
 						method: 'GET',

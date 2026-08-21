@@ -30,7 +30,7 @@ export class Domus implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',
-		description: 'Consulta Domus CRM mediante Domus API 3.0',
+		description: 'Interact with Domus CRM using Domus API 3.0',
 		defaults: {
 			name: 'Domus',
 		},
@@ -52,7 +52,7 @@ export class Domus implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
-						name: 'Inmueble',
+						name: 'Property',
 						value: 'property',
 					},
 				],

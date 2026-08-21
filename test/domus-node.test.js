@@ -47,6 +47,11 @@ describe('Domus API credentials', () => {
 			environment.options.map((option) => option.value),
 			[DOMUS_TEST_BASE_URL, DOMUS_PRODUCTION_BASE_URL],
 		);
+		assert.equal(environment.displayName, 'Environment');
+		assert.deepEqual(
+			environment.options.map((option) => option.name),
+			['Testing', 'Production'],
+		);
 	});
 
 	it('sends the raw token only in the Authorization header', () => {
@@ -82,7 +87,11 @@ describe('Domus property search node', () => {
 		const operation = getProperty(node.description.properties, 'operation');
 		const search = operation.options.find((option) => option.value === 'search');
 
-		assert.deepEqual(resource.options, [{ name: 'Inmueble', value: 'property' }]);
+		assert.deepEqual(resource.options, [{ name: 'Property', value: 'property' }]);
+		assert.deepEqual(
+			operation.options.map((option) => option.name),
+			['Search', 'Get'],
+		);
 		assert.equal(search.routing.request.method, 'GET');
 		assert.equal(search.routing.request.url, '/properties');
 		assert.deepEqual(search.routing.output.postReceive, [
@@ -122,10 +131,7 @@ describe('Domus property search node', () => {
 		assert.equal(limit.routing.request.headers.Perpage, '={{$value}}');
 		assert.equal(limit.routing.output.maxResults, '={{$value}}');
 		assert.deepEqual(perPage.displayOptions.show.returnAll, [true]);
-		assert.equal(
-			perPage.routing.request.headers.Perpage,
-			'={{$value}}',
-		);
+		assert.equal(perPage.routing.request.headers.Perpage, '={{$value}}');
 	});
 
 	it('maps Domus headers and initial filters correctly', () => {

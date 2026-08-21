@@ -7,31 +7,31 @@ const showOnlyForPropertyGet = {
 
 export const propertyGetDescription: INodeProperties[] = [
 	{
-		displayName: 'Código Del Inmueble',
+		displayName: 'Property Code',
 		name: 'propertyCode',
 		type: 'string',
 		required: true,
 		default: '',
-		placeholder: 'Ej. 5580',
-		description: 'Código del inmueble en Domus (codpro)',
+		placeholder: 'e.g. 5580',
+		description: 'Property code in Domus (codpro)',
 		displayOptions: {
 			show: showOnlyForPropertyGet,
 		},
 	},
 	{
-		displayName: 'ID Interno Del Inmueble',
+		displayName: 'Internal Property ID',
 		name: 'propertyId',
 		type: 'string',
 		default: '',
-		placeholder: 'Ej. 3757787',
+		placeholder: 'e.g. 3757787',
 		description:
-			'ID interno de Domus (idpro); úsalo únicamente para especificar un inmueble cuando sea necesario',
+			'Internal Domus ID (idpro), used only when a property code needs a specific record',
 		displayOptions: {
 			show: showOnlyForPropertyGet,
 		},
 	},
 	{
-		displayName: 'Toda La Inmobiliaria',
+		displayName: 'Entire Agency',
 		name: 'getEntireAgency',
 		type: 'boolean',
 		default: false,
@@ -49,11 +49,11 @@ export const propertyGetDescription: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Incluir Ficha',
+		displayName: 'Include Property Sheet',
 		name: 'getIncludeSheet',
 		type: 'boolean',
 		default: false,
-		description: 'Whether to request the property sheet from Domus',
+		description: 'Whether to include the full property sheet in the response',
 		displayOptions: {
 			show: showOnlyForPropertyGet,
 		},
@@ -66,17 +66,17 @@ export const propertyGetDescription: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Opciones',
+		displayName: 'Options',
 		name: 'getOptions',
 		type: 'collection',
-		placeholder: 'Añadir opción',
+		placeholder: 'Add Option',
 		default: {},
 		displayOptions: {
 			show: showOnlyForPropertyGet,
 		},
 		options: [
 			{
-				displayName: 'Incluir Propietario',
+				displayName: 'Include Owner',
 				name: 'includeOwner',
 				type: 'boolean',
 				default: true,
@@ -91,11 +91,11 @@ export const propertyGetDescription: INodeProperties[] = [
 				},
 			},
 			{
-				displayName: 'Zoom Del Mapa',
+				displayName: 'Map Zoom',
 				name: 'mapZoom',
 				type: 'number',
 				default: 15,
-				description: 'Nivel de zoom usado para solicitar la imagen del mapa del inmueble',
+				description: 'Zoom level used when requesting the property map image',
 				routing: {
 					request: {
 						headers: {

@@ -39,8 +39,7 @@ const paginationQuery = {
 			`={{ $request.qs?.["${parameter}"] }}`,
 		]),
 	),
-	page:
-		'={{ $response.body?.current_page ? Number($response.body.current_page) + 1 : Number($request.qs?.page ?? 1) }}',
+	page: '={{ $response.body?.current_page ? Number($response.body.current_page) + 1 : Number($request.qs?.page ?? 1) }}',
 } as IDataObject;
 
 const propertySearchPagination: IN8nRequestOperationPaginationGeneric = {
@@ -75,17 +74,17 @@ const createDomusFilterLocator = (config: DomusFilterLocatorConfig): INodeProper
 		: undefined,
 	modes: [
 		{
-			displayName: 'Desde Lista',
+			displayName: 'From List',
 			name: 'list',
 			type: 'list',
-			placeholder: `Selecciona ${config.displayName.toLocaleLowerCase()}...`,
+			placeholder: `Select ${config.displayName.toLocaleLowerCase()}...`,
 			typeOptions: {
 				searchListMethod: config.searchListMethod,
 				searchable: true,
 			},
 		},
 		{
-			displayName: 'Por Código',
+			displayName: 'By Code',
 			name: 'id',
 			type: 'string',
 			placeholder: config.placeholder,
@@ -101,7 +100,7 @@ const createDomusFilterLocator = (config: DomusFilterLocatorConfig): INodeProper
 
 export const propertySearchDescription: INodeProperties[] = [
 	{
-		displayName: 'Devolver Todos',
+		displayName: 'Return All',
 		name: 'returnAll',
 		type: 'boolean',
 		default: false,
@@ -119,7 +118,7 @@ export const propertySearchDescription: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Límite',
+		displayName: 'Limit',
 		name: 'limit',
 		type: 'number',
 		typeOptions: {
@@ -143,14 +142,14 @@ export const propertySearchDescription: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Resultados Por Página',
+		displayName: 'Results Per Page',
 		name: 'perPage',
 		type: 'number',
 		typeOptions: {
 			minValue: 1,
 		},
 		default: 12,
-		description: 'Cantidad de inmuebles solicitados en esta página',
+		description: 'Number of properties requested per page',
 		displayOptions: {
 			show: showOnlyWhenReturningAll,
 		},
@@ -163,7 +162,7 @@ export const propertySearchDescription: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		typeOptions: {
@@ -171,7 +170,7 @@ export const propertySearchDescription: INodeProperties[] = [
 		},
 		default: 1,
 		description:
-			'Página inicial; al devolver todos, la consulta continúa automáticamente hasta la última página',
+			'Starting page; when returning all results, requests continue automatically through the last page',
 		displayOptions: {
 			show: showOnlyForPropertySearch,
 		},
@@ -183,7 +182,7 @@ export const propertySearchDescription: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Toda La Inmobiliaria',
+		displayName: 'Entire Agency',
 		name: 'entireAgency',
 		type: 'boolean',
 		default: false,
@@ -201,11 +200,11 @@ export const propertySearchDescription: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Incluir Ficha',
+		displayName: 'Include Property Sheet',
 		name: 'includeSheet',
 		type: 'boolean',
 		default: false,
-		description: 'Whether to request the property sheet from Domus',
+		description: 'Whether to include the full property sheet in the response',
 		displayOptions: {
 			show: showOnlyForPropertySearch,
 		},
@@ -218,77 +217,64 @@ export const propertySearchDescription: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Filtros',
+		displayName: 'Filters',
 		name: 'filters',
 		type: 'collection',
-		placeholder: 'Añadir filtro',
+		placeholder: 'Add Filter',
 		default: {},
 		displayOptions: {
 			show: showOnlyForPropertySearch,
 		},
 		options: [
 			createDomusFilterLocator({
-				displayName: 'Barrio',
-				name: 'neighborhoodCode',
-				searchListMethod: 'searchNeighborhoods',
-				queryProperty: 'neighborhood_code',
-				placeholder: 'Ej. 4174',
-				description:
-					'Barrio con inmuebles disponibles; también admite uno o varios códigos separados por comas',
-				loadOptionsDependsOn: ['entireAgency', 'filters.city.value'],
-			}),
-			createDomusFilterLocator({
-				displayName: 'Ciudad',
-				name: 'city',
-				searchListMethod: 'searchCities',
-				queryProperty: 'city',
-				placeholder: 'Ej. 76001',
-				description:
-					'Ciudad con inmuebles disponibles; también admite uno o varios códigos separados por comas',
-				loadOptionsDependsOn: ['entireAgency'],
-			}),
-			{
-				displayName: 'Código Del Inmueble',
-				name: 'propertyCode',
-				type: 'string',
-				default: '',
-				description: 'Código del inmueble en Domus',
-				routing: {
-					send: {
-						type: 'query',
-						property: 'codpro',
-					},
-				},
-			},
-			{
-				displayName: 'Estrato',
-				name: 'stratum',
-				type: 'string',
-				default: '',
-				description: 'Estrato; permite varios valores separados por comas',
-				routing: {
-					send: {
-						type: 'query',
-						property: 'stratum',
-					},
-				},
-			},
-			createDomusFilterLocator({
-				displayName: 'Gestión',
+				displayName: 'Business Type',
 				name: 'businessType',
 				searchListMethod: 'searchBusinessTypes',
 				queryProperty: 'biz',
-				placeholder: 'Ej. 2',
+				placeholder: 'e.g. 2',
 				description:
-					'Gestión disponible, como venta o arriendo; también admite varios códigos separados por comas',
+					'Available business type, such as sale or rental; also accepts comma-separated codes',
+				loadOptionsDependsOn: ['entireAgency'],
+			}),
+			createDomusFilterLocator({
+				displayName: 'City',
+				name: 'city',
+				searchListMethod: 'searchCities',
+				queryProperty: 'city',
+				placeholder: 'e.g. 76001',
+				description:
+					'City with available properties; also accepts one or more comma-separated codes',
 				loadOptionsDependsOn: ['entireAgency'],
 			}),
 			{
-				displayName: 'Nombre Del Barrio',
+				displayName: 'Keyword',
+				name: 'keyword',
+				type: 'string',
+				default: '',
+				description: 'General filter across fields such as description and property code',
+				routing: {
+					send: {
+						type: 'query',
+						property: 'keyword',
+					},
+				},
+			},
+			createDomusFilterLocator({
+				displayName: 'Neighborhood',
+				name: 'neighborhoodCode',
+				searchListMethod: 'searchNeighborhoods',
+				queryProperty: 'neighborhood_code',
+				placeholder: 'e.g. 4174',
+				description:
+					'Neighborhood with available properties; also accepts one or more comma-separated codes',
+				loadOptionsDependsOn: ['entireAgency', 'filters.city.value'],
+			}),
+			{
+				displayName: 'Neighborhood Name',
 				name: 'neighborhood',
 				type: 'string',
 				default: '',
-				description: 'Nombre o parte del nombre del barrio',
+				description: 'Full or partial neighborhood name',
 				routing: {
 					send: {
 						type: 'query',
@@ -297,24 +283,33 @@ export const propertySearchDescription: INodeProperties[] = [
 				},
 			},
 			{
-				displayName: 'Palabra Clave',
-				name: 'keyword',
+				displayName: 'Property Code',
+				name: 'propertyCode',
 				type: 'string',
 				default: '',
-				description: 'Filtro general sobre distintos campos, como descripción y código',
+				description: 'Property code in Domus',
 				routing: {
 					send: {
 						type: 'query',
-						property: 'keyword',
+						property: 'codpro',
 					},
 				},
 			},
+			createDomusFilterLocator({
+				displayName: 'Property Type',
+				name: 'propertyType',
+				searchListMethod: 'searchPropertyTypes',
+				queryProperty: 'type',
+				placeholder: 'e.g. 1',
+				description: 'Available property type; also accepts one or more comma-separated codes',
+				loadOptionsDependsOn: ['entireAgency'],
+			}),
 			{
-				displayName: 'Referencia',
+				displayName: 'Reference',
 				name: 'reference',
 				type: 'string',
 				default: '',
-				description: 'Referencia del inmueble',
+				description: 'Property reference',
 				routing: {
 					send: {
 						type: 'query',
@@ -322,24 +317,27 @@ export const propertySearchDescription: INodeProperties[] = [
 					},
 				},
 			},
+			{
+				displayName: 'Stratum',
+				name: 'stratum',
+				type: 'string',
+				default: '',
+				description: 'Colombian socioeconomic stratum; accepts comma-separated values',
+				routing: {
+					send: {
+						type: 'query',
+						property: 'stratum',
+					},
+				},
+			},
 			createDomusFilterLocator({
-				displayName: 'Tipo De Inmueble',
-				name: 'propertyType',
-				searchListMethod: 'searchPropertyTypes',
-				queryProperty: 'type',
-				placeholder: 'Ej. 1',
-				description:
-					'Tipo de inmueble disponible; también admite uno o varios códigos separados por comas',
-				loadOptionsDependsOn: ['entireAgency'],
-			}),
-			createDomusFilterLocator({
-				displayName: 'Zona',
+				displayName: 'Zone',
 				name: 'zone',
 				searchListMethod: 'searchZones',
 				queryProperty: 'zone',
-				placeholder: 'Ej. 2',
+				placeholder: 'e.g. 2',
 				description:
-					'Zona con inmuebles disponibles; también admite uno o varios códigos separados por comas',
+					'Zone with available properties; also accepts one or more comma-separated codes',
 				loadOptionsDependsOn: ['entireAgency', 'filters.city.value'],
 			}),
 		],
