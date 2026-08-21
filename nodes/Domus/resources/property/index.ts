@@ -1,4 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
+import { propertyGetDescription } from './get';
 import { propertySearchDescription } from './search';
 
 const showOnlyForProperties = {
@@ -37,8 +38,31 @@ export const propertyDescription: INodeProperties[] = [
 					},
 				},
 			},
+			{
+				name: 'Obtener',
+				value: 'get',
+				action: 'Obtener un inmueble',
+				description: 'Obtiene el detalle completo de un inmueble por su código',
+				routing: {
+					request: {
+						method: 'GET',
+						url: '=/properties/{{$parameter.propertyCode}}{{$parameter.propertyId ? "/" + $parameter.propertyId : ""}}',
+					},
+					output: {
+						postReceive: [
+							{
+								type: 'rootProperty',
+								properties: {
+									property: 'data',
+								},
+							},
+						],
+					},
+				},
+			},
 		],
 		default: 'search',
 	},
+	...propertyGetDescription,
 	...propertySearchDescription,
 ];

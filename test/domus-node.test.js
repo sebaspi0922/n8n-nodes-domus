@@ -234,3 +234,64 @@ describe('Domus property search node', () => {
 		assert.equal(requests[0].options.url, '/search/neighborhoods');
 	});
 });
+
+describe('Domus property get operation', () => {
+	it('registers Inmueble → Obtener with the documented detail endpoint', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const get = operation.options.find((option) => option.value === 'get');
+
+		assert.equal(get.routing.request.method, 'GET');
+		assert.equal(
+			get.routing.request.url,
+			'=/properties/{{$parameter.propertyCode}}{{$parameter.propertyId ? "/" + $parameter.propertyId : ""}}',
+		);
+		assert.deepEqual(get.routing.output.postReceive, [
+			{ type: 'rootProperty', properties: { property: 'data' } },
+		]);
+	});
+
+	it('requires codpro and supports the optional idpro path segment', () => {
+		const node = new Domus();
+		const propertyCode = getProperty(node.description.properties, 'propertyCode');
+		const propertyId = getProperty(node.description.properties, 'propertyId');
+
+		assert.equal(propertyCode.required, true);
+		assert.equal(propertyCode.default, '');
+		assert.deepEqual(propertyCode.displayOptions.show.operation, ['get']);
+		assert.equal(propertyId.required, undefined);
+		assert.equal(propertyId.default, '');
+		assert.deepEqual(propertyId.displayOptions.show.operation, ['get']);
+	});
+
+	it('reuses Domus authentication and maps every documented detail header', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const getOptions = getProperty(properties, 'getOptions').options;
+
+		assert.deepEqual(node.description.credentials, [{ name: 'domusApi', required: true }]);
+		assert.equal(
+			getProperty(properties, 'getEntireAgency').routing.request.headers.Inmobiliaria,
+			'={{ $value ? 1 : 0 }}',
+		);
+		assert.equal(
+			getProperty(properties, 'getIncludeSheet').routing.request.headers.Ficha,
+			'={{ $value ? 1 : 0 }}',
+		);
+		assert.equal(
+			getProperty(getOptions, 'includeOwner').routing.request.headers.Propietario,
+			'={{ $value ? 1 : 0 }}',
+		);
+		assert.equal(getProperty(getOptions, 'mapZoom').routing.request.headers.Mapa, '={{$value}}');
+	});
+
+	it('lets n8n propagate authentication, not-found, HTTP, and network errors', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const get = operation.options.find((option) => option.value === 'get');
+
+		assert.equal(node.description.requestDefaults.ignoreHttpStatusErrors, undefined);
+		assert.equal(get.routing.request.ignoreHttpStatusErrors, undefined);
+		assert.equal(get.routing.request.returnFullResponse, undefined);
+	});
+});

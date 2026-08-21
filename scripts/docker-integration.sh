@@ -46,11 +46,15 @@ if (!domus) throw new Error("The Domus node was not loaded by n8n");
 if (!domus.credentials?.some((credential) => credential.name === "domusApi")) {
 	throw new Error("The Domus API credential was not registered");
 }
-const operation = domus.properties
+const operations = domus.properties
 	.find((property) => property.name === "operation")
-	?.options?.find((option) => option.value === "search");
-if (!operation) throw new Error("Inmueble → Buscar was not registered");
-console.log(`Loaded ${domus.name} with credential domusApi and operation ${operation.value}`);
+	?.options ?? [];
+for (const operationName of ["search", "get"]) {
+	if (!operations.some((operation) => operation.value === operationName)) {
+		throw new Error(`Inmueble operation ${operationName} was not registered`);
+	}
+}
+console.log(`Loaded ${domus.name} with credential domusApi and operations search/get`);
 '
 
 logs="$(docker compose --file "${compose_file}" logs --no-color n8n)"
