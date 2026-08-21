@@ -7,3 +7,5 @@ node_modules
 .n8n-node-cli
 coverage
 npm-debug.log*
+artifacts
+.playwright-cli

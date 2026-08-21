@@ -1,0 +1,37 @@
+name: n8n-domus-integration
+
+x-n8n-image: &n8n-image docker.n8n.io/n8nio/n8n:2.35.5
+
+services:
+  package-installer:
+    image: *n8n-image
+    user: node
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        set -eu;
+        mkdir -p /home/node/.n8n/nodes;
+        cd /home/node/.n8n/nodes;
+        npm install "/packages/$${DOMUS_PACKAGE_FILE}" --omit=dev --ignore-scripts
+    environment:
+      DOMUS_PACKAGE_FILE: ${DOMUS_PACKAGE_FILE:-n8n-nodes-domus-0.1.0.tgz}
+    volumes:
+      - n8n-data:/home/node/.n8n
+      - ../artifacts:/packages:ro
+
+  n8n:
+    image: *n8n-image
+    ports:
+      - "127.0.0.1:5680:5678"
+    environment:
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      N8N_SECURE_COOKIE: "false"
+      N8N_UNVERIFIED_PACKAGES_ENABLED: "true"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+    volumes:
+      - n8n-data:/home/node/.n8n
+
+volumes:
+  n8n-data:

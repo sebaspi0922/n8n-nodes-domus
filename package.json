@@ -22,10 +22,12 @@
 		"lint:fix": "n8n-node lint --fix",
 		"test": "npm run build && npm run test:unit",
 		"test:unit": "node --test test/**/*.test.js",
+		"test:docker": "bash scripts/docker-integration.sh",
+		"docker:down": "docker compose --file docker/compose.yaml down --volumes --remove-orphans",
 		"release": "n8n-node release",
 		"prepublishOnly": "n8n-node prerelease"
 	},
-	"files": ["dist"],
+	"files": ["dist/credentials", "dist/nodes", "dist/package.json"],
 	"n8n": {
 		"n8nNodesApiVersion": 1,
 		"strict": true,
