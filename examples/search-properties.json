@@ -1,0 +1,54 @@
+{
+	"id": "974539ef-ec3a-4c18-b1f1-372b4453d671",
+	"name": "Domus - Search properties",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "2de9a10b-6c31-479f-8c11-fc2dcaad79ba",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "property",
+				"operation": "search",
+				"returnAll": false,
+				"limit": 3,
+				"page": 1,
+				"entireAgency": false,
+				"includeSheet": false,
+				"filters": {}
+			},
+			"id": "89a1e772-cec1-4aaa-b6bb-8c4a5442c948",
+			"name": "Search properties",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search properties",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "af4916f8-c7ee-4aa5-b2d2-bddc9ee0d95e",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

@@ -1,205 +1,200 @@
 # n8n-nodes-domus
 
-Community Node de n8n para integrar workflows con **Domus CRM** mediante
+An n8n community node for integrating workflows with **Domus CRM** through
 Domus API 3.0.
 
-> Estado: desarrollo inicial. El paquete todavía no está publicado en npm ni
-> debe considerarse estable.
+> Status: release candidate under active development. The package is not yet
+> published to npm and should not be considered stable.
 
-## Estado actual
+## Features
 
-Esta primera versión implementa:
+- Domus API credentials with testing and production environments
+- Raw token authentication through `Authorization: <token>` (without `Bearer`)
+- Credential test against `GET /general/countries`
+- `Property → Search` using `GET /properties`
+- `Property → Get` using `GET /properties/{codpro}/{idpro?}`
+- Bounded results or automatic page-based pagination with **Return All**
+- Dynamic selectors for city, property type, business type, zone, and neighborhood
+- Manual code entry as an alternative to every dynamic selector
+- One n8n output item per property
 
-- credencial `Domus API` con token protegido;
-- entornos de Pruebas y Producción;
-- prueba de credenciales contra `GET /general/countries`;
-- recurso `Inmueble`;
-- operación `Buscar`, que consume `GET /properties`;
-- operación `Obtener`, que consume `GET /properties/{codpro}/{idpro?}`;
-- límite de resultados y paginación automática con `Devolver Todos`;
-- página inicial y filtros iniciales;
-- selectores dinámicos para ciudad, tipo, gestión, zona y barrio, con entrada
-  manual de códigos como alternativa.
+## Requirements
 
-Cada inmueble de la propiedad `data` de Domus se entrega como un item separado
-de n8n. Esto permite conectar la salida directamente con otros nodos.
-
-La búsqueda y el encadenamiento de su salida se validaron manualmente contra
-Domus API con inmuebles reales: el nodo entregó 10 items y un nodo
-`Edit Fields` posterior pudo consumir `codpro`, `reference` y `city`. Esta
-comprobación no almacena el token ni datos de la respuesta en el repositorio.
-También se validó la paginación real: `Límite = 3` entregó exactamente 3 items
-y `Devolver Todos` reunió 115 items a través de varias páginas. El selector
-dinámico de ciudad se validó eligiendo Bogotá y devolvió tres inmuebles reales
-al aplicar ese límite.
-
-## Requisitos
-
-- Node.js 24 LTS recomendado (rango soportado actualmente: `>=22.22.0 <26`)
+- Node.js 24 LTS recommended (`>=22.22.0 <26` is currently supported)
 - npm
 - Git
 
-No hace falta instalar n8n globalmente: `@n8n/node-cli` proporciona la
-instancia local de desarrollo.
+The repository pins Node.js `24.19.0` in `.node-version`. The system-wide
+Node.js 26 runtime is not used because `isolated-vm` 6.x, a native dependency
+of the tested n8n version, does not provide the required Node.js 26 binding.
 
-El proyecto fija Node `24.19.0` en `.node-version`, que es la versión LTS con
-la que se verificó esta etapa. Node 26 todavía no es compatible con
-`isolated-vm` 6.x, dependencia nativa usada por n8n 2.35.x para evaluar
-expresiones. Usa Node 24 con tu gestor de versiones antes de ejecutar el modo
-de desarrollo; no se recomienda desactivar el aislamiento de expresiones como
-solución permanente.
-
-## Desarrollo local
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-El comando compila el paquete, enlaza el Community Node, levanta n8n con
-recarga durante el desarrollo y lo expone en:
+The development command builds and links the community node, starts an n8n
+development instance with hot reload, and exposes it at:
 
 ```text
 http://localhost:5678
 ```
 
-La primera vez, n8n puede pedir crear el usuario propietario de la instancia
-local.
+The first run may ask you to create a local n8n owner account.
 
-Comprobaciones disponibles:
+Run the quality checks with:
 
 ```bash
 npm run lint
 npm run build
 npm test
+npm pack --dry-run --json
 ```
 
-Esta etapa se verificó con `@n8n/node-cli` 0.44.3, n8n 2.35.5 y Node 24.19.0.
+This release candidate has been tested with Node.js 24.19.0,
+`@n8n/node-cli` 0.44.3, and n8n 2.35.5.
 
-## Credenciales
+## Credentials
 
-En n8n, crea unas credenciales de tipo `Domus API` y completa:
+Create a credential of type **Domus API** and configure:
 
-- **Token**: token entregado por Domus. Se guarda cifrado por n8n y se envía
-  directamente como `Authorization: <token>`, sin el prefijo `Bearer`.
-- **Entorno**:
-  - **Pruebas**: `https://newapi.domus.la`
-  - **Producción**: `https://api.domus.la/3.0`
+- **Token**: the access token supplied by Domus. n8n stores it encrypted and
+  sends it directly in the `Authorization` header. Do not add `Bearer`.
+- **Environment**:
+  - **Testing**: `https://newapi.domus.la`
+  - **Production**: `https://api.domus.la/3.0`
 
-El mismo token puede utilizarse en ambos entornos. Domus reinicia los datos del
-entorno de pruebas el primer día de cada mes; para consultar inmuebles reales,
-selecciona Producción.
+Domus resets the testing environment on the first day of every month. Use
+production when you need to query real property inventory.
 
-No guardes tokens en el repositorio, archivos `.env`, fixtures, logs o capturas.
+Never store a token in the repository, `.env` files, fixtures, logs,
+screenshots, or example workflows.
 
-## Uso
+## Usage
 
-1. Ejecuta `npm run dev` y abre `http://localhost:5678`.
-2. Crea o abre un workflow.
-3. Añade el nodo **Domus**.
-4. Selecciona las credenciales `Domus API`.
-5. Elige `Inmueble` como recurso y `Buscar` u `Obtener` como operación.
-6. Configura la búsqueda o introduce el código del inmueble, según la
-   operación elegida.
-7. Ejecuta el nodo.
+1. Start development mode and open `http://localhost:5678`.
+2. Create or open a workflow.
+3. Add the **Domus** node.
+4. Create or select a **Domus API** credential.
+5. Select **Property** and choose **Search** or **Get**.
+6. Configure the operation and execute the node.
 
-## Operaciones
+A sanitized importable workflow is available at
+[`examples/search-properties.json`](examples/search-properties.json). Assign
+your own Domus credential after importing it; the example contains no token or
+credential identifier.
 
-### Inmueble → Buscar
+## Operations
 
-Consulta `GET /properties` con los headers propios de Domus (`Perpage`,
-`Inmobiliaria` y `Ficha`) y filtros opcionales por query string:
+### Property → Search
 
-- código del inmueble;
-- referencia;
-- palabra clave;
-- ciudad;
-- tipo de inmueble;
-- gestión;
-- estrato;
-- zona;
-- barrio por nombre o código.
+Calls `GET /properties` with the Domus `Perpage`, `Inmobiliaria`, and `Ficha`
+headers. Available filters include:
 
-Con `Devolver Todos` desactivado, `Límite` controla tanto el máximo de items
-como el tamaño solicitado a Domus. Al activarlo, el nodo sigue automáticamente
-`current_page` y `last_page`; `Resultados Por Página` permite controlar el
-tamaño de cada petición. En ambos modos, `Página` indica desde dónde comenzar.
-Los filtros se conservan en todas las páginas.
+- property code
+- reference
+- keyword
+- city
+- property type
+- business type
+- Colombian socioeconomic stratum
+- zone
+- neighborhood name or code
 
-Ciudad, tipo de inmueble, gestión, zona y barrio consultan los endpoints
-`/search` de Domus para mostrar únicamente opciones que tienen inmuebles en la
-sucursal o inmobiliaria seleccionada. Cada campo permite cambiar a `Por Código`
-para introducir uno o varios códigos separados por comas. Zona y barrio se
-acotan a la ciudad seleccionada cuando corresponde.
+With **Return All** disabled, **Limit** controls both the maximum number of
+items and the requested page size. When **Return All** is enabled, the node
+follows `current_page` and `last_page` automatically, starting at **Page** and
+using **Results Per Page** for each request. Filters are preserved across
+pages.
 
-### Inmueble → Obtener
+City, property type, business type, zone, and neighborhood use Domus search
+endpoints to provide live options for the selected agency scope. Each selector
+also supports **By Code** for one or more comma-separated codes. Zone and
+neighborhood options are scoped to the selected city when applicable.
 
-Consulta `GET /properties/{codpro}/{idpro?}` y devuelve directamente como un
-único item de n8n el objeto `data` recibido de Domus.
+### Property → Get
 
-- **Código del inmueble** (`codpro`) es obligatorio.
-- **ID interno del inmueble** (`idpro`) es opcional y permite especificar un
-  registro concreto cuando sea necesario.
-- **Toda la inmobiliaria** e **Incluir ficha** controlan los headers
-  `Inmobiliaria` y `Ficha`.
-- Las opciones adicionales permiten solicitar el mapa con su nivel de zoom y
-  la información del propietario cuando el Token tenga permisos para ello.
+Calls `GET /properties/{codpro}/{idpro?}` and returns the response `data`
+object directly as one n8n item.
 
-Los errores de autenticación, inmueble inexistente, HTTP o red no se convierten
-en resultados exitosos: n8n los propaga como errores de ejecución.
+- **Property Code** (`codpro`) is required.
+- **Internal Property ID** (`idpro`) is optional and identifies a specific
+  record when necessary.
+- **Entire Agency** and **Include Property Sheet** control the `Inmobiliaria`
+  and `Ficha` headers.
+- Additional options can request map data with a zoom level and owner
+  information when the token has the required permissions.
+
+Authentication, not-found, HTTP, and network failures are propagated as n8n
+execution errors instead of being converted into successful output.
+
+## Verified behavior
+
+The node has been exercised against Domus API with a real credential without
+storing the token or response fixtures in this repository. Manual verification
+covered:
+
+- real property search and downstream field mapping
+- bounded results and automatic pagination across 115 properties
+- dynamic and manual-code filters
+- property detail by code and optional internal ID
+- property sheet and whole-agency headers
+- invalid credentials, a missing property (`404`), and a refused connection
 
 ## Docker integration test
 
-La prueba reproducible usa la imagen oficial `docker.n8n.io/n8nio/n8n:2.35.5`,
-un volumen independiente y el puerto `5680`, sin compartir datos con
-`npm run dev`.
+The reproducible integration test uses the official
+`docker.n8n.io/n8nio/n8n:2.35.5` image, an isolated volume, and port `5680`.
+It does not share data with the development instance.
 
-Con Node 24 activo y Docker disponible, ejecuta:
+With Node.js 24 active and Docker available, run:
 
 ```bash
 npm run test:docker
 ```
 
-El comando ejecuta esta secuencia:
+The script performs:
 
 ```text
-build → npm pack → volumen limpio → npm install del .tgz → n8n → verificación
+build → npm pack → clean volume → install .tgz → start n8n → inspect loaded node
 ```
 
-El paquete queda en `artifacts/n8n-nodes-domus-0.1.0.tgz`, fuera de Git. La
-prueba borra únicamente los datos desechables del proyecto Compose
-`n8n-domus-integration`, instala el paquete en `/home/node/.n8n/nodes`, inicia
-n8n y comprueba que se cargaron la credencial `domusApi` y las operaciones
-`Buscar` y `Obtener`.
+The package is written to the ignored `artifacts/` directory. The test installs
+it in `/home/node/.n8n/nodes`, starts n8n, and verifies the `domusApi`
+credential plus the `search` and `get` operations.
 
-Después abre:
+Open the clean instance at:
 
 ```text
 http://localhost:5680
 ```
 
-La primera vez crea el usuario propietario local. Añade **Domus**, configura
-unas credenciales **Domus API** e introduce el Token manualmente; el Token no
-forma parte del script, Compose ni el paquete.
-
-Para detener la instancia y eliminar solamente su volumen desechable:
+Enter the token manually in n8n only when testing a live request. Remove the
+disposable container and its isolated volume afterward with:
 
 ```bash
 npm run docker:down
 ```
 
-## Publicación futura
+## Release status
 
-La interfaz y este README están en español para este primer vertical slice.
-Antes de solicitar la verificación oficial como Community Node habrá que
-traducir el contenido visible al inglés, tal como exigen actualmente las
-reglas de verificación de n8n.
+The repository includes GitHub Actions for CI and npm publishing with a
+provenance statement. No npm publication or n8n Creator Portal submission has
+been performed yet. Before verification, the GitHub repository must be public
+and the package must be published from the provided GitHub Actions workflow.
 
-## Recursos
+## Documentation
 
-- [Reporte de la primera etapa](docs/reporte-primera-etapa.md)
+- [First-stage report](docs/first-stage-report.md)
+- [Second-stage report](docs/second-stage-report.md)
 - [Domus API 3.0](https://apiv3get.domus.la/docs/3.0/)
-- [Lista de inmuebles](https://apiv3get.domus.la/docs/3.0/inmuebles/lista)
-- [Detalle de inmueble](https://apiv3get.domus.la/docs/3.0/inmuebles/detalle)
-- [Desarrollo de Community Nodes de n8n](https://docs.n8n.io/integrations/community-nodes/build-community-nodes/)
-- [CLI oficial para nodos n8n](https://docs.n8n.io/connect/create-nodes/build-your-node/using-the-n8n-node-tool/)
+- [Property list endpoint](https://apiv3get.domus.la/docs/3.0/inmuebles/lista)
+- [Property detail endpoint](https://apiv3get.domus.la/docs/3.0/inmuebles/detalle)
+- [n8n community node verification guidelines](https://docs.n8n.io/connect/create-nodes/build-your-node/reference/verification-guidelines)
+- [n8n node CLI](https://docs.n8n.io/connect/create-nodes/build-your-node/using-the-n8n-node-tool/)
+
+## License
+
+[MIT](LICENSE)
