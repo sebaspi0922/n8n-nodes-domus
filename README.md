@@ -150,6 +150,7 @@ instancia Docker limpia.
 
 ## Recursos
 
+- [Reporte de la primera etapa](docs/reporte-primera-etapa.md)
 - [Domus API 3.0](https://apiv3get.domus.la/docs/3.0/)
 - [Lista de inmuebles](https://apiv3get.domus.la/docs/3.0/inmuebles/lista)
 - [Desarrollo de Community Nodes de n8n](https://docs.n8n.io/integrations/community-nodes/build-community-nodes/)
