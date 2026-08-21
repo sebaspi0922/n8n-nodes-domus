@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-domus",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Community node for integrating n8n workflows with Domus CRM API 3.0",
 	"license": "MIT",
 	"homepage": "https://github.com/sebaspi0922/n8n-nodes-domus#readme",
