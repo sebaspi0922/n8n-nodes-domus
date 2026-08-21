@@ -51,11 +51,15 @@ const operations = domus.properties
 	?.options ?? [];
 for (const operationName of ["search", "get"]) {
 	if (!operations.some((operation) => operation.value === operationName)) {
-		throw new Error(`Inmueble operation ${operationName} was not registered`);
+		throw new Error(`Property operation ${operationName} was not registered`);
 	}
 }
 console.log(`Loaded ${domus.name} with credential domusApi and operations search/get`);
 '
+
+docker compose --file "${compose_file}" exec --no-TTY n8n \
+	n8n import:workflow \
+	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/search-properties.json"
 
 logs="$(docker compose --file "${compose_file}" logs --no-color n8n)"
 if grep --extended-regexp --ignore-case --quiet \
@@ -65,6 +69,6 @@ if grep --extended-regexp --ignore-case --quiet \
 	exit 1
 fi
 
-echo "Docker integration test passed."
+echo "Docker integration test passed, including the packaged example workflow."
 echo "n8n is running at http://localhost:5680"
 echo "Run 'npm run docker:down' to stop it and remove its disposable data."

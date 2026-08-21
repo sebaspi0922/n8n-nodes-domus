@@ -3,7 +3,14 @@
 	"version": "0.1.0",
 	"description": "Community node for integrating n8n workflows with Domus CRM API 3.0",
 	"license": "MIT",
-	"homepage": "https://apiv3get.domus.la/docs/3.0/",
+	"homepage": "https://github.com/sebaspi0922/n8n-nodes-domus#readme",
+	"bugs": {
+		"url": "https://github.com/sebaspi0922/n8n-nodes-domus/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/sebaspi0922/n8n-nodes-domus.git"
+	},
 	"keywords": [
 		"n8n-community-node-package",
 		"n8n",
@@ -12,8 +19,17 @@
 		"real-estate",
 		"colombia"
 	],
-	"author": { "name": "Sebastian Pineda", "email": "sebaspi0922@gmail.com" },
-	"engines": { "node": ">=22.22.0 <26" },
+	"author": {
+		"name": "Sebastian Pineda",
+		"email": "sebaspi0922@gmail.com"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"engines": {
+		"node": ">=22.22.0 <26"
+	},
 	"scripts": {
 		"build": "n8n-node build",
 		"build:watch": "tsc --watch",
@@ -27,12 +43,22 @@
 		"release": "n8n-node release",
 		"prepublishOnly": "n8n-node prerelease"
 	},
-	"files": ["dist/credentials", "dist/nodes", "dist/package.json"],
+	"files": [
+		"dist/credentials",
+		"dist/nodes",
+		"dist/package.json",
+		"docs",
+		"examples"
+	],
 	"n8n": {
 		"n8nNodesApiVersion": 1,
 		"strict": true,
-		"credentials": ["dist/credentials/DomusApi.credentials.js"],
-		"nodes": ["dist/nodes/Domus/Domus.node.js"]
+		"credentials": [
+			"dist/credentials/DomusApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/Domus/Domus.node.js"
+		]
 	},
 	"devDependencies": {
 		"@n8n/node-cli": "*",
@@ -41,5 +67,7 @@
 		"release-it": "^19.0.4",
 		"typescript": "5.9.2"
 	},
-	"peerDependencies": { "n8n-workflow": "*" }
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
 }
