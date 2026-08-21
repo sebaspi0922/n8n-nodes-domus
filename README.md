@@ -15,6 +15,7 @@ Esta primera versión implementa:
 - prueba de credenciales contra `GET /general/countries`;
 - recurso `Inmueble`;
 - operación `Buscar`, que consume `GET /properties`;
+- operación `Obtener`, que consume `GET /properties/{codpro}/{idpro?}`;
 - límite de resultados y paginación automática con `Devolver Todos`;
 - página inicial y filtros iniciales;
 - selectores dinámicos para ciudad, tipo, gestión, zona y barrio, con entrada
@@ -97,9 +98,9 @@ No guardes tokens en el repositorio, archivos `.env`, fixtures, logs o capturas.
 2. Crea o abre un workflow.
 3. Añade el nodo **Domus**.
 4. Selecciona las credenciales `Domus API`.
-5. Elige `Inmueble` como recurso y `Buscar` como operación.
-6. Elige entre un límite de resultados o `Devolver Todos`, y configura la
-   página inicial y los filtros que necesites.
+5. Elige `Inmueble` como recurso y `Buscar` u `Obtener` como operación.
+6. Configura la búsqueda o introduce el código del inmueble, según la
+   operación elegida.
 7. Ejecuta el nodo.
 
 ## Operaciones
@@ -131,13 +132,60 @@ sucursal o inmobiliaria seleccionada. Cada campo permite cambiar a `Por Código`
 para introducir uno o varios códigos separados por comas. Zona y barrio se
 acotan a la ciudad seleccionada cuando corresponde.
 
-## Docker
+### Inmueble → Obtener
 
-Docker no es requisito para el desarrollo. El build genera `dist/`, que es la
-base para empaquetar el Community Node y probar posteriormente esta secuencia:
+Consulta `GET /properties/{codpro}/{idpro?}` y devuelve directamente como un
+único item de n8n el objeto `data` recibido de Domus.
+
+- **Código del inmueble** (`codpro`) es obligatorio.
+- **ID interno del inmueble** (`idpro`) es opcional y permite especificar un
+  registro concreto cuando sea necesario.
+- **Toda la inmobiliaria** e **Incluir ficha** controlan los headers
+  `Inmobiliaria` y `Ficha`.
+- Las opciones adicionales permiten solicitar el mapa con su nivel de zoom y
+  la información del propietario cuando el Token tenga permisos para ello.
+
+Los errores de autenticación, inmueble inexistente, HTTP o red no se convierten
+en resultados exitosos: n8n los propaga como errores de ejecución.
+
+## Docker integration test
+
+La prueba reproducible usa la imagen oficial `docker.n8n.io/n8nio/n8n:2.35.5`,
+un volumen independiente y el puerto `5680`, sin compartir datos con
+`npm run dev`.
+
+Con Node 24 activo y Docker disponible, ejecuta:
+
+```bash
+npm run test:docker
+```
+
+El comando ejecuta esta secuencia:
 
 ```text
-paquete compilado → n8n Docker limpio → instalación → workflow → Domus API
+build → npm pack → volumen limpio → npm install del .tgz → n8n → verificación
+```
+
+El paquete queda en `artifacts/n8n-nodes-domus-0.1.0.tgz`, fuera de Git. La
+prueba borra únicamente los datos desechables del proyecto Compose
+`n8n-domus-integration`, instala el paquete en `/home/node/.n8n/nodes`, inicia
+n8n y comprueba que se cargaron la credencial `domusApi` y las operaciones
+`Buscar` y `Obtener`.
+
+Después abre:
+
+```text
+http://localhost:5680
+```
+
+La primera vez crea el usuario propietario local. Añade **Domus**, configura
+unas credenciales **Domus API** e introduce el Token manualmente; el Token no
+forma parte del script, Compose ni el paquete.
+
+Para detener la instancia y eliminar solamente su volumen desechable:
+
+```bash
+npm run docker:down
 ```
 
 ## Publicación futura
@@ -145,13 +193,13 @@ paquete compilado → n8n Docker limpio → instalación → workflow → Domus 
 La interfaz y este README están en español para este primer vertical slice.
 Antes de solicitar la verificación oficial como Community Node habrá que
 traducir el contenido visible al inglés, tal como exigen actualmente las
-reglas de verificación de n8n, y completar la prueba de instalación en una
-instancia Docker limpia.
+reglas de verificación de n8n.
 
 ## Recursos
 
 - [Reporte de la primera etapa](docs/reporte-primera-etapa.md)
 - [Domus API 3.0](https://apiv3get.domus.la/docs/3.0/)
 - [Lista de inmuebles](https://apiv3get.domus.la/docs/3.0/inmuebles/lista)
+- [Detalle de inmueble](https://apiv3get.domus.la/docs/3.0/inmuebles/detalle)
 - [Desarrollo de Community Nodes de n8n](https://docs.n8n.io/integrations/community-nodes/build-community-nodes/)
 - [CLI oficial para nodos n8n](https://docs.n8n.io/connect/create-nodes/build-your-node/using-the-n8n-node-tool/)

@@ -6,7 +6,7 @@ services:
   package-installer:
     image: *n8n-image
     user: node
-    entrypoint: ["/bin/sh", "-c"]
+    entrypoint: ['/bin/sh', '-c']
     command:
       - >-
         set -eu;
@@ -22,14 +22,14 @@ services:
   n8n:
     image: *n8n-image
     ports:
-      - "127.0.0.1:5680:5678"
+      - '127.0.0.1:5680:5678'
     environment:
-      N8N_DIAGNOSTICS_ENABLED: "false"
-      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
-      N8N_PERSONALIZATION_ENABLED: "false"
-      N8N_SECURE_COOKIE: "false"
-      N8N_UNVERIFIED_PACKAGES_ENABLED: "true"
-      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_DIAGNOSTICS_ENABLED: 'false'
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'true'
+      N8N_PERSONALIZATION_ENABLED: 'false'
+      N8N_SECURE_COOKIE: 'false'
+      N8N_UNVERIFIED_PACKAGES_ENABLED: 'true'
+      N8N_VERSION_NOTIFICATIONS_ENABLED: 'false'
     volumes:
       - n8n-data:/home/node/.n8n
 

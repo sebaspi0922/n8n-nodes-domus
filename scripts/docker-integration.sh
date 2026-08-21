@@ -23,7 +23,7 @@ docker compose --file "${compose_file}" up --detach n8n
 
 healthy=false
 for _ in $(seq 1 60); do
-	if curl --fail --silent --show-error http://127.0.0.1:5680/healthz >/dev/null; then
+	if curl --fail --silent http://127.0.0.1:5680/healthz >/dev/null; then
 		healthy=true
 		break
 	fi
