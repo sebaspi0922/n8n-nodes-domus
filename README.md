@@ -3,8 +3,9 @@
 An n8n community node for integrating workflows with **Domus CRM** through
 Domus API 3.0.
 
-> Status: release candidate under active development. The package is not yet
-> published to npm and should not be considered stable.
+> Published as [`n8n-nodes-domus@0.1.0`](https://www.npmjs.com/package/n8n-nodes-domus).
+> That release is the version under n8n Creator Portal review. Later Git
+> commits may add docs and tests without publishing a new npm version.
 
 ## Features
 
@@ -53,8 +54,8 @@ npm test
 npm pack --dry-run --json
 ```
 
-This release candidate has been tested with Node.js 24.19.0,
-`@n8n/node-cli` 0.44.3, and n8n 2.35.5.
+`0.1.0` was tested with Node.js 24.19.0, `@n8n/node-cli` 0.44.3, and
+n8n 2.35.5.
 
 ## Credentials
 
@@ -81,9 +82,10 @@ screenshots, or example workflows.
 5. Select **Property** and choose **Search** or **Get**.
 6. Configure the operation and execute the node.
 
-A sanitized importable workflow is available at
-[`examples/search-properties.json`](examples/search-properties.json). Assign
-your own Domus credential after importing it; the example contains no token or
+Sanitized importable workflows are available at
+[`examples/search-properties.json`](examples/search-properties.json) and
+[`examples/get-property.json`](examples/get-property.json). Assign your own
+Domus credential after importing them; the examples contain no token or
 credential identifier.
 
 ## Operations
@@ -178,15 +180,33 @@ disposable container and its isolated volume afterward with:
 npm run docker:down
 ```
 
+## Automated testing
+
+Layered checks are documented in
+[`docs/testing-strategy.md`](docs/testing-strategy.md).
+
+```bash
+npm test
+npm run test:integration          # read-only; skips without DOMUS_TEST_TOKEN
+npm run test:integration:write    # manual only; requires DOMUS_TEST_WRITE=1
+npm run test:docker
+npm run playwright:install        # once
+npm run test:e2e                  # reuses the Docker n8n on port 5680
+```
+
+Copy [`.env.example`](.env.example) to a local `.env` for optional live tests.
+Never put a Domus token in Git, fixtures, traces, or screenshots.
+
 ## Release status
 
-The repository includes GitHub Actions for CI and npm publishing with a
-provenance statement. No npm publication or n8n Creator Portal submission has
-been performed yet. Before verification, the GitHub repository must be public
-and the package must be published from the provided GitHub Actions workflow.
+`n8n-nodes-domus@0.1.0` is published to npm with provenance from GitHub
+Actions. It is in n8n Creator Portal Manual Review. Do not publish `0.1.1`,
+`0.2.0`, or any other npm version while that review is open.
 
 ## Documentation
 
+- [API coverage and roadmap](docs/api-coverage.md)
+- [Testing strategy](docs/testing-strategy.md)
 - [First-stage report](docs/first-stage-report.md)
 - [Second-stage report](docs/second-stage-report.md)
 - [Domus API 3.0](https://apiv3get.domus.la/docs/3.0/)

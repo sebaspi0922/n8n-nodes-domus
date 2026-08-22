@@ -1,0 +1,97 @@
+# Live and UI checks. Never runs on pull_request, so fork PRs cannot
+# read DOMUS_TEST_TOKEN. Add the secret only on this repository.
+#
+# The scheduled job is read-only. Write tests (Create/Update) require a
+# manual workflow_dispatch with write_tests=true because Domus has no DELETE.
+name: Nightly
+
+on:
+  workflow_dispatch:
+    inputs:
+      write_tests:
+        description: Run Domus write-cycle tests on newapi.domus.la (created records cannot be deleted)
+        type: boolean
+        default: false
+  schedule:
+    - cron: '0 7 * * *'
+
+concurrency:
+  group: nightly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nightly:
+    if: github.repository == 'sebaspi0922/n8n-nodes-domus'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Docker package integration
+        run: npm run test:docker
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright UX
+        run: npx playwright test
+        env:
+          N8N_BASE_URL: http://127.0.0.1:5680
+          DOMUS_TEST_TOKEN: ${{ secrets.DOMUS_TEST_TOKEN }}
+          DOMUS_TEST_BASE_URL: https://newapi.domus.la
+          DOMUS_TEST_WRITE: '0'
+
+      - name: Domus contract tests (read-only)
+        run: npm run test:integration
+        env:
+          DOMUS_TEST_TOKEN: ${{ secrets.DOMUS_TEST_TOKEN }}
+          DOMUS_TEST_BASE_URL: https://newapi.domus.la
+          DOMUS_TEST_WRITE: '0'
+
+      - name: n8n workflow REST tests
+        run: npm run test:workflow
+        env:
+          DOMUS_TEST_TOKEN: ${{ secrets.DOMUS_TEST_TOKEN }}
+          DOMUS_TEST_BASE_URL: https://newapi.domus.la
+          DOMUS_TEST_WRITE: '0'
+          N8N_BASE_URL: http://127.0.0.1:5680
+
+  write-cycle:
+    if: >
+      github.repository == 'sebaspi0922/n8n-nodes-domus'
+      && github.event_name == 'workflow_dispatch'
+      && inputs.write_tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Domus write cycle (manual only)
+        run: npm run test:integration:write
+        env:
+          DOMUS_TEST_TOKEN: ${{ secrets.DOMUS_TEST_TOKEN }}
+          DOMUS_TEST_BASE_URL: https://newapi.domus.la
+          DOMUS_TEST_WRITE: '1'
