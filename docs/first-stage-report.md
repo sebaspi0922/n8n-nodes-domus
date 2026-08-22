@@ -12,7 +12,8 @@ and pass each returned property as an independent item to downstream n8n
 nodes.
 
 This result applies to the implemented operation. It does not imply that the
-entire Domus API is integrated or that the package has already been published.
+entire Domus API is integrated. The package was later published as
+`n8n-nodes-domus@0.1.0` and is in n8n Creator Portal Manual Review.
 
 ## Implemented
 

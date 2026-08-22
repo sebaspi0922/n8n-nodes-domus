@@ -72,5 +72,5 @@ npm pack --dry-run --json
 npm run test:docker
 ```
 
-Publication to npm and submission to the n8n Creator Portal were deliberately
-left for a separate release stage.
+`n8n-nodes-domus@0.1.0` was subsequently published to npm with provenance and
+submitted to the n8n Creator Portal, where it is in Manual Review.
