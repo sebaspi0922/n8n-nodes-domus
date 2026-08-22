@@ -36,6 +36,21 @@ if [[ "${healthy}" != "true" ]]; then
 	exit 1
 fi
 
+ready=false
+for _ in $(seq 1 90); do
+	if docker compose --file "${compose_file}" logs --no-color n8n | grep -q 'Editor is now accessible'; then
+		ready=true
+		break
+	fi
+	sleep 1
+done
+
+if [[ "${ready}" != "true" ]]; then
+	docker compose --file "${compose_file}" logs --no-color n8n
+	echo "n8n became healthy but the editor never reported ready" >&2
+	exit 1
+fi
+
 docker compose --file "${compose_file}" exec --no-TTY n8n \
 	n8n export:nodes --output=/tmp/n8n-domus-nodes.json
 
@@ -60,6 +75,10 @@ console.log(`Loaded ${domus.name} with credential domusApi and operations search
 docker compose --file "${compose_file}" exec --no-TTY n8n \
 	n8n import:workflow \
 	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/search-properties.json"
+
+docker compose --file "${compose_file}" exec --no-TTY n8n \
+	n8n import:workflow \
+	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/get-property.json"
 
 logs="$(docker compose --file "${compose_file}" logs --no-color n8n)"
 if grep --extended-regexp --ignore-case --quiet \

@@ -37,8 +37,14 @@
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
 		"test": "npm run build && npm run test:unit",
-		"test:unit": "node --test test/**/*.test.js",
+		"test:unit": "node --test test/*.test.js",
+		"test:integration": "node --test test/integration/domus-api.integration.test.js",
+		"test:integration:write": "node --test test/integration/domus-api.write.test.js",
+		"test:workflow": "node --test test/workflow/**/*.test.js",
 		"test:docker": "bash scripts/docker-integration.sh",
+		"test:e2e": "bash scripts/e2e.sh",
+		"test:e2e:headed": "PLAYWRIGHT_HEADED=1 bash scripts/e2e.sh",
+		"playwright:install": "playwright install chromium",
 		"docker:down": "docker compose --file docker/compose.yaml down --volumes --remove-orphans",
 		"release": "n8n-node release",
 		"prepublishOnly": "n8n-node prerelease"
@@ -62,6 +68,7 @@
 	},
 	"devDependencies": {
 		"@n8n/node-cli": "*",
+		"@playwright/test": "^1.62.1",
 		"eslint": "9.32.0",
 		"prettier": "3.6.2",
 		"release-it": "^19.0.4",
