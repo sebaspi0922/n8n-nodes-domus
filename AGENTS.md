@@ -100,3 +100,32 @@ regarding building community nodes:
 - https://docs.n8n.io/integrations/creating-nodes/overview/
 - https://docs.n8n.io/integrations/creating-nodes/build/reference/
 - https://docs.n8n.io/integrations/creating-nodes/build/reference/ux-guidelines/
+
+## Cursor Cloud specific instructions
+
+- **Node.js version**: the package requires Node `>=22.22.0 <26` and pins
+  `24.19.0` in `.node-version`. The VM's default `node` (from `/exec-daemon`)
+  is 22.x, which is below the minimum, so the environment installs Node
+  24.19.0 via `nvm` and makes it win in every shell (symlinks in
+  `/usr/local/cargo/bin`, the first `PATH` entry, plus a `~/.bashrc` prepend).
+  This is baked into the snapshot, so `node --version` should already report
+  `v24.19.0`. If it ever reports 22.x, run `nvm use 24.19.0`.
+- **Standard commands** live in `package.json` scripts: `npm run lint`,
+  `npm run build`, `npm test` (build + `node --test`), and `npm run dev`.
+  Prefer the `n8n-node` CLI wrappers already wired there.
+- **Running the app**: `npm run dev` (`n8n-node dev`) compiles the node, links
+  it into `~/.n8n-node-cli/.n8n/custom`, and starts n8n with hot reload at
+  http://localhost:5678. The **first** run downloads n8n into
+  `~/.n8n-node-cli` and takes ~1-2 minutes before the editor answers; poll
+  `http://localhost:5678/healthz` until it returns `{"status":"ok"}`. n8n's
+  first launch requires creating an owner account in the browser UI. The
+  unrelated `n8n-nodes-base.confluence` and Python task-runner warnings in the
+  dev log are n8n internals and can be ignored.
+- **Executing the Domus node** against the real API needs a valid Domus token,
+  which must never be committed (see `README.md`). Without a real token, node
+  execution and the credential test fail with an auth/`404` error from the live
+  Domus API — that failure still proves the node builds and sends real HTTP
+  requests end-to-end.
+- **Docker integration test** (`npm run test:docker`, port `5680`) needs Docker,
+  which is not installed by default; it is optional and separate from the
+  `npm run dev` instance.
