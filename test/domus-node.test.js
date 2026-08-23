@@ -9,12 +9,15 @@ const {
 const { DomusApi } = require('../dist/credentials/DomusApi.credentials.js');
 const { Domus } = require('../dist/nodes/Domus/Domus.node.js');
 const {
+	searchAmenities,
 	searchBusinessTypes,
 	searchCities,
+	searchCityZones,
 	searchNeighborhoods,
 	searchPropertyTypes,
 	searchSources,
 	searchStatuses,
+	searchTypedNeighborhoods,
 	searchZones,
 } = require('../dist/nodes/Domus/methods/listSearch.js');
 const {
@@ -120,16 +123,37 @@ describe('Domus property search node', () => {
 		assert.match(paginationQuery.page, /current_page/);
 		assert.match(paginationQuery.page, /\$request\.qs\?\.page/);
 		assert.deepEqual(Object.keys(paginationQuery).sort(), [
+			'amenities',
+			'amenitiesin',
 			'biz',
+			'branch',
+			'broker',
 			'city',
+			'city_zone',
 			'codpro',
 			'keyword',
+			'maxarea',
+			'maxbath',
+			'maxbed',
+			'minarea',
+			'minbath',
+			'minbed',
+			'multiple_codpro',
 			'neighborhood',
 			'neighborhood_code',
+			'nostatus',
+			'order',
 			'page',
+			'pcmax',
+			'pcmin',
+			'pvmax',
+			'pvmin',
 			'reference',
+			'sort',
+			'status',
 			'stratum',
 			'type',
+			'update',
 			'zone',
 		]);
 		assert.deepEqual(limit.displayOptions.show.returnAll, [false]);
@@ -158,17 +182,42 @@ describe('Domus property search node', () => {
 		assert.deepEqual(
 			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
 			{
-				neighborhood: 'neighborhood',
-				city: 'city',
-				neighborhoodCode: 'neighborhood_code',
-				propertyCode: 'codpro',
-				stratum: 'stratum',
+				amenities: 'amenities',
+				amenitiesIn: 'amenitiesin',
+				anyStatus: 'nostatus',
+				branch: 'branch',
+				broker: 'broker',
 				businessType: 'biz',
+				city: 'city',
+				cityZone: 'city_zone',
 				keyword: 'keyword',
-				reference: 'reference',
+				maxBathrooms: 'maxbath',
+				maxBedrooms: 'maxbed',
+				maxBuiltArea: 'maxarea',
+				maxRent: 'pcmax',
+				maxSalePrice: 'pvmax',
+				minBathrooms: 'minbath',
+				minBedrooms: 'minbed',
+				minBuiltArea: 'minarea',
+				minRent: 'pcmin',
+				minSalePrice: 'pvmin',
+				multiplePropertyCodes: 'multiple_codpro',
+				neighborhood: 'neighborhood',
+				neighborhoodCode: 'neighborhood_code',
+				order: 'order',
+				propertyCode: 'codpro',
 				propertyType: 'type',
+				reference: 'reference',
+				sort: 'sort',
+				status: 'status',
+				stratum: 'stratum',
+				updatedSince: 'update',
 				zone: 'zone',
 			},
+		);
+		assert.equal(
+			getProperty(filters, 'anyStatus').routing.send.value,
+			'={{ $value ? 0 : undefined }}',
 		);
 	});
 
@@ -176,10 +225,14 @@ describe('Domus property search node', () => {
 		const node = new Domus();
 		const filters = getProperty(node.description.properties, 'filters').options;
 		const expectedMethods = {
+			amenities: 'searchAmenities',
+			amenitiesIn: 'searchAmenities',
 			businessType: 'searchBusinessTypes',
 			city: 'searchCities',
+			cityZone: 'searchCityZones',
 			neighborhoodCode: 'searchNeighborhoods',
 			propertyType: 'searchPropertyTypes',
+			status: 'searchStatuses',
 			zone: 'searchZones',
 		};
 
@@ -243,6 +296,55 @@ describe('Domus property search node', () => {
 		});
 		assert.deepEqual(requests[0].options.qs, { city: '76001' });
 		assert.equal(requests[0].options.url, '/search/neighborhoods');
+	});
+
+	it('loads amenities from the full catalog and scopes them by property type', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [
+				{ code: 1, name: 'Aire Acondicionado', type: 1 },
+				{ code: 24, name: 'Piscina', type: 1 },
+			],
+			filters: { propertyType: { mode: 'list', value: '1' } },
+		});
+
+		const result = await searchAmenities.call(context, 'pis');
+
+		assert.deepEqual(result, { results: [{ name: 'Piscina', value: '24' }] });
+		assert.equal(requests[0].options.url, '/general/amenities');
+		assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
+		assert.deepEqual(requests[0].options.qs, { type: '1' });
+	});
+
+	it('loads city zones from the full catalog and scopes them by city', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [{ code: 1, name: 'ZONA NORTE', city_code: 11001, city_name: 'Bogotá' }],
+			filters: { city: { mode: 'list', value: '11001' } },
+		});
+
+		const result = await searchCityZones.call(context, 'norte');
+
+		assert.deepEqual(result, {
+			results: [{ name: 'ZONA NORTE — Bogotá', value: '1' }],
+		});
+		assert.equal(requests[0].options.url, '/general/city-zones');
+		assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
+		assert.deepEqual(requests[0].options.qs, { city: '11001' });
+	});
+
+	it('uses typed-neighborhood names as values because Domus omits codes', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [{ name: 'Barrio de prueba', city_code: 11001, city_name: 'Bogotá' }],
+			filters: { city: { mode: 'list', value: '11001' } },
+		});
+
+		const result = await searchTypedNeighborhoods.call(context, 'prueba');
+
+		assert.deepEqual(result, {
+			results: [{ name: 'Barrio de prueba — Bogotá', value: 'Barrio de prueba' }],
+		});
+		assert.equal(requests[0].options.url, '/search/digited-neighborhoods');
+		assert.equal(requests[0].options.headers.Inmobiliaria, 1);
+		assert.deepEqual(requests[0].options.qs, { city: '11001' });
 	});
 });
 

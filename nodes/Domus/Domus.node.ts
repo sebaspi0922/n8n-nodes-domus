@@ -1,12 +1,15 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
 import { DOMUS_BASE_URL_EXPRESSION, DOMUS_CREDENTIAL_NAME } from './constants';
 import {
+	searchAmenities,
 	searchBusinessTypes,
 	searchCities,
+	searchCityZones,
 	searchNeighborhoods,
 	searchPropertyTypes,
 	searchSources,
 	searchStatuses,
+	searchTypedNeighborhoods,
 	searchZones,
 } from './methods';
 import { propertyDescription } from './resources/property';
@@ -14,12 +17,15 @@ import { propertyDescription } from './resources/property';
 export class Domus implements INodeType {
 	methods = {
 		listSearch: {
+			searchAmenities,
 			searchBusinessTypes,
 			searchCities,
+			searchCityZones,
 			searchNeighborhoods,
 			searchPropertyTypes,
 			searchSources,
 			searchStatuses,
+			searchTypedNeighborhoods,
 			searchZones,
 		},
 	};

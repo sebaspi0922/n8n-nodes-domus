@@ -7,8 +7,8 @@ from those pages, not from guessed OpenAPI.
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
 - Documented HTTP operations: **49**
 - Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Public n8n operations on this branch (unpublished): **4** (adds Change Status and Get Status History)
-- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources
+- Public n8n operations on this branch (unpublished): **4** (Search, Get, Change Status, Get Status History)
+- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
 Manual Review. Do not publish a new npm version while that review is open.
@@ -122,7 +122,7 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 
 | Domus module | Endpoint | Method | n8n resource | Operation | Status | Priority | Target version |
 | ------------ | -------- | ------ | ------------ | --------- | ------ | -------- | -------------- |
-| Inmuebles | `/properties` | GET | Property | Search | Implemented | P0 | 0.1.0 |
+| Inmuebles | `/properties` | GET | Property | Search | Implemented | P0 | 1.0.0 |
 | Inmuebles | `/properties/{codpro}/{idpro?}` | GET | Property | Get | Implemented | P0 | 0.1.0 |
 | Inmuebles | `/properties` | POST | Property | Create | Planned | P0 | 1.0.0 |
 | Inmuebles | `/properties/{codpro}` | PUT | Property | Update | Planned | P0 | 1.0.0 |
@@ -152,7 +152,7 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Búsqueda | `/search/biz` | GET | Property | Business Type locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/zones` | GET | Property | Zone locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/neighborhoods` | GET | Property | Neighborhood locator | Helper | P0 | 0.1.0 |
-| Búsqueda | `/search/digited-neighborhoods` | GET | Property | Typed-neighborhood locator | Helper | P2 | 1.0.0 |
+| Búsqueda | `/search/digited-neighborhoods` | GET | Property | Typed-neighborhood helper | Helper | P2 | 1.0.0 |
 | Generales | `/general/countries` | GET | Credential | Credential test | Helper | P0 | 0.1.0 |
 | Generales | `/general/status` | GET | Property | Status locator | Helper | P0 | 1.0.0 |
 | Generales | `/general/detach/status` | GET | Property | Separation-status locator | Helper | P2 | 1.1.0 |
@@ -182,7 +182,7 @@ labels are retired so clients never see another pre-1.0 release.
 | Batch | Theme | Public operations | npm |
 | ----- | ----- | ----------------- | --- |
 | **Published** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. | **0.1.0** |
-| **A** | Property writes and status | Create, Update, Change Status, Get Status History. Richer Search filters (price, rooms, amenities, status, broker, dates, sort). Helpers for status, amenities, sources, city zones. | unpublished until 1.0 |
+| **A** | Property writes and status | Change Status and Get Status History are in. Search now has price, rooms, amenities, status, broker, dates, and sort. Remaining: Create and Update. | unpublished until 1.0 |
 | **B** | Owners and portals | Owner Search/Get/Create/Update. Property Get Portal Publications and Retry Portal Publication. Phone-type helper. | unpublished until 1.0 |
 | **C** | People and projects | Advisor Search. Project V2 Search/Get. | unpublished until 1.0 |
 | **D** | CRM intake | Acquisition Search/Get. | unpublished until 1.0 |
@@ -249,7 +249,9 @@ Domus warns not to put write fields on the query string.
 - **Response:** `{ total, per_page, current_page, last_page, from, to, data[] }` with `idpro`, `codpro`, location, prices, images, status.
 - **Pagination:** yes. **Mutates:** no. **Destructive:** no. **Idempotent:** yes.
 
-`0.1.0` implements a subset of filters plus automatic page following.
+`0.1.0` shipped a subset of filters plus automatic page following. The
+unpublished branch adds the Batch A commercial filters and keeps page
+following for every newly mapped query parameter.
 
 #### Search map — `GET /properties/map`
 
@@ -342,7 +344,9 @@ can stay consistent with the current search.
 | `GET /search/neighborhoods` | [barrios](https://apiv3get.domus.la/docs/3.0/busqueda/barrios) | Scope with `city` |
 | `GET /search/digited-neighborhoods` | [barrios digitados](https://apiv3get.domus.la/docs/3.0/busqueda/barrios-digitados) | Neighborhoods typed by users, not only catalog |
 
-**Mutates:** no. Implemented in `0.1.0` except typed neighborhoods.
+**Mutates:** no. Inventory search locators shipped in `0.1.0`. Typed
+neighborhoods are wired as a helper on this branch; Domus returns `name`
+without `code`, so the locator value is the neighborhood name.
 
 ### Consultas generales
 
@@ -495,12 +499,12 @@ Domus
     └── Get       GET /properties/{codpro}/{idpro?}
 ```
 
-Unpublished branch (batch A, first slice):
+Unpublished branch (batch A, search + status):
 
 ```text
 Domus
 └── Property
-    ├── Search              GET /properties
+    ├── Search              GET /properties          (core commercial filters)
     ├── Get                 GET /properties/{codpro}/{idpro?}
     ├── Get Status History  GET /properties/status/{codpro}
     └── Change Status       PUT /properties/status/{codpro}
@@ -514,12 +518,16 @@ Helpers already wired:
 /search/biz
 /search/zones
 /search/neighborhoods
-/general/countries          (credential test only)
-/general/status             (Change Status locator)
-/administrative/sources     (Change Status locator)
+/search/digited-neighborhoods   (helper; names only, no codes)
+/general/countries              (credential test only)
+/general/status                 (Search + Change Status locator)
+/general/amenities              (Search locator; scoped by property type)
+/general/city-zones             (Search locator; scoped by city)
+/administrative/sources         (Change Status locator)
 ```
 
-Search filters still missing versus the official list include price and room
-ranges, amenities, status/`nostatus`, broker, branch, dates, `multiple_codpro`,
-country/department, and sort. Those belong in the rest of batch A with
-Create/Update, not as a separate release of 30 query parameters alone.
+Search now covers the Batch A commercial filters: price and room ranges,
+built-area range, amenities / amenitiesin, status / nostatus, broker,
+branch, updated-since, multiple codes, city zone, and sort. Filters still
+omitted (parking, floors, street ranges, exclusive/great, destination,
+country/department) can wait for Create/Update or a later polish pass.

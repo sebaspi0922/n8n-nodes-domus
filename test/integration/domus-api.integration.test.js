@@ -108,6 +108,43 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.equal(typeof source.name, 'string');
 	});
 
+	it('returns the amenities catalog used by Search filters', async () => {
+		const response = await requestDomus('/general/amenities');
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const amenity = response.data.data[0];
+		assert.ok(amenity.code !== undefined);
+		assert.equal(typeof amenity.name, 'string');
+	});
+
+	it('returns city zones used by the Search city-zone locator', async () => {
+		const response = await requestDomus('/general/city-zones');
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const zone = response.data.data[0];
+		assert.ok(zone.code !== undefined);
+		assert.equal(typeof zone.name, 'string');
+	});
+
+	it('returns typed neighborhoods as name rows without requiring a code', async () => {
+		const response = await requestDomus('/search/digited-neighborhoods', {
+			headers: { Inmobiliaria: '1' },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const neighborhood = response.data.data[0];
+		assert.equal(typeof neighborhood.name, 'string');
+	});
+
 	it('returns a nested status-history envelope for a discovered property', async () => {
 		const code = config.propertyCode;
 		let propertyCode = code;

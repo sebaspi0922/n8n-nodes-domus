@@ -76,7 +76,9 @@ Default suite is **read-only**:
 3. `GET /properties` with `Perpage: 1` — search envelope (`data`, `current_page`)
 4. `GET /properties/{codpro}` using a code discovered in step 3 — get envelope
 5. `GET /general/status` and `GET /administrative/sources` — Change Status locators
-6. `GET /properties/status/{codpro}` — nested history envelope
+6. `GET /general/amenities` and `GET /general/city-zones` — Search locators
+7. `GET /search/digited-neighborhoods` — typed-neighborhood helper (name rows)
+8. `GET /properties/status/{codpro}` — nested history envelope
 
 Assertions are structural (`Array.isArray(data)`, `codpro` present), never
 "property 12345 must exist".
