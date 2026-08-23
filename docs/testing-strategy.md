@@ -75,6 +75,8 @@ Default suite is **read-only**:
 2. `GET /search/cities` — helper contract
 3. `GET /properties` with `Perpage: 1` — search envelope (`data`, `current_page`)
 4. `GET /properties/{codpro}` using a code discovered in step 3 — get envelope
+5. `GET /general/status` and `GET /administrative/sources` — Change Status locators
+6. `GET /properties/status/{codpro}` — nested history envelope
 
 Assertions are structural (`Array.isArray(data)`, `codpro` present), never
 "property 12345 must exist".
@@ -179,14 +181,15 @@ npm run test:e2e                    # starts Docker n8n if needed, then headless
 npm run test:e2e:headed             # visible browser
 ```
 
-Current specs (0.1.0 surface only):
+Current specs:
 
 | Spec | What it proves |
 | ---- | -------------- |
-| `community-node.spec.ts` | n8n loads; Domus appears; Property / Search / Get are visible |
+| `community-node.spec.ts` | n8n loads; Domus appears; Property / Search / Get / status operations are visible |
 | `credentials.spec.ts` | Domus API credential form: Token field + Testing/Production. Live save uses REST so the token is not typed in the UI |
 | `property-search.spec.ts` | Resource/operation Search; optional city locator + execute |
 | `property-get.spec.ts` | Property Code field; execute uses a code discovered at runtime |
+| `property-status.spec.ts` | Change Status and Get Status History fields; history execute is read-only |
 
 Playwright does **not** assert every query parameter. That belongs in capas 1–2.
 

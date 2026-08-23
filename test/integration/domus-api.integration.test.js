@@ -83,4 +83,58 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.ok(property);
 		assert.ok(property.codpro !== undefined);
 	});
+
+	it('returns the full property status catalog used by Change Status', async () => {
+		const response = await requestDomus('/general/status');
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const status = response.data.data[0];
+		assert.ok(status.code !== undefined);
+		assert.equal(typeof status.name, 'string');
+	});
+
+	it('returns status-change sources used by the Change Status locator', async () => {
+		const response = await requestDomus('/administrative/sources');
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const source = response.data.data[0];
+		assert.ok(source.code !== undefined);
+		assert.equal(typeof source.name, 'string');
+	});
+
+	it('returns a nested status-history envelope for a discovered property', async () => {
+		const code = config.propertyCode;
+		let propertyCode = code;
+
+		if (!propertyCode) {
+			const search = await requestDomus('/properties', {
+				headers: { Perpage: '1', Inmobiliaria: '1' },
+				query: { page: 1 },
+			});
+			propertyCode = firstProperty(search.data)?.codpro;
+		}
+
+		if (!propertyCode) {
+			return;
+		}
+
+		const response = await requestDomus(`/properties/status/${propertyCode}`, {
+			headers: { Perpage: '1' },
+			query: { page: 1 },
+		});
+
+		assert.equal(response.status, 200);
+		const envelope = response.data?.data;
+		assert.ok(envelope);
+		assert.ok(envelope.current_page !== undefined || Array.isArray(envelope));
+		if (Array.isArray(envelope?.data) && envelope.data.length > 0) {
+			assert.ok(envelope.data[0].status !== undefined || envelope.data[0].code !== undefined);
+		}
+	});
 });

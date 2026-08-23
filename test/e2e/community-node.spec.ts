@@ -5,11 +5,15 @@ test.beforeEach(async ({ page }) => {
 	await ensureOwner(page);
 });
 
-test('loads Domus with Property Search and Get in the editor', async ({ page }) => {
+test('loads Domus with Property Search, Get, and status operations in the editor', async ({
+	page,
+}) => {
 	await openBlankWorkflow(page);
 	await searchDomusInCreator(page);
 	await expect(page.getByText('Search properties')).toBeVisible();
 	await expect(page.getByText('Get a property')).toBeVisible();
+	await expect(page.getByText('Get property status history')).toBeVisible();
+	await expect(page.getByText('Change property status')).toBeVisible();
 
 	await page.getByText('Search properties', { exact: true }).click();
 	await expectDomusNodeOpen(page);

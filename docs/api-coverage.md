@@ -6,11 +6,14 @@ from those pages, not from guessed OpenAPI.
 
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
 - Documented HTTP operations: **49**
-- Public n8n operations in `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods
+- Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
+- Public n8n operations on this branch (unpublished): **4** (adds Change Status and Get Status History)
+- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
 Manual Review. Do not publish a new npm version while that review is open.
+The next public package is **`1.0.0`**, not `0.2.0`. Work lands in small
+git batches; clients should not see another `0.x` release.
 
 ## Authentication and environments
 
@@ -121,69 +124,74 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | ------------ | -------- | ------ | ------------ | --------- | ------ | -------- | -------------- |
 | Inmuebles | `/properties` | GET | Property | Search | Implemented | P0 | 0.1.0 |
 | Inmuebles | `/properties/{codpro}/{idpro?}` | GET | Property | Get | Implemented | P0 | 0.1.0 |
-| Inmuebles | `/properties` | POST | Property | Create | Planned | P0 | 0.2.0 |
-| Inmuebles | `/properties/{codpro}` | PUT | Property | Update | Planned | P0 | 0.2.0 |
-| Inmuebles | `/properties/status/{codpro}` | PUT | Property | Change Status | Planned | P0 | 0.2.0 |
-| Inmuebles | `/properties/status/{codpro}` | GET | Property | Get Status History | Planned | P1 | 0.2.0 |
-| Inmuebles | `/properties/portals/{idpro}/{codpro?}` | GET | Property | Get Portal Publications | Planned | P1 | 0.3.0 |
-| Inmuebles | `/properties/retry-portals/{codpro}/{idpro?}` | GET | Property | Retry Portal Publication | Planned | P1 | 0.3.0 |
-| Inmuebles | `/properties/map` | GET | Property | Search Map | Planned | P2 | 0.5.0 |
-| Inmuebles | `/properties/detach/{codpro}` | PUT | Property | Separate | Planned | P2 | 0.5.0 |
-| Propietarios | `/owners` | GET | Owner | Search | Planned | P0 | 0.3.0 |
-| Propietarios | `/owners/{document}` | GET | Owner | Get | Planned | P0 | 0.3.0 |
-| Propietarios | `/owners` | POST | Owner | Create | Planned | P1 | 0.3.0 |
-| Propietarios | `/owners/{code}` | PUT | Owner | Update | Planned | P1 | 0.3.0 |
-| Propietarios | `/owners/{owner_code}/{codpro}` | DELETE | Owner | Unlink Property | Planned | P2 | 0.3.0 |
-| Administrativo | `/administrative/brokers` | GET | Advisor | Search | Planned | P1 | 0.4.0 |
-| Administrativo | `/administrative/brokers` | POST | Advisor | Create | Planned | P2 | 0.4.0 |
-| Administrativo | `/administrative/brokers/{code}` | PUT | Advisor | Update | Planned | P2 | 0.4.0 |
-| Proyectos V2 | `/projects-v2` | GET | Project | Search | Planned | P1 | 0.4.0 |
-| Proyectos V2 | `/projects-v2/{code}` | GET | Project | Get | Planned | P1 | 0.4.0 |
-| Captaciones V2 | `/captures-v2` | GET | Acquisition | Search | Planned | P1 | 0.5.0 |
-| Captaciones V2 | `/captures-v2/{code}` | GET | Acquisition | Get | Planned | P1 | 0.5.0 |
-| Administrativo | `/administrative/branches` | GET | Branch | Search | Planned | P2 | 0.6.0 |
-| Administrativo | `/administrative/sources` | GET | — | Change-status locator | Helper | P1 | 0.2.0 |
+| Inmuebles | `/properties` | POST | Property | Create | Planned | P0 | 1.0.0 |
+| Inmuebles | `/properties/{codpro}` | PUT | Property | Update | Planned | P0 | 1.0.0 |
+| Inmuebles | `/properties/status/{codpro}` | PUT | Property | Change Status | Implemented | P0 | 1.0.0 |
+| Inmuebles | `/properties/status/{codpro}` | GET | Property | Get Status History | Implemented | P1 | 1.0.0 |
+| Inmuebles | `/properties/portals/{idpro}/{codpro?}` | GET | Property | Get Portal Publications | Planned | P1 | 1.0.0 |
+| Inmuebles | `/properties/retry-portals/{codpro}/{idpro?}` | GET | Property | Retry Portal Publication | Planned | P1 | 1.0.0 |
+| Inmuebles | `/properties/map` | GET | Property | Search Map | Planned | P2 | 1.1.0 |
+| Inmuebles | `/properties/detach/{codpro}` | PUT | Property | Separate | Planned | P2 | 1.1.0 |
+| Propietarios | `/owners` | GET | Owner | Search | Planned | P0 | 1.0.0 |
+| Propietarios | `/owners/{document}` | GET | Owner | Get | Planned | P0 | 1.0.0 |
+| Propietarios | `/owners` | POST | Owner | Create | Planned | P1 | 1.0.0 |
+| Propietarios | `/owners/{code}` | PUT | Owner | Update | Planned | P1 | 1.0.0 |
+| Propietarios | `/owners/{owner_code}/{codpro}` | DELETE | Owner | Unlink Property | Planned | P2 | 1.1.0 |
+| Administrativo | `/administrative/brokers` | GET | Advisor | Search | Planned | P1 | 1.0.0 |
+| Administrativo | `/administrative/brokers` | POST | Advisor | Create | Planned | P2 | 1.2.0 |
+| Administrativo | `/administrative/brokers/{code}` | PUT | Advisor | Update | Planned | P2 | 1.2.0 |
+| Proyectos V2 | `/projects-v2` | GET | Project | Search | Planned | P1 | 1.0.0 |
+| Proyectos V2 | `/projects-v2/{code}` | GET | Project | Get | Planned | P1 | 1.0.0 |
+| Captaciones V2 | `/captures-v2` | GET | Acquisition | Search | Planned | P1 | 1.0.0 |
+| Captaciones V2 | `/captures-v2/{code}` | GET | Acquisition | Get | Planned | P1 | 1.0.0 |
+| Administrativo | `/administrative/branches` | GET | Branch | Search | Planned | P2 | 1.2.0 |
+| Administrativo | `/administrative/sources` | GET | — | Change-status locator | Helper | P1 | 1.0.0 |
 | Administrativo | `/administrative/partners` | GET | — | — | Deferred | P3 | — |
 | Búsqueda | `/search/cities` | GET | Property | City locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/types` | GET | Property | Property Type locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/biz` | GET | Property | Business Type locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/zones` | GET | Property | Zone locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/neighborhoods` | GET | Property | Neighborhood locator | Helper | P0 | 0.1.0 |
-| Búsqueda | `/search/digited-neighborhoods` | GET | Property | Typed-neighborhood locator | Helper | P2 | 0.2.0 |
+| Búsqueda | `/search/digited-neighborhoods` | GET | Property | Typed-neighborhood locator | Helper | P2 | 1.0.0 |
 | Generales | `/general/countries` | GET | Credential | Credential test | Helper | P0 | 0.1.0 |
-| Generales | `/general/status` | GET | Property | Status locator | Helper | P0 | 0.2.0 |
-| Generales | `/general/detach/status` | GET | Property | Separation-status locator | Helper | P2 | 0.5.0 |
-| Generales | `/general/biz` | GET | Property / Advisor | Full business-type catalog | Helper | P1 | 0.2.0 |
-| Generales | `/general/types` | GET | Property | Full property-type catalog | Helper | P1 | 0.2.0 |
-| Generales | `/general/states` | GET | Property / Owner | Department locator | Helper | P2 | 0.2.0 |
-| Generales | `/general/cities` | GET | Property / Owner | Full city catalog | Helper | P1 | 0.2.0 |
-| Generales | `/general/zones` | GET | Property | Full zone catalog | Helper | P2 | 0.2.0 |
-| Generales | `/general/city-zones` | GET | Property | City-zone locator | Helper | P1 | 0.2.0 |
-| Generales | `/general/populated-centers` | GET | Property | Populated-center locator | Helper | P2 | 0.2.0 |
-| Generales | `/general/neighborhoods` | GET | Property | Full neighborhood catalog | Helper | P1 | 0.2.0 |
-| Generales | `/general/amenities` | GET | Property | Amenities locator | Helper | P1 | 0.2.0 |
-| Generales | `/general/amenities-extra` | GET | Property | Extra-amenities locator | Helper | P2 | 0.2.0 |
-| Generales | `/general/destinations` | GET | Property | Destination locator | Helper | P2 | 0.2.0 |
-| Generales | `/general/phone-types` | GET | Owner | Phone-type locator | Helper | P1 | 0.3.0 |
+| Generales | `/general/status` | GET | Property | Status locator | Helper | P0 | 1.0.0 |
+| Generales | `/general/detach/status` | GET | Property | Separation-status locator | Helper | P2 | 1.1.0 |
+| Generales | `/general/biz` | GET | Property / Advisor | Full business-type catalog | Helper | P1 | 1.0.0 |
+| Generales | `/general/types` | GET | Property | Full property-type catalog | Helper | P1 | 1.0.0 |
+| Generales | `/general/states` | GET | Property / Owner | Department locator | Helper | P2 | 1.0.0 |
+| Generales | `/general/cities` | GET | Property / Owner | Full city catalog | Helper | P1 | 1.0.0 |
+| Generales | `/general/zones` | GET | Property | Full zone catalog | Helper | P2 | 1.0.0 |
+| Generales | `/general/city-zones` | GET | Property | City-zone locator | Helper | P1 | 1.0.0 |
+| Generales | `/general/populated-centers` | GET | Property | Populated-center locator | Helper | P2 | 1.0.0 |
+| Generales | `/general/neighborhoods` | GET | Property | Full neighborhood catalog | Helper | P1 | 1.0.0 |
+| Generales | `/general/amenities` | GET | Property | Amenities locator | Helper | P1 | 1.0.0 |
+| Generales | `/general/amenities-extra` | GET | Property | Extra-amenities locator | Helper | P2 | 1.0.0 |
+| Generales | `/general/destinations` | GET | Property | Destination locator | Helper | P2 | 1.0.0 |
+| Generales | `/general/phone-types` | GET | Owner | Phone-type locator | Helper | P1 | 1.0.0 |
 | Generales | `/general/tags` | GET | — | — | Deferred | P3 | — |
 | Proyectos | `/projects` | GET | Project | Search (MLS) | Deferred | P3 | — |
 | Proyectos | `/projects/{code}/{unique_code?}` | GET | Project | Get (MLS) | Deferred | P3 | — |
 
 ## Roadmap
 
-`0.1.0` is already published. Later versions are design targets only.
+`0.1.0` is published and under n8n Creator Portal review. Do not publish
+another npm version while that review is open. Later work lands on git
+in small batches; the next public package is **`1.0.0`**. Internal `0.2`–`0.6`
+labels are retired so clients never see another pre-1.0 release.
 
-| Version | Theme | Public operations |
-| ------- | ----- | ----------------- |
-| **0.1.0** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. |
-| **0.2.0** | Property writes and richer search | Create, Update, Change Status, Get Status History. Expand Search filters already documented on `GET /properties` (price, rooms, amenities, status, broker, dates, sort). Helpers for status, amenities, city zones, typed neighborhoods. |
-| **0.3.0** | Owners and portals | Owner Search/Get/Create/Update/Unlink. Property Get Portal Publications and Retry Portal Publication. Phone-type helper. |
-| **0.4.0** | People and projects | Advisor Search/Create/Update. Project V2 Search/Get. |
-| **0.5.0** | CRM intake and map | Acquisition Search/Get. Property Search Map. Property Separate plus detach-status helper. |
-| **0.6.0** | Agency scope | Branch Search as a small resource or locator. Remaining create-form catalogs if still internal-only. |
-| **1.0.0** | Stable core | P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out unless a user asks. |
+| Batch | Theme | Public operations | npm |
+| ----- | ----- | ----------------- | --- |
+| **Published** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. | **0.1.0** |
+| **A** | Property writes and status | Create, Update, Change Status, Get Status History. Richer Search filters (price, rooms, amenities, status, broker, dates, sort). Helpers for status, amenities, sources, city zones. | unpublished until 1.0 |
+| **B** | Owners and portals | Owner Search/Get/Create/Update. Property Get Portal Publications and Retry Portal Publication. Phone-type helper. | unpublished until 1.0 |
+| **C** | People and projects | Advisor Search. Project V2 Search/Get. | unpublished until 1.0 |
+| **D** | CRM intake | Acquisition Search/Get. | unpublished until 1.0 |
+| **1.0.0** | Stable core | All P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out. | **first post-review publish** |
+| **1.1.0** | Reservations and map | Property Search Map, Separate, Owner Unlink, detach-status helper. | after 1.0 |
+| **1.2.0** | Agency writes | Advisor Create/Update. Branch as a small resource. | after 1.0 |
+| **1.3.0** | Settled public surface | Remaining catalogs, examples, and Cloud listing polish. | the version to point agencies at |
 
-Keep releases small and coherent. Do not ship 40 endpoints in one version.
+Keep pull requests small and coherent. Do not ship 40 endpoints in one change.
 
 ## Classification notes
 
@@ -221,7 +229,7 @@ Documented badges and Guzzle examples disagree in three places. Prefer the
 
 The retry badge also collides with the publications endpoint
 `GET /properties/portals/{idpro}/{codpro?}`. Confirm the retry path against
-`newapi.domus.la` before coding `0.3.0`.
+`newapi.domus.la` before coding the portals work in batch B.
 
 ## Endpoint inventory
 
@@ -478,13 +486,24 @@ No create/update capture endpoints are documented.
 
 ## Current node vs API
 
-`0.1.0` public surface:
+Published `0.1.0` public surface:
 
 ```text
 Domus
 └── Property
     ├── Search    GET /properties          (subset of filters)
     └── Get       GET /properties/{codpro}/{idpro?}
+```
+
+Unpublished branch (batch A, first slice):
+
+```text
+Domus
+└── Property
+    ├── Search              GET /properties
+    ├── Get                 GET /properties/{codpro}/{idpro?}
+    ├── Get Status History  GET /properties/status/{codpro}
+    └── Change Status       PUT /properties/status/{codpro}
 ```
 
 Helpers already wired:
@@ -496,9 +515,11 @@ Helpers already wired:
 /search/zones
 /search/neighborhoods
 /general/countries          (credential test only)
+/general/status             (Change Status locator)
+/administrative/sources     (Change Status locator)
 ```
 
 Search filters still missing versus the official list include price and room
 ranges, amenities, status/`nostatus`, broker, branch, dates, `multiple_codpro`,
-country/department, and sort. Those belong in `0.2.0` with the write operations,
-not as a separate release of 30 query parameters alone.
+country/department, and sort. Those belong in the rest of batch A with
+Create/Update, not as a separate release of 30 query parameters alone.

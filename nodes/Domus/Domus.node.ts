@@ -5,6 +5,8 @@ import {
 	searchCities,
 	searchNeighborhoods,
 	searchPropertyTypes,
+	searchSources,
+	searchStatuses,
 	searchZones,
 } from './methods';
 import { propertyDescription } from './resources/property';
@@ -16,6 +18,8 @@ export class Domus implements INodeType {
 			searchCities,
 			searchNeighborhoods,
 			searchPropertyTypes,
+			searchSources,
+			searchStatuses,
 			searchZones,
 		},
 	};
