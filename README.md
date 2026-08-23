@@ -17,7 +17,7 @@ Domus API 3.0.
 - `Property → Get Status History` using `GET /properties/status/{codpro}`
 - `Property → Change Status` using `PUT /properties/status/{codpro}`
 - Bounded results or automatic page-based pagination with **Return All**
-- Dynamic selectors for city, property type, business type, zone, neighborhood, status, and source
+- Dynamic selectors for city, property type, business type, zone, neighborhood, city zone, amenities, status, and source
 - Manual code entry as an alternative to every dynamic selector
 - One n8n output item per property
 
@@ -95,15 +95,17 @@ no token or credential identifier.
 Calls `GET /properties` with the Domus `Perpage`, `Inmobiliaria`, and `Ficha`
 headers. Available filters include:
 
-- property code
-- reference
+- property code, multiple property codes, and reference
 - keyword
-- city
-- property type
-- business type
+- city, city zone, zone, and neighborhood name or code
+- property type and business type
 - Colombian socioeconomic stratum
-- zone
-- neighborhood name or code
+- status, or every status (`nostatus=0`)
+- amenities (any match or match-all)
+- sale and rent price ranges, bedroom/bathroom ranges, and built-area range
+- broker code and branch code
+- updated since a date (`YYYY-MM-DD`)
+- sort field and direction
 
 With **Return All** disabled, **Limit** controls both the maximum number of
 items and the requested page size. When **Return All** is enabled, the node
@@ -112,9 +114,11 @@ using **Results Per Page** for each request. Filters are preserved across
 pages.
 
 City, property type, business type, zone, and neighborhood use Domus search
-endpoints to provide live options for the selected agency scope. Each selector
-also supports **By Code** for one or more comma-separated codes. Zone and
-neighborhood options are scoped to the selected city when applicable.
+endpoints to provide live options for the selected agency scope. Status,
+amenities, and city zone use the full catalogs. Each selector also supports
+**By Code** for one or more comma-separated codes. Zone, neighborhood, and
+city-zone options are scoped to the selected city when applicable. Amenity
+options are scoped to the selected property type when applicable.
 
 ### Property → Get
 

@@ -27,6 +27,8 @@ test('exposes Property Search controls including the city locator', async ({ pag
 		.or(page.getByRole('button', { name: /add filter/i }));
 	if (await addFilter.first().isVisible().catch(() => false)) {
 		await addFilter.first().click();
+		await expect(page.getByRole('option', { name: 'Status', exact: true })).toBeVisible();
+		await expect(page.getByRole('option', { name: 'Amenities', exact: true })).toBeVisible();
 		const cityOption = page.getByRole('option', { name: 'City', exact: true });
 		await expect(cityOption).toBeVisible();
 		await cityOption.click();

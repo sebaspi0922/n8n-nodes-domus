@@ -2,7 +2,7 @@ import type { ILoadOptionsFunctions, INodeListSearchResult } from 'n8n-workflow'
 import { DOMUS_CREDENTIAL_NAME } from '../constants';
 
 interface DomusSearchOption {
-	code: number | string;
+	code?: number | string;
 	name: string;
 	city_name?: string;
 	state_name?: string;
@@ -16,11 +16,17 @@ const isDomusSearchOption = (value: unknown): value is DomusSearchOption => {
 	if (!value || typeof value !== 'object') return false;
 
 	const option = value as Partial<DomusSearchOption>;
-	return (
-		(typeof option.code === 'number' || typeof option.code === 'string') &&
-		typeof option.name === 'string'
-	);
+	const hasName = typeof option.name === 'string' && option.name.length > 0;
+	const hasCode =
+		option.code === undefined ||
+		typeof option.code === 'number' ||
+		typeof option.code === 'string';
+
+	return hasName && hasCode;
 };
+
+const optionValue = (option: DomusSearchOption): string =>
+	option.code !== undefined && String(option.code).length > 0 ? String(option.code) : option.name;
 
 const getFilterValue = (context: ILoadOptionsFunctions, name: string): string | undefined => {
 	const filters = context.getCurrentNodeParameters()?.filters;
@@ -49,6 +55,7 @@ const getDisplayName = (option: DomusSearchOption): string => {
 interface SearchDomusOptionsConfig {
 	cityScoped?: boolean;
 	includeAgencyScope?: boolean;
+	typeScoped?: boolean;
 }
 
 async function searchDomusOptions(
@@ -60,9 +67,15 @@ async function searchDomusOptions(
 	const config = typeof searchConfig === 'boolean' ? { cityScoped: searchConfig } : searchConfig;
 	const cityScoped = config.cityScoped ?? false;
 	const includeAgencyScope = config.includeAgencyScope ?? true;
+	const typeScoped = config.typeScoped ?? false;
 	const credentials = await this.getCredentials(DOMUS_CREDENTIAL_NAME);
 	const entireAgency = this.getCurrentNodeParameter('entireAgency') === true;
 	const city = cityScoped ? getFilterValue(this, 'city') : undefined;
+	const type = typeScoped ? getFilterValue(this, 'propertyType') : undefined;
+	const qs = {
+		...(city ? { city } : {}),
+		...(type ? { type } : {}),
+	};
 
 	const response = (await this.helpers.httpRequestWithAuthentication.call(
 		this,
@@ -75,28 +88,28 @@ async function searchDomusOptions(
 				Accept: 'application/json',
 				...(includeAgencyScope ? { Inmobiliaria: entireAgency ? 1 : 0 } : {}),
 			},
-			qs: city ? { city } : undefined,
+			qs: Object.keys(qs).length > 0 ? qs : undefined,
 		},
 	)) as DomusSearchResponse;
 
 	const normalizedFilter = filter?.trim().toLocaleLowerCase();
-	const seenCodes = new Set<string>();
+	const seenValues = new Set<string>();
 	const options = Array.isArray(response.data) ? response.data.filter(isDomusSearchOption) : [];
 
 	const results = options
 		.filter((option) => {
-			const code = String(option.code);
-			if (seenCodes.has(code)) return false;
-			seenCodes.add(code);
+			const value = optionValue(option);
+			if (seenValues.has(value)) return false;
+			seenValues.add(value);
 
 			if (!normalizedFilter) return true;
-			return [option.name, code, option.city_name, option.state_name].some((value) =>
-				value?.toLocaleLowerCase().includes(normalizedFilter),
+			return [option.name, value, option.city_name, option.state_name].some((candidate) =>
+				candidate?.toLocaleLowerCase().includes(normalizedFilter),
 			);
 		})
 		.map((option) => ({
 			name: getDisplayName(option),
-			value: String(option.code),
+			value: optionValue(option),
 		}))
 		.sort((left, right) => left.name.localeCompare(right.name, 'es', { sensitivity: 'base' }));
 
@@ -153,5 +166,34 @@ export async function searchSources(
 ): Promise<INodeListSearchResult> {
 	return await searchDomusOptions.call(this, '/administrative/sources', filter, {
 		includeAgencyScope: false,
+	});
+}
+
+export async function searchAmenities(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/amenities', filter, {
+		includeAgencyScope: false,
+		typeScoped: true,
+	});
+}
+
+export async function searchCityZones(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/city-zones', filter, {
+		cityScoped: true,
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchTypedNeighborhoods(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/search/digited-neighborhoods', filter, {
+		cityScoped: true,
 	});
 }
