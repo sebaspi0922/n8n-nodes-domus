@@ -64,12 +64,12 @@ if (!domus.credentials?.some((credential) => credential.name === "domusApi")) {
 const operations = domus.properties
 	.find((property) => property.name === "operation")
 	?.options ?? [];
-for (const operationName of ["search", "get"]) {
+for (const operationName of ["search", "get", "getStatusHistory", "changeStatus"]) {
 	if (!operations.some((operation) => operation.value === operationName)) {
 		throw new Error(`Property operation ${operationName} was not registered`);
 	}
 }
-console.log(`Loaded ${domus.name} with credential domusApi and operations search/get`);
+console.log(`Loaded ${domus.name} with credential domusApi and operations search/get/getStatusHistory/changeStatus`);
 '
 
 docker compose --file "${compose_file}" exec --no-TTY n8n \
@@ -79,6 +79,14 @@ docker compose --file "${compose_file}" exec --no-TTY n8n \
 docker compose --file "${compose_file}" exec --no-TTY n8n \
 	n8n import:workflow \
 	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/get-property.json"
+
+docker compose --file "${compose_file}" exec --no-TTY n8n \
+	n8n import:workflow \
+	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/get-property-status-history.json"
+
+docker compose --file "${compose_file}" exec --no-TTY n8n \
+	n8n import:workflow \
+	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/change-property-status.json"
 
 logs="$(docker compose --file "${compose_file}" logs --no-color n8n)"
 if grep --extended-regexp --ignore-case --quiet \

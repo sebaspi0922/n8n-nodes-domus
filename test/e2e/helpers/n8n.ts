@@ -85,11 +85,17 @@ export async function searchDomusInCreator(page: Page): Promise<void> {
 
 	await expect(page.getByText(/search properties/i).first()).toBeVisible();
 	await expect(page.getByText(/get a property/i).first()).toBeVisible();
+	await expect(page.getByText(/get property status history/i).first()).toBeVisible();
+	await expect(page.getByText(/change property status/i).first()).toBeVisible();
 }
 
 export async function addDomusNode(
 	page: Page,
-	action: 'Search properties' | 'Get a property' = 'Search properties',
+	action:
+		| 'Search properties'
+		| 'Get a property'
+		| 'Get property status history'
+		| 'Change property status' = 'Search properties',
 ): Promise<void> {
 	await searchDomusInCreator(page);
 	await page.getByText(action, { exact: true }).click();

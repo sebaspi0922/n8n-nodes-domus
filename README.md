@@ -14,8 +14,10 @@ Domus API 3.0.
 - Credential test against `GET /general/countries`
 - `Property → Search` using `GET /properties`
 - `Property → Get` using `GET /properties/{codpro}/{idpro?}`
+- `Property → Get Status History` using `GET /properties/status/{codpro}`
+- `Property → Change Status` using `PUT /properties/status/{codpro}`
 - Bounded results or automatic page-based pagination with **Return All**
-- Dynamic selectors for city, property type, business type, zone, and neighborhood
+- Dynamic selectors for city, property type, business type, zone, neighborhood, status, and source
 - Manual code entry as an alternative to every dynamic selector
 - One n8n output item per property
 
@@ -79,14 +81,12 @@ screenshots, or example workflows.
 2. Create or open a workflow.
 3. Add the **Domus** node.
 4. Create or select a **Domus API** credential.
-5. Select **Property** and choose **Search** or **Get**.
+5. Select **Property** and choose an operation.
 6. Configure the operation and execute the node.
 
-Sanitized importable workflows are available at
-[`examples/search-properties.json`](examples/search-properties.json) and
-[`examples/get-property.json`](examples/get-property.json). Assign your own
-Domus credential after importing them; the examples contain no token or
-credential identifier.
+Sanitized importable workflows are available under [`examples/`](examples/).
+Assign your own Domus credential after importing them; the examples contain
+no token or credential identifier.
 
 ## Operations
 
@@ -131,6 +131,27 @@ object directly as one n8n item.
 
 Authentication, not-found, HTTP, and network failures are propagated as n8n
 execution errors instead of being converted into successful output.
+
+### Property → Get Status History
+
+Calls `GET /properties/status/{codpro}` and returns each recorded status
+change as an n8n item. Pagination is nested under `data` in the Domus
+response; the node flattens that list and can follow pages with
+**Return All**.
+
+### Property → Change Status
+
+Calls `PUT /properties/status/{codpro}` with
+`application/x-www-form-urlencoded`. **Status** is required and can be
+chosen from `GET /general/status` or entered by code. Optional fields
+include comment, change date, deal value, source, broker, and partner
+agency.
+
+Do not use this operation to reserve or separate a property. Domus
+documents a dedicated Separate endpoint for that, which is not in this
+slice. Created properties cannot be deleted; status is the documented
+lifecycle control. Write only against the testing host unless you
+intentionally target production.
 
 ## Verified behavior
 
@@ -201,7 +222,8 @@ Never put a Domus token in Git, fixtures, traces, or screenshots.
 
 `n8n-nodes-domus@0.1.0` is published to npm with provenance from GitHub
 Actions. It is in n8n Creator Portal Manual Review. Do not publish `0.1.1`,
-`0.2.0`, or any other npm version while that review is open.
+`0.2.0`, `1.0.0`, or any other npm version while that review is open. The
+next public package after review is `1.0.0`.
 
 ## Documentation
 

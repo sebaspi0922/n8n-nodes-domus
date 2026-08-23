@@ -1,0 +1,52 @@
+{
+	"id": "e4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b",
+	"name": "Domus - Get property status history",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "property",
+				"operation": "getStatusHistory",
+				"propertyCode": "",
+				"historyReturnAll": false,
+				"historyLimit": 50,
+				"historyPage": 1
+			},
+			"id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+			"name": "Get property status history",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Get property status history",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

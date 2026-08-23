@@ -46,12 +46,20 @@ const getDisplayName = (option: DomusSearchOption): string => {
 		: option.name;
 };
 
+interface SearchDomusOptionsConfig {
+	cityScoped?: boolean;
+	includeAgencyScope?: boolean;
+}
+
 async function searchDomusOptions(
 	this: ILoadOptionsFunctions,
 	endpoint: string,
 	filter?: string,
-	cityScoped = false,
+	searchConfig: boolean | SearchDomusOptionsConfig = {},
 ): Promise<INodeListSearchResult> {
+	const config = typeof searchConfig === 'boolean' ? { cityScoped: searchConfig } : searchConfig;
+	const cityScoped = config.cityScoped ?? false;
+	const includeAgencyScope = config.includeAgencyScope ?? true;
 	const credentials = await this.getCredentials(DOMUS_CREDENTIAL_NAME);
 	const entireAgency = this.getCurrentNodeParameter('entireAgency') === true;
 	const city = cityScoped ? getFilterValue(this, 'city') : undefined;
@@ -65,7 +73,7 @@ async function searchDomusOptions(
 			url: endpoint,
 			headers: {
 				Accept: 'application/json',
-				Inmobiliaria: entireAgency ? 1 : 0,
+				...(includeAgencyScope ? { Inmobiliaria: entireAgency ? 1 : 0 } : {}),
 			},
 			qs: city ? { city } : undefined,
 		},
@@ -128,4 +136,22 @@ export async function searchNeighborhoods(
 	filter?: string,
 ): Promise<INodeListSearchResult> {
 	return await searchDomusOptions.call(this, '/search/neighborhoods', filter, true);
+}
+
+export async function searchStatuses(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/status', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchSources(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/administrative/sources', filter, {
+		includeAgencyScope: false,
+	});
 }

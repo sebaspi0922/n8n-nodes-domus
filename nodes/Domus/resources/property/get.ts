@@ -5,6 +5,11 @@ const showOnlyForPropertyGet = {
 	resource: ['property'],
 };
 
+const showOnlyForPropertyCode = {
+	operation: ['get', 'changeStatus', 'getStatusHistory'],
+	resource: ['property'],
+};
+
 export const propertyGetDescription: INodeProperties[] = [
 	{
 		displayName: 'Property Code',
@@ -15,7 +20,7 @@ export const propertyGetDescription: INodeProperties[] = [
 		placeholder: 'e.g. 5580',
 		description: 'Property code in Domus (codpro)',
 		displayOptions: {
-			show: showOnlyForPropertyGet,
+			show: showOnlyForPropertyCode,
 		},
 	},
 	{

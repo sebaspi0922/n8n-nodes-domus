@@ -8,8 +8,13 @@ const examplesDir = join(__dirname, '../examples');
 describe('packaged example workflows', () => {
 	const files = readdirSync(examplesDir).filter((name) => name.endsWith('.json'));
 
-	it('ships at least the Search and Get fixtures', () => {
-		assert.deepEqual(files.sort(), ['get-property.json', 'search-properties.json']);
+	it('ships sanitized fixtures for every public property operation', () => {
+		assert.deepEqual(files.sort(), [
+			'change-property-status.json',
+			'get-property-status-history.json',
+			'get-property.json',
+			'search-properties.json',
+		]);
 	});
 
 	for (const fileName of files) {
@@ -26,7 +31,11 @@ describe('packaged example workflows', () => {
 			for (const node of domusNodes) {
 				assert.equal(node.credentials, undefined);
 				assert.equal(node.parameters.resource, 'property');
-				assert.ok(['search', 'get'].includes(node.parameters.operation));
+				assert.ok(
+					['search', 'get', 'getStatusHistory', 'changeStatus'].includes(
+						node.parameters.operation,
+					),
+				);
 			}
 		});
 	}

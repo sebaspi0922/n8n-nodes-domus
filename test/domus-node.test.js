@@ -13,8 +13,13 @@ const {
 	searchCities,
 	searchNeighborhoods,
 	searchPropertyTypes,
+	searchSources,
+	searchStatuses,
 	searchZones,
 } = require('../dist/nodes/Domus/methods/listSearch.js');
+const {
+	splitNestedStatusHistory,
+} = require('../dist/nodes/Domus/resources/property/statusHistory.helpers.js');
 
 const getProperty = (properties, name) => properties.find((property) => property.name === name);
 
@@ -90,7 +95,7 @@ describe('Domus property search node', () => {
 		assert.deepEqual(resource.options, [{ name: 'Property', value: 'property' }]);
 		assert.deepEqual(
 			operation.options.map((option) => option.name),
-			['Search', 'Get'],
+			['Search', 'Get', 'Get Status History', 'Change Status'],
 		);
 		assert.equal(search.routing.request.method, 'GET');
 		assert.equal(search.routing.request.url, '/properties');
@@ -264,7 +269,11 @@ describe('Domus property get operation', () => {
 
 		assert.equal(propertyCode.required, true);
 		assert.equal(propertyCode.default, '');
-		assert.deepEqual(propertyCode.displayOptions.show.operation, ['get']);
+		assert.deepEqual(propertyCode.displayOptions.show.operation, [
+			'get',
+			'changeStatus',
+			'getStatusHistory',
+		]);
 		assert.equal(propertyId.required, undefined);
 		assert.equal(propertyId.default, '');
 		assert.deepEqual(propertyId.displayOptions.show.operation, ['get']);
@@ -299,5 +308,137 @@ describe('Domus property get operation', () => {
 		assert.equal(node.description.requestDefaults.ignoreHttpStatusErrors, undefined);
 		assert.equal(get.routing.request.ignoreHttpStatusErrors, undefined);
 		assert.equal(get.routing.request.returnFullResponse, undefined);
+	});
+});
+
+describe('Domus property status history operation', () => {
+	it('registers GET /properties/status/{codpro} and splits nested history rows', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const getStatusHistory = operation.options.find(
+			(option) => option.value === 'getStatusHistory',
+		);
+
+		assert.equal(getStatusHistory.routing.request.method, 'GET');
+		assert.equal(
+			getStatusHistory.routing.request.url,
+			'=/properties/status/{{$parameter.propertyCode}}',
+		);
+		assert.equal(getStatusHistory.routing.output.postReceive[0], splitNestedStatusHistory);
+	});
+
+	it('paginates through the nested Domus history envelope', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const returnAll = getProperty(properties, 'historyReturnAll');
+		const pagination = returnAll.routing.operations.pagination;
+
+		assert.equal(returnAll.routing.send.paginate, '={{$value}}');
+		assert.match(pagination.properties.continue, /data\?\.current_page/);
+		assert.match(pagination.properties.continue, /data\?\.last_page/);
+		assert.equal(
+			getProperty(properties, 'historyLimit').routing.request.headers.Perpage,
+			'={{$value}}',
+		);
+		assert.equal(getProperty(properties, 'historyPage').routing.send.property, 'page');
+	});
+
+	it('turns nested history payloads into one n8n item per change', async () => {
+		const items = await splitNestedStatusHistory.call(
+			{},
+			[],
+			{
+				body: {
+					code: 200,
+					data: {
+						current_page: 1,
+						last_page: 1,
+						data: [
+							{ code: 1, description: 'API - vendido' },
+							{ code: 2, description: 'Disponible' },
+						],
+					},
+				},
+			},
+		);
+
+		assert.deepEqual(
+			items.map((item) => item.json),
+			[
+				{ code: 1, description: 'API - vendido' },
+				{ code: 2, description: 'Disponible' },
+			],
+		);
+	});
+});
+
+describe('Domus property change status operation', () => {
+	it('registers PUT /properties/status/{codpro} as form-urlencoded', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const changeStatus = operation.options.find((option) => option.value === 'changeStatus');
+
+		assert.equal(changeStatus.routing.request.method, 'PUT');
+		assert.equal(
+			changeStatus.routing.request.url,
+			'=/properties/status/{{$parameter.propertyCode}}',
+		);
+		assert.equal(
+			changeStatus.routing.request.headers['Content-Type'],
+			'application/x-www-form-urlencoded',
+		);
+		assert.deepEqual(changeStatus.routing.output.postReceive, [
+			{ type: 'rootProperty', properties: { property: 'property' } },
+		]);
+	});
+
+	it('requires status and maps optional form fields to the documented body keys', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const status = getProperty(properties, 'status');
+		const extraFields = getProperty(properties, 'changeStatusFields').options;
+
+		assert.equal(status.required, true);
+		assert.equal(status.type, 'resourceLocator');
+		assert.equal(status.modes[0].typeOptions.searchListMethod, 'searchStatuses');
+		assert.equal(status.routing.send.type, 'body');
+		assert.equal(status.routing.send.property, 'status');
+		assert.deepEqual(
+			Object.fromEntries(
+				extraFields.map((field) => [field.name, field.routing.send.property]),
+			),
+			{
+				broker: 'broker',
+				changeDate: 'change_date',
+				description: 'description',
+				value: 'value',
+				realState: 'real_state',
+				source: 'source',
+			},
+		);
+		assert.equal(getProperty(extraFields, 'source').modes[0].typeOptions.searchListMethod, 'searchSources');
+	});
+
+	it('loads statuses and sources from the full catalogs, not inventory search', async () => {
+		const { context: statusContext, requests: statusRequests } = createListSearchContext({
+			data: [
+				{ code: 1, name: 'Disponible' },
+				{ code: 3, name: 'Vendido' },
+			],
+		});
+		const statuses = await searchStatuses.call(statusContext, 'vend');
+		assert.deepEqual(statuses, { results: [{ name: 'Vendido', value: '3' }] });
+		assert.equal(statusRequests[0].options.url, '/general/status');
+		assert.equal(statusRequests[0].options.headers.Inmobiliaria, undefined);
+
+		const { context: sourceContext, requests: sourceRequests } = createListSearchContext({
+			data: [{ code: 57, name: 'Cliente-Propietario' }],
+		});
+		const sources = await searchSources.call(sourceContext);
+		assert.deepEqual(sources, {
+			results: [{ name: 'Cliente-Propietario', value: '57' }],
+		});
+		assert.equal(sourceRequests[0].options.url, '/administrative/sources');
+		assert.equal(sourceRequests[0].options.headers.Inmobiliaria, undefined);
 	});
 });

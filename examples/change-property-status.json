@@ -1,0 +1,54 @@
+{
+	"id": "f5a6b7c8-d9e0-4f1a-2b3c-4d5e6f7a8b9c",
+	"name": "Domus - Change property status",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "property",
+				"operation": "changeStatus",
+				"propertyCode": "",
+				"status": {
+					"mode": "id",
+					"value": ""
+				},
+				"changeStatusFields": {}
+			},
+			"id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+			"name": "Change property status",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Change property status",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}
