@@ -3,6 +3,11 @@ import { DOMUS_BASE_URL_EXPRESSION, DOMUS_CREDENTIAL_NAME } from './constants';
 import {
 	searchAmenities,
 	searchBusinessTypes,
+	searchCatalogBusinessTypes,
+	searchCatalogCities,
+	searchCatalogNeighborhoods,
+	searchCatalogPropertyTypes,
+	searchCatalogZones,
 	searchCities,
 	searchCityZones,
 	searchNeighborhoods,
@@ -19,6 +24,11 @@ export class Domus implements INodeType {
 		listSearch: {
 			searchAmenities,
 			searchBusinessTypes,
+			searchCatalogBusinessTypes,
+			searchCatalogCities,
+			searchCatalogNeighborhoods,
+			searchCatalogPropertyTypes,
+			searchCatalogZones,
 			searchCities,
 			searchCityZones,
 			searchNeighborhoods,

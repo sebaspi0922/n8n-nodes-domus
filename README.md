@@ -14,6 +14,8 @@ Domus API 3.0.
 - Credential test against `GET /general/countries`
 - `Property → Search` using `GET /properties`
 - `Property → Get` using `GET /properties/{codpro}/{idpro?}`
+- `Property → Create` using `POST /properties`
+- `Property → Update` using `PUT /properties/{codpro}`
 - `Property → Get Status History` using `GET /properties/status/{codpro}`
 - `Property → Change Status` using `PUT /properties/status/{codpro}`
 - Bounded results or automatic page-based pagination with **Return All**
@@ -135,6 +137,29 @@ object directly as one n8n item.
 
 Authentication, not-found, HTTP, and network failures are propagated as n8n
 execution errors instead of being converted into successful output.
+
+### Property → Create
+
+Calls `POST /properties` with `application/x-www-form-urlencoded`. Required
+fields are **City**, **Address**, **Business Type**, and **Property Type**.
+Those locators use the full `/general/*` catalogs so a listing can be created
+in a city or type that does not already have inventory.
+
+**Rent** is required by Domus when business type is 1 or 3; **Sale Price**
+when it is 2 or 3. Neighborhood can be a catalog code or a typed name in
+**Additional Fields**. Zone or city zone may also be required by the agency.
+
+Created properties **cannot be deleted**. Use **Change Status** to take them
+out of inventory. Prefer the testing host unless you intend to create a live
+listing. Image upload, extra amenities JSON, and multilingual descriptions
+are not in this slice.
+
+### Property → Update
+
+Calls `PUT /properties/{codpro}` with `application/x-www-form-urlencoded`.
+**Property Code** is required. Every commercial field is optional; **Status**
+is not available here. Use **Change Status** for lifecycle updates. An
+optional **Delete Pictures** flag maps to `delete_pictures`.
 
 ### Property → Get Status History
 

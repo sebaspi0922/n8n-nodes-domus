@@ -79,6 +79,7 @@ Default suite is **read-only**:
 6. `GET /general/amenities` and `GET /general/city-zones` — Search locators
 7. `GET /search/digited-neighborhoods` — typed-neighborhood helper (name rows)
 8. `GET /properties/status/{codpro}` — nested history envelope
+9. `GET /general/{cities,types,biz,zones,neighborhoods}` — Create/Update catalogs
 
 Assertions are structural (`Array.isArray(data)`, `codpro` present), never
 "property 12345 must exist".
@@ -187,11 +188,12 @@ Current specs:
 
 | Spec | What it proves |
 | ---- | -------------- |
-| `community-node.spec.ts` | n8n loads; Domus appears; Property / Search / Get / status operations are visible |
+| `community-node.spec.ts` | n8n loads; Domus appears; Property Search / Get / Create / Update / status operations are visible |
 | `credentials.spec.ts` | Domus API credential form: Token field + Testing/Production. Live save uses REST so the token is not typed in the UI |
 | `property-search.spec.ts` | Resource/operation Search; optional city locator + execute |
 | `property-get.spec.ts` | Property Code field; execute uses a code discovered at runtime |
 | `property-status.spec.ts` | Change Status and Get Status History fields; history execute is read-only |
+| `property-write.spec.ts` | Create and Update field surfaces; no live write |
 
 Playwright does **not** assert every query parameter. That belongs in capas 1–2.
 

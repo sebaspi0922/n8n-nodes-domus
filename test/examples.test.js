@@ -11,9 +11,11 @@ describe('packaged example workflows', () => {
 	it('ships sanitized fixtures for every public property operation', () => {
 		assert.deepEqual(files.sort(), [
 			'change-property-status.json',
+			'create-property.json',
 			'get-property-status-history.json',
 			'get-property.json',
 			'search-properties.json',
+			'update-property.json',
 		]);
 	});
 
@@ -32,7 +34,7 @@ describe('packaged example workflows', () => {
 				assert.equal(node.credentials, undefined);
 				assert.equal(node.parameters.resource, 'property');
 				assert.ok(
-					['search', 'get', 'getStatusHistory', 'changeStatus'].includes(
+					['search', 'get', 'create', 'update', 'getStatusHistory', 'changeStatus'].includes(
 						node.parameters.operation,
 					),
 				);

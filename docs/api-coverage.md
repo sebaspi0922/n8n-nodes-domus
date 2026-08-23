@@ -7,8 +7,8 @@ from those pages, not from guessed OpenAPI.
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
 - Documented HTTP operations: **49**
 - Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Public n8n operations on this branch (unpublished): **4** (Search, Get, Change Status, Get Status History)
-- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods
+- Public n8n operations on this branch (unpublished): **6** (Search, Get, Create, Update, Change Status, Get Status History)
+- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, plus full `/general` catalogs for create and update
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
 Manual Review. Do not publish a new npm version while that review is open.
@@ -124,8 +124,8 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | ------------ | -------- | ------ | ------------ | --------- | ------ | -------- | -------------- |
 | Inmuebles | `/properties` | GET | Property | Search | Implemented | P0 | 1.0.0 |
 | Inmuebles | `/properties/{codpro}/{idpro?}` | GET | Property | Get | Implemented | P0 | 0.1.0 |
-| Inmuebles | `/properties` | POST | Property | Create | Planned | P0 | 1.0.0 |
-| Inmuebles | `/properties/{codpro}` | PUT | Property | Update | Planned | P0 | 1.0.0 |
+| Inmuebles | `/properties` | POST | Property | Create | Implemented | P0 | 1.0.0 |
+| Inmuebles | `/properties/{codpro}` | PUT | Property | Update | Implemented | P0 | 1.0.0 |
 | Inmuebles | `/properties/status/{codpro}` | PUT | Property | Change Status | Implemented | P0 | 1.0.0 |
 | Inmuebles | `/properties/status/{codpro}` | GET | Property | Get Status History | Implemented | P1 | 1.0.0 |
 | Inmuebles | `/properties/portals/{idpro}/{codpro?}` | GET | Property | Get Portal Publications | Planned | P1 | 1.0.0 |
@@ -156,11 +156,11 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Generales | `/general/countries` | GET | Credential | Credential test | Helper | P0 | 0.1.0 |
 | Generales | `/general/status` | GET | Property | Status locator | Helper | P0 | 1.0.0 |
 | Generales | `/general/detach/status` | GET | Property | Separation-status locator | Helper | P2 | 1.1.0 |
-| Generales | `/general/biz` | GET | Property / Advisor | Full business-type catalog | Helper | P1 | 1.0.0 |
+| Generales | `/general/biz` | GET | Property | Full business-type catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/types` | GET | Property | Full property-type catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/states` | GET | Property / Owner | Department locator | Helper | P2 | 1.0.0 |
 | Generales | `/general/cities` | GET | Property / Owner | Full city catalog | Helper | P1 | 1.0.0 |
-| Generales | `/general/zones` | GET | Property | Full zone catalog | Helper | P2 | 1.0.0 |
+| Generales | `/general/zones` | GET | Property | Full zone catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/city-zones` | GET | Property | City-zone locator | Helper | P1 | 1.0.0 |
 | Generales | `/general/populated-centers` | GET | Property | Populated-center locator | Helper | P2 | 1.0.0 |
 | Generales | `/general/neighborhoods` | GET | Property | Full neighborhood catalog | Helper | P1 | 1.0.0 |
@@ -182,7 +182,7 @@ labels are retired so clients never see another pre-1.0 release.
 | Batch | Theme | Public operations | npm |
 | ----- | ----- | ----------------- | --- |
 | **Published** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. | **0.1.0** |
-| **A** | Property writes and status | Change Status and Get Status History are in. Search now has price, rooms, amenities, status, broker, dates, and sort. Remaining: Create and Update. | unpublished until 1.0 |
+| **A** | Property writes and status | Search commercial filters, Change Status, Get Status History, Create, and Update. Images, extra-amenities JSON, and multilingual descriptions stay out of this slice. | unpublished until 1.0 |
 | **B** | Owners and portals | Owner Search/Get/Create/Update. Property Get Portal Publications and Retry Portal Publication. Phone-type helper. | unpublished until 1.0 |
 | **C** | People and projects | Advisor Search. Project V2 Search/Get. | unpublished until 1.0 |
 | **D** | CRM intake | Acquisition Search/Get. | unpublished until 1.0 |
@@ -499,13 +499,15 @@ Domus
     └── Get       GET /properties/{codpro}/{idpro?}
 ```
 
-Unpublished branch (batch A, search + status):
+Unpublished branch (batch A complete):
 
 ```text
 Domus
 └── Property
     ├── Search              GET /properties          (core commercial filters)
     ├── Get                 GET /properties/{codpro}/{idpro?}
+    ├── Create              POST /properties
+    ├── Update              PUT /properties/{codpro}
     ├── Get Status History  GET /properties/status/{codpro}
     └── Change Status       PUT /properties/status/{codpro}
 ```
@@ -520,14 +522,18 @@ Helpers already wired:
 /search/neighborhoods
 /search/digited-neighborhoods   (helper; names only, no codes)
 /general/countries              (credential test only)
-/general/status                 (Search + Change Status locator)
-/general/amenities              (Search locator; scoped by property type)
-/general/city-zones             (Search locator; scoped by city)
+/general/status                 (Search + Change Status + Create locator)
+/general/amenities              (Search and write locator; scoped by property type)
+/general/city-zones             (Search and write locator; scoped by city)
+/general/cities                 (Create/Update city locator)
+/general/types                  (Create/Update property-type locator)
+/general/biz                    (Create/Update business-type locator)
+/general/zones                  (Create/Update cardinal-zone locator)
+/general/neighborhoods          (Create/Update neighborhood locator; city + name)
 /administrative/sources         (Change Status locator)
 ```
 
-Search now covers the Batch A commercial filters: price and room ranges,
-built-area range, amenities / amenitiesin, status / nostatus, broker,
-branch, updated-since, multiple codes, city zone, and sort. Filters still
-omitted (parking, floors, street ranges, exclusive/great, destination,
-country/department) can wait for Create/Update or a later polish pass.
+Search covers the Batch A commercial filters. Create and Update send the
+documented commercial form fields. Still omitted on write: image_# /
+image360_#, image delete indexes, amenities_extra JSON, multilingual
+descriptions, and populated-center / destination locators.

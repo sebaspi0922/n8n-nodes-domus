@@ -132,6 +132,45 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.equal(typeof zone.name, 'string');
 	});
 
+	it('returns the full city catalog used by Create and Update', async () => {
+		const response = await requestDomus('/general/cities');
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const city = response.data.data[0];
+		assert.ok(city.code !== undefined);
+		assert.equal(typeof city.name, 'string');
+	});
+
+	it('returns full business-type and property-type catalogs', async () => {
+		for (const path of ['/general/biz', '/general/types', '/general/zones']) {
+			const response = await requestDomus(path);
+			assert.equal(response.status, 200);
+			assert.ok(Array.isArray(response.data?.data));
+			if (response.data.data.length === 0) continue;
+
+			const row = response.data.data[0];
+			assert.ok(row.code !== undefined);
+			assert.equal(typeof row.name, 'string');
+		}
+	});
+
+	it('returns catalog neighborhoods that can be scoped by city', async () => {
+		const response = await requestDomus('/general/neighborhoods', {
+			query: { city: 11001 },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const neighborhood = response.data.data[0];
+		assert.ok(neighborhood.code !== undefined);
+		assert.equal(typeof neighborhood.name, 'string');
+	});
+
 	it('returns typed neighborhoods as name rows without requiring a code', async () => {
 		const response = await requestDomus('/search/digited-neighborhoods', {
 			headers: { Inmobiliaria: '1' },

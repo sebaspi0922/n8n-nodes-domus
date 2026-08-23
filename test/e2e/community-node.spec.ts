@@ -12,6 +12,8 @@ test('loads Domus with Property Search, Get, and status operations in the editor
 	await searchDomusInCreator(page);
 	await expect(page.getByText('Search properties')).toBeVisible();
 	await expect(page.getByText('Get a property')).toBeVisible();
+	await expect(page.getByText('Create a property')).toBeVisible();
+	await expect(page.getByText('Update a property')).toBeVisible();
 	await expect(page.getByText('Get property status history')).toBeVisible();
 	await expect(page.getByText('Change property status')).toBeVisible();
 
