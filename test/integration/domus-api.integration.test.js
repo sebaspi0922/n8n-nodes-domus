@@ -283,6 +283,42 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.ok(response.data.data.unique_code !== undefined);
 	});
 
+	it('returns a paginated Domus V2 acquisition envelope', async () => {
+		const response = await requestDomus('/captures-v2', {
+			headers: { Perpage: '1' },
+			query: { page: 1 },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		assert.ok(response.data.current_page !== undefined);
+		if (response.data.data.length === 0) return;
+
+		const acquisition = response.data.data[0];
+		assert.ok(acquisition.unique_code !== undefined);
+		assert.ok(acquisition.property_code !== undefined);
+	});
+
+	it('returns one Domus V2 acquisition detail for a discovered code', async () => {
+		const search = await requestDomus('/captures-v2', {
+			headers: { Perpage: '1' },
+			query: { page: 1 },
+		});
+		const acquisition = search.data?.data?.[0];
+
+		if (!acquisition) {
+			return;
+		}
+
+		const response = await requestDomus(`/captures-v2/${acquisition.code ?? 0}`, {
+			query: { unique_code: acquisition.unique_code },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(response.data?.data);
+		assert.ok(response.data.data.unique_code !== undefined);
+	});
+
 	it('returns a bare portal-publication array for a discovered property', async () => {
 		const search = await requestDomus('/properties', {
 			headers: { Perpage: '1', Inmobiliaria: '1' },
