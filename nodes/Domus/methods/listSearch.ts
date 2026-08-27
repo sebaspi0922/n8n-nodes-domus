@@ -280,6 +280,15 @@ export async function searchTypedNeighborhoods(
 	});
 }
 
+export async function searchCountries(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/countries', filter, {
+		includeAgencyScope: false,
+	});
+}
+
 export async function searchCatalogCities(
 	this: ILoadOptionsFunctions,
 	filter?: string,

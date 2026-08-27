@@ -11,6 +11,7 @@ export {
 	searchCatalogZones,
 	searchCities,
 	searchCityZones,
+	searchCountries,
 	searchDocumentTypes,
 	searchNeighborhoods,
 	searchPhoneTypes,

@@ -26,10 +26,12 @@ Domus API 3.0.
 - `Owner → Create` using `POST /owners`
 - `Owner → Update` using `PUT /owners/{document}`
 - `Advisor → Search` using `GET /administrative/brokers`
+- `Project → Search` using `GET /projects-v2`
+- `Project → Get` using `GET /projects-v2/{code}?unique_code=`
 - Bounded results or automatic page-based pagination with **Return All**
-- Dynamic selectors for city, property type, business type, zone, neighborhood, city zone, amenities, status, source, advisor, branch, document type, and phone type
+- Dynamic selectors for city, country, property type, business type, zone, neighborhood, city zone, amenities, status, source, advisor, branch, document type, and phone type
 - Manual code entry as an alternative to every dynamic selector
-- One n8n output item per property or owner
+- One n8n output item per property, owner, advisor, or project
 
 ## Requirements
 
@@ -91,7 +93,8 @@ screenshots, or example workflows.
 2. Create or open a workflow.
 3. Add the **Domus** node.
 4. Create or select a **Domus API** credential.
-5. Select **Property**, **Owner**, or **Advisor** and choose an operation.
+5. Select **Property**, **Owner**, **Advisor**, or **Project** and choose an
+   operation.
 6. Configure the operation and execute the node.
 
 Sanitized importable workflows are available under [`examples/`](examples/).
@@ -254,6 +257,24 @@ n8n; it does not make a smaller request.
 
 There is no documented get-by-id for a single advisor, and advisor writes are
 planned for a later release.
+
+### Project → Search
+
+Calls `GET /projects-v2` and returns one n8n item per project, with its price
+and area ranges, pictures, branch, and agency. Filters cover city, country,
+branch, neighborhood, name, project code, and status, plus **Any Status** for
+`nostatus=0`. **Return All** follows `current_page` and `last_page` the same
+way the property and owner searches do.
+
+This resource is Domus CRM V2 inventory. Domus documents `GET /projects` as a
+separate MLS list that holds different inventory, so it is intentionally not
+exposed here.
+
+### Project → Get
+
+Calls `GET /projects-v2/{code}` and returns the project `data` object with its
+unit types, price rows, and pictures. **Project Code** is required; send `0`
+and set **Unique Code** for projects the agency never assigned a code to.
 
 ## Verified behavior
 

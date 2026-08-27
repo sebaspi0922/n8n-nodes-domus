@@ -247,6 +247,42 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.ok(Array.isArray(branches.data?.data));
 	});
 
+	it('returns a paginated Domus V2 project envelope', async () => {
+		const response = await requestDomus('/projects-v2', {
+			headers: { Perpage: '1' },
+			query: { page: 1 },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		assert.ok(response.data.current_page !== undefined);
+		if (response.data.data.length === 0) return;
+
+		const project = response.data.data[0];
+		assert.ok(project.unique_code !== undefined);
+		assert.equal(typeof project.name, 'string');
+	});
+
+	it('returns one Domus V2 project detail for a discovered code', async () => {
+		const search = await requestDomus('/projects-v2', {
+			headers: { Perpage: '1' },
+			query: { page: 1 },
+		});
+		const project = search.data?.data?.[0];
+
+		if (!project) {
+			return;
+		}
+
+		const response = await requestDomus(`/projects-v2/${project.code ?? 0}`, {
+			query: { unique_code: project.unique_code },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(response.data?.data);
+		assert.ok(response.data.data.unique_code !== undefined);
+	});
+
 	it('returns a bare portal-publication array for a discovered property', async () => {
 		const search = await requestDomus('/properties', {
 			headers: { Perpage: '1', Inmobiliaria: '1' },

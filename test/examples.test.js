@@ -11,6 +11,7 @@ describe('packaged example workflows', () => {
 	const operationsByResource = {
 		advisor: ['search'],
 		owner: ['search', 'get', 'create', 'update'],
+		project: ['search', 'get'],
 		property: [
 			'search',
 			'get',
@@ -29,12 +30,14 @@ describe('packaged example workflows', () => {
 			'create-owner.json',
 			'create-property.json',
 			'get-owner.json',
+			'get-project.json',
 			'get-property-portal-publications.json',
 			'get-property-status-history.json',
 			'get-property.json',
 			'retry-portal-publication.json',
 			'search-advisors.json',
 			'search-owners.json',
+			'search-projects.json',
 			'search-properties.json',
 			'update-owner.json',
 			'update-property.json',

@@ -13,6 +13,7 @@ import {
 	searchCatalogZones,
 	searchCities,
 	searchCityZones,
+	searchCountries,
 	searchDocumentTypes,
 	searchNeighborhoods,
 	searchPhoneTypes,
@@ -24,6 +25,7 @@ import {
 } from './methods';
 import { advisorDescription } from './resources/advisor';
 import { ownerDescription } from './resources/owner';
+import { projectDescription } from './resources/project';
 import { propertyDescription } from './resources/property';
 
 export class Domus implements INodeType {
@@ -40,6 +42,7 @@ export class Domus implements INodeType {
 			searchCatalogZones,
 			searchCities,
 			searchCityZones,
+			searchCountries,
 			searchDocumentTypes,
 			searchNeighborhoods,
 			searchPhoneTypes,
@@ -94,6 +97,10 @@ export class Domus implements INodeType {
 						value: 'owner',
 					},
 					{
+						name: 'Project',
+						value: 'project',
+					},
+					{
 						name: 'Property',
 						value: 'property',
 					},
@@ -103,6 +110,7 @@ export class Domus implements INodeType {
 			...propertyDescription,
 			...ownerDescription,
 			...advisorDescription,
+			...projectDescription,
 		],
 	};
 }

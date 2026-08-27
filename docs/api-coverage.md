@@ -7,7 +7,7 @@ from those pages, not from guessed OpenAPI.
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
 - Documented HTTP operations: **50**, counting `GET /administrative/document_types`, which has a live docs page linked from owner creation but no entry in the sidebar
 - Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Public n8n operations on this branch (unpublished): **13** (eight on Property, four on Owner, one on Advisor)
+- Public n8n operations on this branch (unpublished): **15** (eight on Property, four on Owner, one on Advisor, two on Project)
 - Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, document types, phone types, plus full `/general` catalogs for create and update
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
@@ -140,8 +140,8 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Administrativo | `/administrative/brokers` | GET | Advisor | Search | Implemented | P1 | 1.0.0 |
 | Administrativo | `/administrative/brokers` | POST | Advisor | Create | Planned | P2 | 1.2.0 |
 | Administrativo | `/administrative/brokers/{code}` | PUT | Advisor | Update | Planned | P2 | 1.2.0 |
-| Proyectos V2 | `/projects-v2` | GET | Project | Search | Planned | P1 | 1.0.0 |
-| Proyectos V2 | `/projects-v2/{code}` | GET | Project | Get | Planned | P1 | 1.0.0 |
+| Proyectos V2 | `/projects-v2` | GET | Project | Search | Implemented | P1 | 1.0.0 |
+| Proyectos V2 | `/projects-v2/{code}` | GET | Project | Get | Implemented | P1 | 1.0.0 |
 | Captaciones V2 | `/captures-v2` | GET | Acquisition | Search | Planned | P1 | 1.0.0 |
 | Captaciones V2 | `/captures-v2/{code}` | GET | Acquisition | Get | Planned | P1 | 1.0.0 |
 | Administrativo | `/administrative/branches` | GET | Branch | Search | Planned | P2 | 1.2.0 |
@@ -154,7 +154,7 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Búsqueda | `/search/zones` | GET | Property | Zone locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/neighborhoods` | GET | Property | Neighborhood locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/digited-neighborhoods` | GET | Property | Typed-neighborhood helper | Helper | P2 | 1.0.0 |
-| Generales | `/general/countries` | GET | Credential | Credential test | Helper | P0 | 0.1.0 |
+| Generales | `/general/countries` | GET | Credential / Project | Credential test and country locator | Helper | P0 | 0.1.0 |
 | Generales | `/general/status` | GET | Property | Status locator | Helper | P0 | 1.0.0 |
 | Generales | `/general/detach/status` | GET | Property | Separation-status locator | Helper | P2 | 1.1.0 |
 | Generales | `/general/biz` | GET | Property | Full business-type catalog | Helper | P1 | 1.0.0 |
@@ -191,7 +191,7 @@ labels are retired so clients never see another pre-1.0 release.
 | **Published** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. | **0.1.0** |
 | **A** | Property writes and status | Search commercial filters, Change Status, Get Status History, Create, and Update. Images, extra-amenities JSON, and multilingual descriptions stay out of this slice. | unpublished until 1.0 |
 | **B** | Owners and portals | Owner Search/Get/Create/Update with phone-type and document-type helpers. Property Get Portal Publications and Retry Portal Publication, on the paths the Guzzle examples document. | unpublished until 1.0 |
-| **C** | People and projects | Advisor Search is in. Remaining: Project V2 Search/Get. | unpublished until 1.0 |
+| **C** | People and projects | Advisor Search. Project V2 Search/Get, with a country locator on `/general/countries`. | unpublished until 1.0 |
 | **D** | CRM intake | Acquisition Search/Get. | unpublished until 1.0 |
 | **1.0.0** | Stable core | All P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out. | **first post-review publish** |
 | **1.1.0** | Reservations and map | Property Search Map, Separate, Owner Unlink, detach-status helper. | after 1.0 |
@@ -487,14 +487,17 @@ Typical response `{ data: [{ code, name }] }`. Sort via `order` + `sort`.
 #### CRM V2 list — `GET /projects-v2`
 
 - **Docs:** https://apiv3get.domus.la/docs/3.0/proyectos-v2/lista
-- **Headers:** `Perpage`.
+- **Headers:** `Perpage`. No `Inmobiliaria` header is documented here.
 - **Query:** `page`, `city`, `country`, `branch`, `neighborhood`, `name`, `code`, `status`, `nostatus`.
+- **Sort:** `sort=asc|desc` with `order` in `unique_code`, `code`, `city_code`, `neighborhood`, `stratum`, `min_area`, `max_area`.
 - **Response:** `{ code, message, total, per_page, current_page, last_page, data[] }` with prices, pictures, branch, agency.
 - **Pagination:** yes. **Mutates:** no.
 
 #### CRM V2 detail — `GET /projects-v2/{code}?unique_code=`
 
 - **Docs:** https://apiv3get.domus.la/docs/3.0/proyectos-v2/detalle
+- **Path:** `code` required; send `0` when the agency never assigned one and identify the project with `unique_code`.
+- **Response:** `data` object with `types[]` unit rows, `prices[]`, and `pictures[]`.
 - **Mutates:** no.
 
 ### Captaciones V2
@@ -543,8 +546,11 @@ Domus
 │   ├── Get                 GET /owners/{document}
 │   ├── Create              POST /owners
 │   └── Update              PUT /owners/{document}
-└── Advisor
-    └── Search              GET /administrative/brokers
+├── Advisor
+│   └── Search              GET /administrative/brokers
+└── Project
+    ├── Search              GET /projects-v2
+    └── Get                 GET /projects-v2/{code}?unique_code=
 ```
 
 Helpers already wired:
