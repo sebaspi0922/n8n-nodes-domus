@@ -1,6 +1,7 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
 import { DOMUS_BASE_URL_EXPRESSION, DOMUS_CREDENTIAL_NAME } from './constants';
 import {
+	getPhoneTypes,
 	searchAmenities,
 	searchBranches,
 	searchBrokers,
@@ -12,13 +13,16 @@ import {
 	searchCatalogZones,
 	searchCities,
 	searchCityZones,
+	searchDocumentTypes,
 	searchNeighborhoods,
+	searchPhoneTypes,
 	searchPropertyTypes,
 	searchSources,
 	searchStatuses,
 	searchTypedNeighborhoods,
 	searchZones,
 } from './methods';
+import { ownerDescription } from './resources/owner';
 import { propertyDescription } from './resources/property';
 
 export class Domus implements INodeType {
@@ -35,12 +39,17 @@ export class Domus implements INodeType {
 			searchCatalogZones,
 			searchCities,
 			searchCityZones,
+			searchDocumentTypes,
 			searchNeighborhoods,
+			searchPhoneTypes,
 			searchPropertyTypes,
 			searchSources,
 			searchStatuses,
 			searchTypedNeighborhoods,
 			searchZones,
+		},
+		loadOptions: {
+			getPhoneTypes,
 		},
 	};
 
@@ -76,6 +85,10 @@ export class Domus implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
+						name: 'Owner',
+						value: 'owner',
+					},
+					{
 						name: 'Property',
 						value: 'property',
 					},
@@ -83,6 +96,7 @@ export class Domus implements INodeType {
 				default: 'property',
 			},
 			...propertyDescription,
+			...ownerDescription,
 		],
 	};
 }

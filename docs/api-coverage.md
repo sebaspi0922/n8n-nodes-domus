@@ -5,10 +5,10 @@ Source of truth: official LaRecipe pages crawled on 2026-08-22. Contracts below 
 from those pages, not from guessed OpenAPI.
 
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
-- Documented HTTP operations: **49**
+- Documented HTTP operations: **50**, counting `GET /administrative/document_types`, which has a live docs page linked from owner creation but no entry in the sidebar
 - Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Public n8n operations on this branch (unpublished): **6** (Search, Get, Create, Update, Change Status, Get Status History)
-- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, plus full `/general` catalogs for create and update
+- Public n8n operations on this branch (unpublished): **10** (six on Property, four on Owner)
+- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, document types, phone types, plus full `/general` catalogs for create and update
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
 Manual Review. Do not publish a new npm version while that review is open.
@@ -132,10 +132,10 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Inmuebles | `/properties/retry-portals/{codpro}/{idpro?}` | GET | Property | Retry Portal Publication | Planned | P1 | 1.0.0 |
 | Inmuebles | `/properties/map` | GET | Property | Search Map | Planned | P2 | 1.1.0 |
 | Inmuebles | `/properties/detach/{codpro}` | PUT | Property | Separate | Planned | P2 | 1.1.0 |
-| Propietarios | `/owners` | GET | Owner | Search | Planned | P0 | 1.0.0 |
-| Propietarios | `/owners/{document}` | GET | Owner | Get | Planned | P0 | 1.0.0 |
-| Propietarios | `/owners` | POST | Owner | Create | Planned | P1 | 1.0.0 |
-| Propietarios | `/owners/{code}` | PUT | Owner | Update | Planned | P1 | 1.0.0 |
+| Propietarios | `/owners` | GET | Owner | Search | Implemented | P0 | 1.0.0 |
+| Propietarios | `/owners/{document}` | GET | Owner | Get | Implemented | P0 | 1.0.0 |
+| Propietarios | `/owners` | POST | Owner | Create | Implemented | P1 | 1.0.0 |
+| Propietarios | `/owners/{document}` | PUT | Owner | Update | Implemented | P1 | 1.0.0 |
 | Propietarios | `/owners/{owner_code}/{codpro}` | DELETE | Owner | Unlink Property | Planned | P2 | 1.1.0 |
 | Administrativo | `/administrative/brokers` | GET | Advisor | Search | Planned | P1 | 1.0.0 |
 | Administrativo | `/administrative/brokers` | POST | Advisor | Create | Planned | P2 | 1.2.0 |
@@ -146,6 +146,7 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Captaciones V2 | `/captures-v2/{code}` | GET | Acquisition | Get | Planned | P1 | 1.0.0 |
 | Administrativo | `/administrative/branches` | GET | Branch | Search | Planned | P2 | 1.2.0 |
 | Administrativo | `/administrative/sources` | GET | — | Change-status locator | Helper | P1 | 1.0.0 |
+| Administrativo | `/administrative/document_types` | GET | Owner | Document-type locator | Helper | P1 | 1.0.0 |
 | Administrativo | `/administrative/partners` | GET | — | — | Deferred | P3 | — |
 | Búsqueda | `/search/cities` | GET | Property | City locator | Helper | P0 | 0.1.0 |
 | Búsqueda | `/search/types` | GET | Property | Property Type locator | Helper | P0 | 0.1.0 |
@@ -189,7 +190,7 @@ labels are retired so clients never see another pre-1.0 release.
 | ----- | ----- | ----------------- | --- |
 | **Published** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. | **0.1.0** |
 | **A** | Property writes and status | Search commercial filters, Change Status, Get Status History, Create, and Update. Images, extra-amenities JSON, and multilingual descriptions stay out of this slice. | unpublished until 1.0 |
-| **B** | Owners and portals | Owner Search/Get/Create/Update. Property Get Portal Publications and Retry Portal Publication. Phone-type helper. | unpublished until 1.0 |
+| **B** | Owners and portals | Owner Search/Get/Create/Update with phone-type and document-type helpers, done. Property Get Portal Publications and Retry Portal Publication still pending the path check below. | unpublished until 1.0 |
 | **C** | People and projects | Advisor Search. Project V2 Search/Get. | unpublished until 1.0 |
 | **D** | CRM intake | Acquisition Search/Get. | unpublished until 1.0 |
 | **1.0.0** | Stable core | All P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out. | **first post-review publish** |
@@ -232,6 +233,7 @@ Documented badges and Guzzle examples disagree in three places. Prefer the
 | Reintentar publicación | `GET /properties/portals/{codpro}/{idpro?}` | `GET /properties/retry-portals/1234/4567` | `/properties/retry-portals/{codpro}/{idpro?}` |
 | Separar inmueble | `PUT /properties/deatch/123` | `PUT /properties/detach/123` | `/properties/detach/{codpro}` |
 | Estados de separación | `GET /general/deatch/status` | `GET /general/detach/status` | `/general/detach/status` |
+| Actualización de propietario | Page text: the URL number is the owner document | `PUT /owners/123456`, which reads like a code | `/owners/{document}`, matching owner detail |
 
 The retry badge also collides with the publications endpoint
 `GET /properties/portals/{idpro}/{codpro?}`. Confirm the retry path against
@@ -412,6 +414,12 @@ Typical response `{ data: [{ code, name }] }`. Sort via `order` + `sort`.
 - Provenances used when changing property status (`source`).
 - **Mutates:** no. Helper for Change Status.
 
+#### Document types — `GET /administrative/document_types`
+
+- **Docs:** https://apiv3get.domus.la/docs/3.0/administrativo/tipos_documento
+- Identification document types for owner `document_type`. The page is live and linked from owner creation, but it is missing from the documentation sidebar.
+- **Mutates:** no. Helper for Owner Create and Update.
+
 #### Partners — `GET /administrative/partners`
 
 - Real-estate allies. **Mutates:** no. Deferred.
@@ -422,7 +430,7 @@ Typical response `{ data: [{ code, name }] }`. Sort via `order` + `sort`.
 
 - **Docs:** https://apiv3get.domus.la/docs/3.0/propietarios/lista
 - **Headers:** `Perpage` (default 12), `Inmobiliaria`.
-- **Query:** `branch`, `city`, `name`, `phone`, `precise_phone` (docs also show `preicse_phone` typo), `email`, `document`, `codpro`, `has_properties`, `has_email`.
+- **Query:** `branch`, `city`, `name`, `phone`, `precise_phone`, `email`, `document`, `codpro`, `has_properties`, `has_email`. The parameter table spells the exact-phone filter `preicse_phone` while its own example sends `precise_phone`; the node sends `precise_phone`.
 - **Sort:** `name`, `last_name`, `code`.
 - **Response:** paginated `data[]` with document, contact, phones.
 - **Pagination:** yes. **Mutates:** no.
@@ -438,15 +446,22 @@ Typical response `{ data: [{ code, name }] }`. Sort via `order` + `sort`.
 
 #### Create owner — `POST /owners`
 
-- **Body:** `name`, `last_name`, `email`, `document_type`, `document`, `verification_digit`, `branch`, `city`, `birthday`, `neighborhood`, `description`, `property`, `share_percentage`, `phones` JSON.
-- **Can associate a property at creation.**
+- **Docs:** https://apiv3get.domus.la/docs/3.0/propietarios/creacion
+- **Required:** `name`, `last_name`, `document`.
+- **Body:** the required fields plus `email`, `document_type`, `verification_digit`, `branch`, `city`, `birthday`, `neighborhood`, `description`, `property`, `share_percentage`, `phones`.
+- **Phones:** JSON string in a form field, `[{"type":"1","number":"12356"}]`. Types come from `/general/phone-types`.
+- **Can associate a property at creation** through `property` and `share_percentage`.
+- **Response:** `{ code: 200, message, property: { code, document, property_code } }`. Domus names the envelope `property` even for owners.
 - **Mutates:** yes.
 
-#### Update owner — `PUT /owners/{code}`
+#### Update owner — `PUT /owners/{document}`
 
-- **Path:** owner `code` (example `/owners/123456`).
+- **Docs:** https://apiv3get.domus.la/docs/3.0/propietarios/actualizacion
+- **Path:** the page text says the number in the URL is the owner document, while the example reads `/owners/123456`, which looks like a code. The node sends the document, matching Get.
 - **Headers:** `Inmobiliaria`.
-- **Body:** form fields (docs: update page).
+- **Body:** every create field, all optional, and `document` itself can be rewritten.
+- **Phones:** same JSON field. Update also accepts `{"oldType","oldNumber","newType","newNumber"}` and `{"oldType","oldNumber","delete":"1"}` entries, and `phones_recursive=1` to send the list in the same shape as creation. The node implements the creation shape with `phones_recursive`; per-entry editing is not exposed.
+- **Response:** `{ code: 200, message, property: { code, document, sent_property_code } }`.
 - **Mutates:** yes.
 
 #### Unlink owner — `DELETE /owners/{owner_code}/{codpro}`
@@ -505,17 +520,22 @@ Domus
     └── Get       GET /properties/{codpro}/{idpro?}
 ```
 
-Unpublished branch (batch A complete):
+Unpublished branches (batch A complete, batch B owners complete):
 
 ```text
 Domus
-└── Property
-    ├── Search              GET /properties          (core commercial filters)
-    ├── Get                 GET /properties/{codpro}/{idpro?}
-    ├── Create              POST /properties
-    ├── Update              PUT /properties/{codpro}
-    ├── Get Status History  GET /properties/status/{codpro}
-    └── Change Status       PUT /properties/status/{codpro}
+├── Property
+│   ├── Search              GET /properties          (core commercial filters)
+│   ├── Get                 GET /properties/{codpro}/{idpro?}
+│   ├── Create              POST /properties
+│   ├── Update              PUT /properties/{codpro}
+│   ├── Get Status History  GET /properties/status/{codpro}
+│   └── Change Status       PUT /properties/status/{codpro}
+└── Owner
+    ├── Search              GET /owners
+    ├── Get                 GET /owners/{document}
+    ├── Create              POST /owners
+    └── Update              PUT /owners/{document}
 ```
 
 Helpers already wired:
@@ -539,9 +559,15 @@ Helpers already wired:
 /administrative/sources         (Change Status locator)
 /administrative/brokers         (broker, catcher_broker, and promoter_broker locator)
 /administrative/branches        (branch locator)
+/administrative/document_types  (Owner document-type locator)
+/general/phone-types            (Owner phone-type dropdown)
 ```
 
 Search covers the Batch A commercial filters. Create and Update send the
 documented commercial form fields. Still omitted on write: image_# /
 image360_#, image delete indexes, amenities_extra JSON, multilingual
 descriptions, and populated-center / destination locators.
+
+Owner Create and Update send every documented form field. Still omitted:
+per-entry phone editing through the `oldType` / `newType` / `delete` grammar,
+which only Update accepts.

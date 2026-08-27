@@ -21,3 +21,16 @@ test('loads Domus with Property Search, Get, and status operations in the editor
 	await expectDomusNodeOpen(page);
 	await expect(page.getByText(/return all/i).first()).toBeVisible();
 });
+
+test('loads the Domus owner operations in the editor', async ({ page }) => {
+	await openBlankWorkflow(page);
+	await searchDomusInCreator(page);
+	await expect(page.getByText('Search owners')).toBeVisible();
+	await expect(page.getByText('Get an owner')).toBeVisible();
+	await expect(page.getByText('Create an owner')).toBeVisible();
+	await expect(page.getByText('Update an owner')).toBeVisible();
+
+	await page.getByText('Create an owner', { exact: true }).click();
+	await expectDomusNodeOpen(page);
+	await expect(page.getByText(/last name/i).first()).toBeVisible();
+});

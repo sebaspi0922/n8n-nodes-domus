@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const { describe, it } = require('node:test');
+const { getNodeParameters } = require('n8n-workflow');
 
 const {
 	DOMUS_BASE_URL_EXPRESSION,
@@ -13,6 +14,8 @@ const {
 	searchBranches,
 	searchBrokers,
 	searchBusinessTypes,
+	searchDocumentTypes,
+	searchPhoneTypes,
 	searchCatalogBusinessTypes,
 	searchCatalogCities,
 	searchCatalogNeighborhoods,
@@ -30,8 +33,18 @@ const {
 const {
 	splitNestedStatusHistory,
 } = require('../dist/nodes/Domus/resources/property/statusHistory.helpers.js');
+const {
+	serializeOwnerPhones,
+} = require('../dist/nodes/Domus/resources/owner/phones.helpers.js');
 
 const getProperty = (properties, name) => properties.find((property) => property.name === name);
+
+const getResourceProperty = (properties, resource, name) =>
+	properties.find(
+		(property) =>
+			property.name === name &&
+			property.displayOptions?.show?.resource?.includes(resource),
+	);
 
 const createListSearchContext = ({ data, entireAgency = true, filters = {}, parameters = {} }) => {
 	const requests = [];
@@ -107,7 +120,10 @@ describe('Domus property search node', () => {
 		const operation = getProperty(node.description.properties, 'operation');
 		const search = operation.options.find((option) => option.value === 'search');
 
-		assert.deepEqual(resource.options, [{ name: 'Property', value: 'property' }]);
+		assert.deepEqual(resource.options, [
+			{ name: 'Owner', value: 'owner' },
+			{ name: 'Property', value: 'property' },
+		]);
 		assert.deepEqual(
 			operation.options.map((option) => option.name),
 			['Search', 'Get', 'Create', 'Update', 'Get Status History', 'Change Status'],
@@ -777,5 +793,287 @@ describe('Domus property update operation', () => {
 		assert.equal(getProperty(extraFields, 'city').routing.send.property, 'city');
 		assert.equal(getProperty(extraFields, 'address').routing.send.property, 'address');
 		assert.equal(getProperty(extraFields, 'salePrice').routing.send.property, 'saleprice');
+	});
+});
+
+const getOwnerOperation = (value) => {
+	const node = new Domus();
+	const operation = node.description.properties.find(
+		(property) =>
+			property.name === 'operation' &&
+			property.displayOptions?.show?.resource?.includes('owner'),
+	);
+
+	return { node, operation, option: operation.options.find((entry) => entry.value === value) };
+};
+
+describe('Domus owner resource', () => {
+	it('exposes the four documented owner operations on their documented endpoints', () => {
+		const { operation } = getOwnerOperation('search');
+
+		assert.deepEqual(
+			operation.options.map((option) => option.name),
+			['Search', 'Get', 'Create', 'Update'],
+		);
+		assert.deepEqual(
+			operation.options.map((option) => [option.routing.request.method, option.routing.request.url]),
+			[
+				['GET', '/owners'],
+				['GET', '=/owners/{{$parameter.ownerDocument}}'],
+				['POST', '/owners'],
+				['PUT', '=/owners/{{$parameter.ownerDocument}}'],
+			],
+		);
+	});
+
+	it('unwraps the list envelope on reads and the property envelope on writes', () => {
+		const dataEnvelope = [{ type: 'rootProperty', properties: { property: 'data' } }];
+		const writeEnvelope = [{ type: 'rootProperty', properties: { property: 'property' } }];
+
+		assert.deepEqual(getOwnerOperation('search').option.routing.output.postReceive, dataEnvelope);
+		assert.deepEqual(getOwnerOperation('get').option.routing.output.postReceive, dataEnvelope);
+		assert.deepEqual(getOwnerOperation('create').option.routing.output.postReceive, writeEnvelope);
+		assert.deepEqual(getOwnerOperation('update').option.routing.output.postReceive, writeEnvelope);
+	});
+
+	it('sends owner writes as form-urlencoded, as Domus documents', () => {
+		for (const value of ['create', 'update']) {
+			assert.equal(
+				getOwnerOperation(value).option.routing.request.headers['Content-Type'],
+				'application/x-www-form-urlencoded',
+			);
+		}
+	});
+
+	it('maps every documented search filter to its query parameter', () => {
+		const node = new Domus();
+		const filters = getResourceProperty(node.description.properties, 'owner', 'filters').options;
+
+		assert.deepEqual(
+			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
+			{
+				branch: 'branch',
+				city: 'city',
+				codpro: 'codpro',
+				document: 'document',
+				email: 'email',
+				hasEmail: 'has_email',
+				hasProperties: 'has_properties',
+				name: 'name',
+				order: 'order',
+				phone: 'phone',
+				precisePhone: 'precise_phone',
+				sort: 'sort',
+			},
+		);
+		assert.equal(
+			getProperty(filters, 'hasEmail').routing.send.value,
+			'={{ $value ? 1 : undefined }}',
+		);
+		assert.deepEqual(
+			getProperty(filters, 'order').options.map((option) => option.value),
+			['code', 'name', 'last_name'],
+		);
+	});
+
+	it('follows Domus pagination for owners while repeating the active filters', () => {
+		const node = new Domus();
+		const returnAll = getResourceProperty(node.description.properties, 'owner', 'returnAll');
+		const pagination = returnAll.routing.operations.pagination;
+
+		assert.equal(returnAll.routing.send.paginate, '={{$value}}');
+		assert.equal(
+			pagination.properties.continue,
+			'={{ Number($response.body?.current_page ?? 0) < Number($response.body?.last_page ?? 0) }}',
+		);
+		assert.equal(pagination.properties.request.qs.document, '={{ $request.qs?.["document"] }}');
+		assert.equal(
+			pagination.properties.request.qs.page,
+			'={{ $response.body?.current_page ? Number($response.body.current_page) + 1 : Number($request.qs?.page ?? 1) }}',
+		);
+	});
+
+	it('requires name, last name, and document on create and maps the optional fields', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const required = ['name', 'lastName', 'document'].map((name) =>
+			getResourceProperty(properties, 'owner', name),
+		);
+		const extraFields = getResourceProperty(properties, 'owner', 'ownerFields').options;
+
+		assert.deepEqual(
+			required.map((field) => [field.required, field.routing.send.property]),
+			[
+				[true, 'name'],
+				[true, 'last_name'],
+				[true, 'document'],
+			],
+		);
+		assert.deepEqual(
+			Object.fromEntries(extraFields.map((field) => [field.name, field.routing.send.property])),
+			{
+				birthday: 'birthday',
+				branch: 'branch',
+				city: 'city',
+				description: 'description',
+				documentType: 'document_type',
+				email: 'email',
+				neighborhood: 'neighborhood',
+				phones: 'phones',
+				property: 'property',
+				sharePercentage: 'share_percentage',
+				verificationDigit: 'verification_digit',
+			},
+		);
+		assert.equal(
+			getProperty(extraFields, 'documentType').modes[0].typeOptions.searchListMethod,
+			'searchDocumentTypes',
+		);
+	});
+
+	it('lets update rewrite the identity fields and replace the phone list', () => {
+		const node = new Domus();
+		const extraFields = getResourceProperty(
+			node.description.properties,
+			'owner',
+			'ownerUpdateFields',
+		).options;
+
+		assert.equal(getProperty(extraFields, 'name').routing.send.property, 'name');
+		assert.equal(getProperty(extraFields, 'lastName').routing.send.property, 'last_name');
+		assert.equal(getProperty(extraFields, 'document').routing.send.property, 'document');
+		assert.equal(
+			getProperty(extraFields, 'phonesRecursive').routing.send.property,
+			'phones_recursive',
+		);
+		assert.equal(
+			getProperty(extraFields, 'phonesRecursive').routing.send.value,
+			'={{ $value ? 1 : undefined }}',
+		);
+	});
+
+	it('offers the owner code and property status filters on get', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const document = getResourceProperty(properties, 'owner', 'ownerDocument');
+		const options = getResourceProperty(properties, 'owner', 'ownerGetOptions').options;
+
+		assert.equal(document.required, true);
+		assert.deepEqual(document.displayOptions.show.operation, ['get', 'update']);
+		assert.equal(getProperty(options, 'code').routing.send.property, 'code');
+		assert.equal(
+			getProperty(options, 'propertyStatusCode').routing.send.property,
+			'property_status_code',
+		);
+	});
+
+	it('loads phone and document types from their documented catalogs', async () => {
+		const { context: phoneContext, requests: phoneRequests } = createListSearchContext({
+			data: [{ code: 1, name: 'Casa' }],
+		});
+		assert.deepEqual(await searchPhoneTypes.call(phoneContext), {
+			results: [{ name: 'Casa', value: '1' }],
+		});
+		assert.equal(phoneRequests[0].options.url, '/general/phone-types');
+		assert.equal(phoneRequests[0].options.headers.Inmobiliaria, undefined);
+
+		const { context: documentContext, requests: documentRequests } = createListSearchContext({
+			data: [{ code: 1, name: 'Cedula' }],
+		});
+		assert.deepEqual(await searchDocumentTypes.call(documentContext), {
+			results: [{ name: 'Cedula', value: '1' }],
+		});
+		assert.equal(documentRequests[0].options.url, '/administrative/document_types');
+	});
+});
+
+describe('Domus resource isolation', () => {
+	const resolve = (values) => {
+		const node = new Domus();
+		return getNodeParameters(
+			node.description.properties,
+			values,
+			true,
+			false,
+			null,
+			node.description,
+		);
+	};
+
+	it('keeps owner and property parameters apart even where they share a name', () => {
+		assert.deepEqual(Object.keys(resolve({ resource: 'owner', operation: 'create' })).sort(), [
+			'document',
+			'lastName',
+			'name',
+			'operation',
+			'ownerFields',
+			'resource',
+		]);
+		assert.deepEqual(Object.keys(resolve({ resource: 'owner', operation: 'get' })).sort(), [
+			'operation',
+			'ownerDocument',
+			'ownerGetEntireAgency',
+			'ownerGetOptions',
+			'resource',
+		]);
+		assert.deepEqual(Object.keys(resolve({ resource: 'property', operation: 'get' })).sort(), [
+			'getEntireAgency',
+			'getIncludeSheet',
+			'getOptions',
+			'operation',
+			'propertyCode',
+			'propertyId',
+			'resource',
+		]);
+	});
+
+	it('shows the property sheet header only on the property search', () => {
+		const ownerSearch = Object.keys(resolve({ resource: 'owner', operation: 'search' }));
+		const propertySearch = Object.keys(resolve({ resource: 'property', operation: 'search' }));
+
+		assert.equal(ownerSearch.includes('includeSheet'), false);
+		assert.equal(propertySearch.includes('includeSheet'), true);
+		for (const shared of ['returnAll', 'limit', 'page', 'entireAgency', 'filters']) {
+			assert.ok(ownerSearch.includes(shared));
+			assert.ok(propertySearch.includes(shared));
+		}
+	});
+});
+
+describe('Domus owner phone serialization', () => {
+	it('turns the phone collection into the documented JSON array', async () => {
+		const requestOptions = {
+			body: {
+				name: 'Ana',
+				phones: {
+					phone: [
+						{ type: '3', number: '3001234567' },
+						{ type: 1, number: 6015551234 },
+					],
+				},
+			},
+		};
+
+		const result = await serializeOwnerPhones.call({}, requestOptions);
+
+		assert.equal(
+			result.body.phones,
+			'[{"type":"3","number":"3001234567"},{"type":"1","number":"6015551234"}]',
+		);
+		assert.equal(result.body.name, 'Ana');
+	});
+
+	it('drops the field when no number was filled in', async () => {
+		const requestOptions = { body: { phones: { phone: [{ type: '3', number: '  ' }] } } };
+
+		const result = await serializeOwnerPhones.call({}, requestOptions);
+
+		assert.equal('phones' in result.body, false);
+	});
+
+	it('leaves a request without a body untouched', async () => {
+		const requestOptions = { url: '/owners' };
+
+		assert.deepEqual(await serializeOwnerPhones.call({}, requestOptions), requestOptions);
 	});
 });

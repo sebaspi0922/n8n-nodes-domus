@@ -1,0 +1,51 @@
+{
+	"id": "c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9f",
+	"name": "Domus - Get owner",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "d6e7f8a9-b0c1-4d2e-3f4a-5b6c7d8e9f0a",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "owner",
+				"operation": "get",
+				"ownerDocument": "",
+				"ownerGetEntireAgency": true,
+				"ownerGetOptions": {}
+			},
+			"id": "e7f8a9b0-c1d2-4e3f-4a5b-6c7d8e9f0a1b",
+			"name": "Get owner",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Get owner",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "f8a9b0c1-d2e3-4f4a-5b6c-7d8e9f0a1b2c",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

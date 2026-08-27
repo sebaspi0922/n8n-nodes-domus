@@ -1,3 +1,4 @@
+export { getPhoneTypes } from './loadOptions';
 export {
 	searchAmenities,
 	searchBranches,
@@ -10,7 +11,9 @@ export {
 	searchCatalogZones,
 	searchCities,
 	searchCityZones,
+	searchDocumentTypes,
 	searchNeighborhoods,
+	searchPhoneTypes,
 	searchPropertyTypes,
 	searchSources,
 	searchStatuses,

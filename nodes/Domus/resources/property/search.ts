@@ -1,9 +1,6 @@
-import type {
-	IDataObject,
-	IN8nRequestOperationPaginationGeneric,
-	INodeProperties,
-} from 'n8n-workflow';
-import { createDomusLocator } from './locators';
+import type { INodeProperties } from 'n8n-workflow';
+import { createDomusLocator } from '../locators';
+import { createDomusPagination } from '../pagination';
 
 const showOnlyForPropertySearch = {
 	operation: ['search'],
@@ -54,26 +51,7 @@ const propertySearchQueryParameters = [
 	'zone',
 ] as const;
 
-const paginationQuery = {
-	...Object.fromEntries(
-		propertySearchQueryParameters.map((parameter) => [
-			parameter,
-			`={{ $request.qs?.["${parameter}"] }}`,
-		]),
-	),
-	page: '={{ $response.body?.current_page ? Number($response.body.current_page) + 1 : Number($request.qs?.page ?? 1) }}',
-} as IDataObject;
-
-const propertySearchPagination: IN8nRequestOperationPaginationGeneric = {
-	type: 'generic',
-	properties: {
-		continue:
-			'={{ Number($response.body?.current_page ?? 0) < Number($response.body?.last_page ?? 0) }}',
-		request: {
-			qs: paginationQuery,
-		},
-	},
-};
+const propertySearchPagination = createDomusPagination(propertySearchQueryParameters);
 
 const queryStringFilter = (
 	displayName: string,

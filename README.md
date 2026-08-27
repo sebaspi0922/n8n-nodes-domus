@@ -18,10 +18,14 @@ Domus API 3.0.
 - `Property → Update` using `PUT /properties/{codpro}`
 - `Property → Get Status History` using `GET /properties/status/{codpro}`
 - `Property → Change Status` using `PUT /properties/status/{codpro}`
+- `Owner → Search` using `GET /owners`
+- `Owner → Get` using `GET /owners/{document}`
+- `Owner → Create` using `POST /owners`
+- `Owner → Update` using `PUT /owners/{document}`
 - Bounded results or automatic page-based pagination with **Return All**
-- Dynamic selectors for city, property type, business type, zone, neighborhood, city zone, amenities, status, and source
+- Dynamic selectors for city, property type, business type, zone, neighborhood, city zone, amenities, status, source, advisor, branch, document type, and phone type
 - Manual code entry as an alternative to every dynamic selector
-- One n8n output item per property
+- One n8n output item per property or owner
 
 ## Requirements
 
@@ -83,7 +87,7 @@ screenshots, or example workflows.
 2. Create or open a workflow.
 3. Add the **Domus** node.
 4. Create or select a **Domus API** credential.
-5. Select **Property** and choose an operation.
+5. Select **Property** or **Owner** and choose an operation.
 6. Configure the operation and execute the node.
 
 Sanitized importable workflows are available under [`examples/`](examples/).
@@ -182,6 +186,36 @@ slice. Created properties cannot be deleted; status is the documented
 lifecycle control. Write only against the testing host unless you
 intentionally target production.
 
+### Owner → Search
+
+Calls `GET /owners` and returns one n8n item per owner. Filters cover
+branch, city, name, phone, exact phone, email, document, property code,
+and the two flags for owners that have an email or active properties.
+Results can be ordered by first name, last name, or code. **Return All**
+follows pages the same way the property search does.
+
+### Owner → Get
+
+Calls `GET /owners/{document}` and returns the owner with their phones and
+associated properties. Domus expects the identification document in the
+path; send `0` and set **Owner Code** when the document is unknown. An
+optional **Property Status** filter narrows the associated properties.
+
+### Owner → Create
+
+Calls `POST /owners` with `application/x-www-form-urlencoded`. **First
+Name**, **Last Name**, and **Document** are required. Phones are entered
+one per row and sent as the JSON array Domus documents, with types loaded
+from `GET /general/phone-types`. Passing **Property Code** and **Share
+Percentage** associates the new owner with a property in the same request.
+
+### Owner → Update
+
+Calls `PUT /owners/{document}` with `application/x-www-form-urlencoded`.
+Every field is optional, including the document itself, which Domus
+rewrites when it is sent. **Replace Phone List** maps to `phones_recursive`
+and is required when phones are sent in the same shape as owner creation.
+
 ## Verified behavior
 
 The node has been exercised against Domus API with a real credential without
@@ -263,6 +297,8 @@ next public package after review is `1.0.0`.
 - [Domus API 3.0](https://apiv3get.domus.la/docs/3.0/)
 - [Property list endpoint](https://apiv3get.domus.la/docs/3.0/inmuebles/lista)
 - [Property detail endpoint](https://apiv3get.domus.la/docs/3.0/inmuebles/detalle)
+- [Owner list endpoint](https://apiv3get.domus.la/docs/3.0/propietarios/lista)
+- [Owner detail endpoint](https://apiv3get.domus.la/docs/3.0/propietarios/detalle)
 - [n8n community node verification guidelines](https://docs.n8n.io/connect/create-nodes/build-your-node/reference/verification-guidelines)
 - [n8n node CLI](https://docs.n8n.io/connect/create-nodes/build-your-node/using-the-n8n-node-tool/)
 
