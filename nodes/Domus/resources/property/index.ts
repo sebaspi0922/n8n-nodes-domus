@@ -2,7 +2,9 @@ import type { INodeProperties } from 'n8n-workflow';
 import { propertyChangeStatusDescription } from './changeStatus';
 import { propertyCreateDescription } from './create';
 import { propertyGetDescription } from './get';
+import { propertyGetPortalPublicationsDescription } from './getPortalPublications';
 import { propertyGetStatusHistoryDescription } from './getStatusHistory';
+import { propertyRetryPortalPublicationDescription } from './retryPortalPublication';
 import { propertySearchDescription } from './search';
 import { splitNestedStatusHistory } from './statusHistory.helpers';
 import { propertyUpdateDescription } from './update';
@@ -133,6 +135,32 @@ export const propertyDescription: INodeProperties[] = [
 				},
 			},
 			{
+				name: 'Get Portal Publications',
+				value: 'getPortalPublications',
+				action: 'Get property portal publications',
+				description:
+					'List the portals a property was published on, with their codes and sync dates',
+				routing: {
+					request: {
+						method: 'GET',
+						url: '=/properties/portals/{{$parameter.portalPropertyId}}{{$parameter.portalPropertyCode ? "/" + $parameter.portalPropertyCode : ""}}',
+					},
+				},
+			},
+			{
+				name: 'Retry Portal Publication',
+				value: 'retryPortalPublication',
+				action: 'Retry a property portal publication',
+				description:
+					'Queue a failed portal publication, update, or unpublish again without editing the property',
+				routing: {
+					request: {
+						method: 'GET',
+						url: '=/properties/retry-portals/{{$parameter.propertyCode}}{{$parameter.retryPropertyId ? "/" + $parameter.retryPropertyId : ""}}',
+					},
+				},
+			},
+			{
 				name: 'Change Status',
 				value: 'changeStatus',
 				action: 'Change property status',
@@ -166,5 +194,7 @@ export const propertyDescription: INodeProperties[] = [
 	...propertyCreateDescription,
 	...propertyUpdateDescription,
 	...propertyGetStatusHistoryDescription,
+	...propertyGetPortalPublicationsDescription,
+	...propertyRetryPortalPublicationDescription,
 	...propertyChangeStatusDescription,
 ];

@@ -10,7 +10,16 @@ describe('packaged example workflows', () => {
 
 	const operationsByResource = {
 		owner: ['search', 'get', 'create', 'update'],
-		property: ['search', 'get', 'create', 'update', 'getStatusHistory', 'changeStatus'],
+		property: [
+			'search',
+			'get',
+			'create',
+			'update',
+			'getStatusHistory',
+			'changeStatus',
+			'getPortalPublications',
+			'retryPortalPublication',
+		],
 	};
 
 	it('ships sanitized fixtures for every public operation', () => {
@@ -19,8 +28,10 @@ describe('packaged example workflows', () => {
 			'create-owner.json',
 			'create-property.json',
 			'get-owner.json',
+			'get-property-portal-publications.json',
 			'get-property-status-history.json',
 			'get-property.json',
+			'retry-portal-publication.json',
 			'search-owners.json',
 			'search-properties.json',
 			'update-owner.json',

@@ -247,6 +247,30 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.ok(Array.isArray(branches.data?.data));
 	});
 
+	it('returns a bare portal-publication array for a discovered property', async () => {
+		const search = await requestDomus('/properties', {
+			headers: { Perpage: '1', Inmobiliaria: '1' },
+			query: { page: 1 },
+		});
+		const property = firstProperty(search.data);
+
+		if (property?.idpro === undefined) {
+			return;
+		}
+
+		const response = await requestDomus(`/properties/portals/${property.idpro}`, {
+			headers: { Inmobiliaria: '1' },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data));
+		if (response.data.length === 0) return;
+
+		const publication = response.data[0];
+		assert.ok(publication.property_id !== undefined);
+		assert.ok(publication.portal_name !== undefined);
+	});
+
 	it('returns a nested status-history envelope for a discovered property', async () => {
 		const code = config.propertyCode;
 		let propertyCode = code;

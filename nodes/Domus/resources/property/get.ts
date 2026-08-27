@@ -6,7 +6,7 @@ const showOnlyForPropertyGet = {
 };
 
 const showOnlyForPropertyCode = {
-	operation: ['get', 'changeStatus', 'getStatusHistory', 'update'],
+	operation: ['get', 'changeStatus', 'getStatusHistory', 'retryPortalPublication', 'update'],
 	resource: ['property'],
 };
 

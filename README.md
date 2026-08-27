@@ -18,6 +18,9 @@ Domus API 3.0.
 - `Property → Update` using `PUT /properties/{codpro}`
 - `Property → Get Status History` using `GET /properties/status/{codpro}`
 - `Property → Change Status` using `PUT /properties/status/{codpro}`
+- `Property → Get Portal Publications` using `GET /properties/portals/{idpro}/{codpro?}`
+- `Property → Retry Portal Publication` using
+  `GET /properties/retry-portals/{codpro}/{idpro?}`
 - `Owner → Search` using `GET /owners`
 - `Owner → Get` using `GET /owners/{document}`
 - `Owner → Create` using `POST /owners`
@@ -185,6 +188,27 @@ documents a dedicated Separate endpoint for that, which is not in this
 slice. Created properties cannot be deleted; status is the documented
 lifecycle control. Write only against the testing host unless you
 intentionally target production.
+
+### Property → Get Portal Publications
+
+Calls `GET /properties/portals/{idpro}/{codpro?}` and returns one n8n item per
+portal publication, including the portal, the business type, the code the
+property has on that portal, and the sync dates. Domus puts the internal
+property ID first here, so **Internal Property ID** is required and
+**Property Code** only narrows the lookup. **Entire Agency** controls the
+`Inmobiliaria` header.
+
+### Property → Retry Portal Publication
+
+Calls `GET /properties/retry-portals/{codpro}/{idpro?}` and requeues a portal
+transaction that failed, without editing the property. **Property Code** is
+required and **Transaction** selects create, update, or unpublish
+(`method=1|2|3`).
+
+Domus documents this path in its request example while the page badge reuses
+the publications path. The node follows the request example, because the badge
+path collides with the publications endpoint. Retrying is not idempotent: each
+call queues another portal transaction.
 
 ### Owner → Search
 
