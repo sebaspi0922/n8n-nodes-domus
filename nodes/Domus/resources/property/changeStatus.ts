@@ -30,19 +30,15 @@ export const propertyChangeStatusDescription: INodeProperties[] = [
 			show: showOnlyForPropertyChangeStatus,
 		},
 		options: [
-			{
-				displayName: 'Broker Code',
+			createDomusLocator({
+				displayName: 'Broker',
 				name: 'broker',
-				type: 'string',
-				default: '',
+				searchListMethod: 'searchBrokers',
+				sendType: 'body',
+				sendProperty: 'broker',
+				placeholder: 'e.g. 1256',
 				description: 'Advisor who closed or is responsible for the deal',
-				routing: {
-					send: {
-						type: 'body',
-						property: 'broker',
-					},
-				},
-			},
+			}),
 			{
 				displayName: 'Change Date',
 				name: 'changeDate',

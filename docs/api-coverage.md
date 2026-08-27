@@ -8,7 +8,7 @@ from those pages, not from guessed OpenAPI.
 - Documented HTTP operations: **49**
 - Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
 - Public n8n operations on this branch (unpublished): **6** (Search, Get, Create, Update, Change Status, Get Status History)
-- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, plus full `/general` catalogs for create and update
+- Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, plus full `/general` catalogs for create and update
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
 Manual Review. Do not publish a new npm version while that review is open.
@@ -171,6 +171,12 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Generales | `/general/tags` | GET | — | — | Deferred | P3 | — |
 | Proyectos | `/projects` | GET | Project | Search (MLS) | Deferred | P3 | — |
 | Proyectos | `/projects/{code}/{unique_code?}` | GET | Project | Get (MLS) | Deferred | P3 | — |
+
+`/administrative/brokers` and `/administrative/branches` are already wired as
+resource locators for the `broker`, `catcher_broker`, `promoter_broker`, and
+`branch` fields on Property Search, Create, Update, and Change Status. Exposing
+them as user-facing Advisor and Branch resources is a separate concern and stays
+scheduled for batch C and 1.2.0.
 
 ## Roadmap
 
@@ -531,6 +537,8 @@ Helpers already wired:
 /general/zones                  (Create/Update cardinal-zone locator)
 /general/neighborhoods          (Create/Update neighborhood locator; city + name)
 /administrative/sources         (Change Status locator)
+/administrative/brokers         (broker, catcher_broker, and promoter_broker locator)
+/administrative/branches        (branch locator)
 ```
 
 Search covers the Batch A commercial filters. Create and Update send the
