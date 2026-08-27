@@ -28,10 +28,12 @@ Domus API 3.0.
 - `Advisor → Search` using `GET /administrative/brokers`
 - `Project → Search` using `GET /projects-v2`
 - `Project → Get` using `GET /projects-v2/{code}?unique_code=`
+- `Acquisition → Search` using `GET /captures-v2`
+- `Acquisition → Get` using `GET /captures-v2/{code}?unique_code=`
 - Bounded results or automatic page-based pagination with **Return All**
 - Dynamic selectors for city, country, property type, business type, zone, neighborhood, city zone, amenities, status, source, advisor, branch, document type, and phone type
 - Manual code entry as an alternative to every dynamic selector
-- One n8n output item per property, owner, advisor, or project
+- One n8n output item per property, owner, advisor, project, or acquisition
 
 ## Requirements
 
@@ -93,8 +95,8 @@ screenshots, or example workflows.
 2. Create or open a workflow.
 3. Add the **Domus** node.
 4. Create or select a **Domus API** credential.
-5. Select **Property**, **Owner**, **Advisor**, or **Project** and choose an
-   operation.
+5. Select **Property**, **Owner**, **Advisor**, **Project**, or
+   **Acquisition** and choose an operation.
 6. Configure the operation and execute the node.
 
 Sanitized importable workflows are available under [`examples/`](examples/).
@@ -275,6 +277,25 @@ exposed here.
 Calls `GET /projects-v2/{code}` and returns the project `data` object with its
 unit types, price rows, and pictures. **Project Code** is required; send `0`
 and set **Unique Code** for projects the agency never assigned a code to.
+
+### Acquisition → Search
+
+Calls `GET /captures-v2` and returns one n8n item per acquisition, each
+carrying the property snapshot, the capturing advisor, the CRM contact, and
+the branch. Filters cover city, branch, neighborhood, business type, property
+type, stratum, advisor, CRM contact, and ranges for area, value,
+administration, bedrooms, and bathrooms. **Return All** follows pages the same
+way the other searches do.
+
+This is the closest documented CRM intake surface in API 3.0. There is no
+standalone leads or contacts module, and no create or update endpoint for
+acquisitions, so this resource is read-only.
+
+### Acquisition → Get
+
+Calls `GET /captures-v2/{code}` and returns the acquisition `data` object.
+**Acquisition Code** is required; send `0` and set **Unique Code** for
+acquisitions the agency never assigned a code to.
 
 ## Verified behavior
 

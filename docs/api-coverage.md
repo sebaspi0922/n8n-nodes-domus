@@ -7,7 +7,7 @@ from those pages, not from guessed OpenAPI.
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
 - Documented HTTP operations: **50**, counting `GET /administrative/document_types`, which has a live docs page linked from owner creation but no entry in the sidebar
 - Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Public n8n operations on this branch (unpublished): **15** (eight on Property, four on Owner, one on Advisor, two on Project)
+- Public n8n operations on this branch (unpublished): **17** (eight on Property, four on Owner, one on Advisor, two on Project, two on Acquisition)
 - Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, document types, phone types, plus full `/general` catalogs for create and update
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
@@ -142,8 +142,8 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Administrativo | `/administrative/brokers/{code}` | PUT | Advisor | Update | Planned | P2 | 1.2.0 |
 | Proyectos V2 | `/projects-v2` | GET | Project | Search | Implemented | P1 | 1.0.0 |
 | Proyectos V2 | `/projects-v2/{code}` | GET | Project | Get | Implemented | P1 | 1.0.0 |
-| Captaciones V2 | `/captures-v2` | GET | Acquisition | Search | Planned | P1 | 1.0.0 |
-| Captaciones V2 | `/captures-v2/{code}` | GET | Acquisition | Get | Planned | P1 | 1.0.0 |
+| Captaciones V2 | `/captures-v2` | GET | Acquisition | Search | Implemented | P1 | 1.0.0 |
+| Captaciones V2 | `/captures-v2/{code}` | GET | Acquisition | Get | Implemented | P1 | 1.0.0 |
 | Administrativo | `/administrative/branches` | GET | Branch | Search | Planned | P2 | 1.2.0 |
 | Administrativo | `/administrative/sources` | GET | — | Change-status locator | Helper | P1 | 1.0.0 |
 | Administrativo | `/administrative/document_types` | GET | Owner | Document-type locator | Helper | P1 | 1.0.0 |
@@ -192,7 +192,7 @@ labels are retired so clients never see another pre-1.0 release.
 | **A** | Property writes and status | Search commercial filters, Change Status, Get Status History, Create, and Update. Images, extra-amenities JSON, and multilingual descriptions stay out of this slice. | unpublished until 1.0 |
 | **B** | Owners and portals | Owner Search/Get/Create/Update with phone-type and document-type helpers. Property Get Portal Publications and Retry Portal Publication, on the paths the Guzzle examples document. | unpublished until 1.0 |
 | **C** | People and projects | Advisor Search. Project V2 Search/Get, with a country locator on `/general/countries`. | unpublished until 1.0 |
-| **D** | CRM intake | Acquisition Search/Get. | unpublished until 1.0 |
+| **D** | CRM intake | Acquisition Search/Get, read-only because Domus documents no capture writes. | unpublished until 1.0 |
 | **1.0.0** | Stable core | All P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out. | **first post-review publish** |
 | **1.1.0** | Reservations and map | Property Search Map, Separate, Owner Unlink, detach-status helper. | after 1.0 |
 | **1.2.0** | Agency writes | Advisor Create/Update. Branch as a small resource. | after 1.0 |
@@ -506,13 +506,16 @@ Typical response `{ data: [{ code, name }] }`. Sort via `order` + `sort`.
 
 - **Docs:** https://apiv3get.domus.la/docs/3.0/captaciones-v2/lista
 - **Headers:** `Perpage`.
-- **Query:** `page`, `city`, `branch`, `neighborhood`, `biz`, `stratum`, `type`, area/price/admin ranges, rooms, `broker`, `contact`.
+- **Query:** `page`, `city`, `branch`, `neighborhood`, `biz`, `stratum`, `type`, `minarea`/`maxarea`, `price_min`/`price_max`, `administration_min`/`administration_max`, `minbed`/`maxbed`, `minbath`/`maxbath`, `broker`, `contact`. Note the value and administration ranges use `price_min`-style names here, not the `pvmin`/`adminmin` names the property list uses.
+- **Sort:** `sort=asc|desc` with `order` in `unique_code`, `code`, `type_code`, `city_code`, `neighborhood`, `stratum`, `area`, `bedrooms`, `bathrooms`, `price`, `administration`.
 - **Response:** paginated captures with property snapshot, CRM contact, broker, branch.
 - **Pagination:** yes. **Mutates:** no.
 
 #### Detail — `GET /captures-v2/{code}?unique_code=`
 
 - **Docs:** https://apiv3get.domus.la/docs/3.0/captaciones-v2/detalle
+- **Path:** `code` required; send `0` when the agency never assigned one and identify the capture with `unique_code`.
+- **Response:** `data` object with nested `property`, `biz_service`, `type`, `city`, `broker`, `branch_office`, and `real_state`.
 - **Mutates:** no.
 
 No create/update capture endpoints are documented.
@@ -548,9 +551,12 @@ Domus
 │   └── Update              PUT /owners/{document}
 ├── Advisor
 │   └── Search              GET /administrative/brokers
-└── Project
-    ├── Search              GET /projects-v2
-    └── Get                 GET /projects-v2/{code}?unique_code=
+├── Project
+│   ├── Search              GET /projects-v2
+│   └── Get                 GET /projects-v2/{code}?unique_code=
+└── Acquisition
+    ├── Search              GET /captures-v2
+    └── Get                 GET /captures-v2/{code}?unique_code=
 ```
 
 Helpers already wired:

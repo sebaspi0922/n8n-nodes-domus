@@ -1077,6 +1077,7 @@ describe('Domus advisor resource', () => {
 		const resource = getProperty(node.description.properties, 'resource');
 
 		assert.deepEqual(resource.options, [
+			{ name: 'Acquisition', value: 'acquisition' },
 			{ name: 'Advisor', value: 'advisor' },
 			{ name: 'Owner', value: 'owner' },
 			{ name: 'Project', value: 'project' },
@@ -1255,6 +1256,119 @@ describe('Domus project resource', () => {
 		});
 		assert.equal(requests[0].options.url, '/general/countries');
 		assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
+	});
+});
+
+describe('Domus acquisition resource', () => {
+	const getAcquisitionOperation = () => {
+		const node = new Domus();
+		return node.description.properties.find(
+			(property) =>
+				property.name === 'operation' &&
+				property.displayOptions?.show?.resource?.includes('acquisition'),
+		);
+	};
+
+	it('targets the documented captures V2 endpoints', () => {
+		const operation = getAcquisitionOperation();
+
+		assert.deepEqual(
+			operation.options.map((option) => [option.routing.request.method, option.routing.request.url]),
+			[
+				['GET', '/captures-v2'],
+				['GET', '=/captures-v2/{{$parameter.acquisitionCode}}'],
+			],
+		);
+		for (const option of operation.options) {
+			assert.deepEqual(option.routing.output.postReceive, [
+				{ type: 'rootProperty', properties: { property: 'data' } },
+			]);
+		}
+	});
+
+	it('identifies an acquisition by assigned code with unique code as the fallback', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const code = getResourceProperty(properties, 'acquisition', 'acquisitionCode');
+		const uniqueCode = getResourceProperty(properties, 'acquisition', 'acquisitionUniqueCode');
+
+		assert.equal(code.required, true);
+		assert.equal(code.routing, undefined);
+		assert.equal(uniqueCode.routing.send.property, 'unique_code');
+	});
+
+	it('maps every documented acquisition filter to its query parameter', () => {
+		const node = new Domus();
+		const filters = getResourceProperty(node.description.properties, 'acquisition', 'filters')
+			.options;
+
+		assert.deepEqual(
+			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
+			{
+				branch: 'branch',
+				broker: 'broker',
+				businessType: 'biz',
+				city: 'city',
+				contact: 'contact',
+				maxAdministration: 'administration_max',
+				maxArea: 'maxarea',
+				maxBathrooms: 'maxbath',
+				maxBedrooms: 'maxbed',
+				maxValue: 'price_max',
+				minAdministration: 'administration_min',
+				minArea: 'minarea',
+				minBathrooms: 'minbath',
+				minBedrooms: 'minbed',
+				minValue: 'price_min',
+				neighborhood: 'neighborhood',
+				order: 'order',
+				propertyType: 'type',
+				sort: 'sort',
+				stratum: 'stratum',
+			},
+		);
+		assert.equal(
+			getProperty(filters, 'broker').modes[0].typeOptions.searchListMethod,
+			'searchBrokers',
+		);
+		assert.equal(
+			getProperty(filters, 'propertyType').modes[0].typeOptions.searchListMethod,
+			'searchCatalogPropertyTypes',
+		);
+	});
+
+	it('repeats every acquisition filter across paginated requests', () => {
+		const node = new Domus();
+		const returnAll = getResourceProperty(
+			node.description.properties,
+			'acquisition',
+			'returnAll',
+		);
+		const paginationQuery = returnAll.routing.operations.pagination.properties.request.qs;
+
+		assert.deepEqual(Object.keys(paginationQuery).sort(), [
+			'administration_max',
+			'administration_min',
+			'biz',
+			'branch',
+			'broker',
+			'city',
+			'contact',
+			'maxarea',
+			'maxbath',
+			'maxbed',
+			'minarea',
+			'minbath',
+			'minbed',
+			'neighborhood',
+			'order',
+			'page',
+			'price_max',
+			'price_min',
+			'sort',
+			'stratum',
+			'type',
+		]);
 	});
 });
 
