@@ -7,7 +7,7 @@ from those pages, not from guessed OpenAPI.
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
 - Documented HTTP operations: **50**, counting `GET /administrative/document_types`, which has a live docs page linked from owner creation but no entry in the sidebar
 - Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Public n8n operations on this branch (unpublished): **12** (eight on Property, four on Owner)
+- Public n8n operations on this branch (unpublished): **13** (eight on Property, four on Owner, one on Advisor)
 - Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, document types, phone types, plus full `/general` catalogs for create and update
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
@@ -137,7 +137,7 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Propietarios | `/owners` | POST | Owner | Create | Implemented | P1 | 1.0.0 |
 | Propietarios | `/owners/{document}` | PUT | Owner | Update | Implemented | P1 | 1.0.0 |
 | Propietarios | `/owners/{owner_code}/{codpro}` | DELETE | Owner | Unlink Property | Planned | P2 | 1.1.0 |
-| Administrativo | `/administrative/brokers` | GET | Advisor | Search | Planned | P1 | 1.0.0 |
+| Administrativo | `/administrative/brokers` | GET | Advisor | Search | Implemented | P1 | 1.0.0 |
 | Administrativo | `/administrative/brokers` | POST | Advisor | Create | Planned | P2 | 1.2.0 |
 | Administrativo | `/administrative/brokers/{code}` | PUT | Advisor | Update | Planned | P2 | 1.2.0 |
 | Proyectos V2 | `/projects-v2` | GET | Project | Search | Planned | P1 | 1.0.0 |
@@ -191,7 +191,7 @@ labels are retired so clients never see another pre-1.0 release.
 | **Published** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. | **0.1.0** |
 | **A** | Property writes and status | Search commercial filters, Change Status, Get Status History, Create, and Update. Images, extra-amenities JSON, and multilingual descriptions stay out of this slice. | unpublished until 1.0 |
 | **B** | Owners and portals | Owner Search/Get/Create/Update with phone-type and document-type helpers. Property Get Portal Publications and Retry Portal Publication, on the paths the Guzzle examples document. | unpublished until 1.0 |
-| **C** | People and projects | Advisor Search. Project V2 Search/Get. | unpublished until 1.0 |
+| **C** | People and projects | Advisor Search is in. Remaining: Project V2 Search/Get. | unpublished until 1.0 |
 | **D** | CRM intake | Acquisition Search/Get. | unpublished until 1.0 |
 | **1.0.0** | Stable core | All P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out. | **first post-review publish** |
 | **1.1.0** | Reservations and map | Property Search Map, Separate, Owner Unlink, detach-status helper. | after 1.0 |
@@ -391,7 +391,10 @@ Typical response `{ data: [{ code, name }] }`. Sort via `order` + `sort`.
 
 - **Docs:** https://apiv3get.domus.la/docs/3.0/administrativo/asesores
 - **Headers:** `Inmobiliaria`.
-- **Response:** `{ data: [{ code, id_number, name, last_name, phones, email, picture, biz_code, ... }] }`.
+- **Query:** `branch`, `city`, `name`, `phone`, `email`, `exact_email`. Branch and city accept comma-separated codes.
+- **Sort:** `sort=asc|desc` with `order` in `name`, `email`, `last_name`, `code`, `order`.
+- **Response:** `{ data: [{ code, id_number, name, last_name, phone, mobile_phone, email, picture, address, order, biz_code, department, description, city_code, city }] }`.
+- **Pagination:** none documented; the full list comes back in one response.
 - **Mutates:** no.
 
 #### Create advisor — `POST /administrative/brokers`
@@ -535,11 +538,13 @@ Domus
 │   ├── Change Status       PUT /properties/status/{codpro}
 │   ├── Get Portal Publications   GET /properties/portals/{idpro}/{codpro?}
 │   └── Retry Portal Publication  GET /properties/retry-portals/{codpro}/{idpro?}
-└── Owner
-    ├── Search              GET /owners
-    ├── Get                 GET /owners/{document}
-    ├── Create              POST /owners
-    └── Update              PUT /owners/{document}
+├── Owner
+│   ├── Search              GET /owners
+│   ├── Get                 GET /owners/{document}
+│   ├── Create              POST /owners
+│   └── Update              PUT /owners/{document}
+└── Advisor
+    └── Search              GET /administrative/brokers
 ```
 
 Helpers already wired:

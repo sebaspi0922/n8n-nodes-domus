@@ -22,6 +22,7 @@ import {
 	searchTypedNeighborhoods,
 	searchZones,
 } from './methods';
+import { advisorDescription } from './resources/advisor';
 import { ownerDescription } from './resources/owner';
 import { propertyDescription } from './resources/property';
 
@@ -85,6 +86,10 @@ export class Domus implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
+						name: 'Advisor',
+						value: 'advisor',
+					},
+					{
 						name: 'Owner',
 						value: 'owner',
 					},
@@ -97,6 +102,7 @@ export class Domus implements INodeType {
 			},
 			...propertyDescription,
 			...ownerDescription,
+			...advisorDescription,
 		],
 	};
 }
