@@ -2,6 +2,8 @@ import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from '
 import { DOMUS_BASE_URL_EXPRESSION, DOMUS_CREDENTIAL_NAME } from './constants';
 import {
 	searchAmenities,
+	searchBranches,
+	searchBrokers,
 	searchBusinessTypes,
 	searchCatalogBusinessTypes,
 	searchCatalogCities,
@@ -23,6 +25,8 @@ export class Domus implements INodeType {
 	methods = {
 		listSearch: {
 			searchAmenities,
+			searchBranches,
+			searchBrokers,
 			searchBusinessTypes,
 			searchCatalogBusinessTypes,
 			searchCatalogCities,

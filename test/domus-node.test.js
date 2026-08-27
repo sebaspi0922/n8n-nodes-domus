@@ -10,6 +10,8 @@ const { DomusApi } = require('../dist/credentials/DomusApi.credentials.js');
 const { Domus } = require('../dist/nodes/Domus/Domus.node.js');
 const {
 	searchAmenities,
+	searchBranches,
+	searchBrokers,
 	searchBusinessTypes,
 	searchCatalogBusinessTypes,
 	searchCatalogCities,
@@ -585,6 +587,70 @@ describe('Domus property change status operation', () => {
 		});
 		assert.equal(sourceRequests[0].options.url, '/administrative/sources');
 		assert.equal(sourceRequests[0].options.headers.Inmobiliaria, undefined);
+	});
+});
+
+describe('Domus advisor and branch locators', () => {
+	it('lists advisors by full name and scopes them with the agency header', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [
+				{ code: 1256, name: 'Ana', last_name: 'Restrepo' },
+				{ code: 1257, name: 'Carlos', last_name: 'Mejía' },
+			],
+		});
+		const brokers = await searchBrokers.call(context);
+
+		assert.deepEqual(brokers, {
+			results: [
+				{ name: 'Ana Restrepo', value: '1256' },
+				{ name: 'Carlos Mejía', value: '1257' },
+			],
+		});
+		assert.equal(requests[0].options.url, '/administrative/brokers');
+		assert.equal(requests[0].options.headers.Inmobiliaria, 1);
+	});
+
+	it('matches an advisor filter against the last name too', async () => {
+		const { context } = createListSearchContext({
+			data: [
+				{ code: 1256, name: 'Ana', last_name: 'Restrepo' },
+				{ code: 1257, name: 'Carlos', last_name: 'Mejía' },
+			],
+		});
+
+		assert.deepEqual(await searchBrokers.call(context, 'restrepo'), {
+			results: [{ name: 'Ana Restrepo', value: '1256' }],
+		});
+	});
+
+	it('lists branches from the administrative directory without the agency header', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [{ code: 601, name: 'Sede Norte' }],
+		});
+		const branches = await searchBranches.call(context);
+
+		assert.deepEqual(branches, { results: [{ name: 'Sede Norte', value: '601' }] });
+		assert.equal(requests[0].options.url, '/administrative/branches');
+		assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
+	});
+
+	it('wires advisor and branch locators into every operation that sends those codes', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const filters = getProperty(properties, 'filters').options;
+		const createFields = getProperty(properties, 'additionalFields').options;
+		const changeStatusFields = getProperty(properties, 'changeStatusFields').options;
+
+		const locatorMethod = (fields, name) =>
+			getProperty(fields, name).modes[0].typeOptions.searchListMethod;
+
+		assert.equal(locatorMethod(filters, 'branch'), 'searchBranches');
+		assert.equal(locatorMethod(filters, 'broker'), 'searchBrokers');
+		assert.equal(locatorMethod(createFields, 'branch'), 'searchBranches');
+		assert.equal(locatorMethod(createFields, 'broker'), 'searchBrokers');
+		assert.equal(locatorMethod(createFields, 'catcherBroker'), 'searchBrokers');
+		assert.equal(locatorMethod(createFields, 'promoterBroker'), 'searchBrokers');
+		assert.equal(locatorMethod(changeStatusFields, 'broker'), 'searchBrokers');
 	});
 });
 

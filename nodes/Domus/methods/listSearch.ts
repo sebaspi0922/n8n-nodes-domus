@@ -5,6 +5,7 @@ interface DomusSearchOption {
 	code?: number | string;
 	name: string;
 	city_name?: string;
+	last_name?: string;
 	state_name?: string;
 }
 
@@ -74,11 +75,15 @@ const getFilterValue = (context: ILoadOptionsFunctions, name: string): string | 
 	return undefined;
 };
 
+const getFullName = (option: DomusSearchOption): string =>
+	option.last_name ? `${option.name} ${option.last_name}`.trim() : option.name;
+
 const getDisplayName = (option: DomusSearchOption): string => {
+	const fullName = getFullName(option);
 	const location = option.city_name ?? option.state_name;
-	return location && location.toLocaleLowerCase() !== option.name.toLocaleLowerCase()
-		? `${option.name} — ${location}`
-		: option.name;
+	return location && location.toLocaleLowerCase() !== fullName.toLocaleLowerCase()
+		? `${fullName} — ${location}`
+		: fullName;
 };
 
 interface SearchDomusOptionsConfig {
@@ -141,9 +146,14 @@ async function searchDomusOptions(
 			seenValues.add(value);
 
 			if (!normalizedFilter) return true;
-			return [option.name, value, option.city_name, option.state_name].some((candidate) =>
-				candidate?.toLocaleLowerCase().includes(normalizedFilter),
-			);
+			return [
+				option.name,
+				option.last_name,
+				getFullName(option),
+				value,
+				option.city_name,
+				option.state_name,
+			].some((candidate) => candidate?.toLocaleLowerCase().includes(normalizedFilter));
 		})
 		.map((option) => ({
 			name: getDisplayName(option),
@@ -203,6 +213,22 @@ export async function searchSources(
 	filter?: string,
 ): Promise<INodeListSearchResult> {
 	return await searchDomusOptions.call(this, '/administrative/sources', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchBrokers(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/administrative/brokers', filter);
+}
+
+export async function searchBranches(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/administrative/branches', filter, {
 		includeAgencyScope: false,
 	});
 }

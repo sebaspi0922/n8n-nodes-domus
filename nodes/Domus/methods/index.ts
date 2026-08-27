@@ -1,5 +1,7 @@
 export {
 	searchAmenities,
+	searchBranches,
+	searchBrokers,
 	searchBusinessTypes,
 	searchCatalogBusinessTypes,
 	searchCatalogCities,
