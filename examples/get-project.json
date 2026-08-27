@@ -1,0 +1,50 @@
+{
+	"id": "92a3b4c5-d6e7-4f80-91a2-b3c4d5e6f708",
+	"name": "Domus - Get project",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "a3b4c5d6-e7f8-4091-a2b3-c4d5e6f70819",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "project",
+				"operation": "get",
+				"projectCode": "",
+				"projectUniqueCode": ""
+			},
+			"id": "b4c5d6e7-f809-41a2-b3c4-d5e6f708192a",
+			"name": "Get project",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Get project",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "c5d6e7f8-091a-42b3-84c5-d6e7f8091a2b",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

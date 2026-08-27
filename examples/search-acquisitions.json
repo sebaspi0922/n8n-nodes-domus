@@ -1,0 +1,55 @@
+{
+	"id": "d6e7f809-1a2b-4c3d-95e6-f708192a3b4c",
+	"name": "Domus - Search acquisitions",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "e7f8091a-2b3c-4d4e-96f7-08192a3b4c5d",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "acquisition",
+				"operation": "search",
+				"returnAll": false,
+				"limit": 50,
+				"page": 1,
+				"filters": {
+					"order": "code",
+					"sort": "desc"
+				}
+			},
+			"id": "f8091a2b-3c4d-4e5f-9708-192a3b4c5d6e",
+			"name": "Search acquisitions",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search acquisitions",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "091a2b3c-4d5e-4f60-9819-2a3b4c5d6e7f",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

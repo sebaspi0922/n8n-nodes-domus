@@ -1,0 +1,50 @@
+{
+	"id": "1a2b3c4d-5e6f-4071-9829-3b4c5d6e7f08",
+	"name": "Domus - Get acquisition",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "2b3c4d5e-6f70-4182-93a4-c5d6e7f80919",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "acquisition",
+				"operation": "get",
+				"acquisitionCode": "",
+				"acquisitionUniqueCode": ""
+			},
+			"id": "3c4d5e6f-7081-4293-a4b5-d6e7f8091a2a",
+			"name": "Get acquisition",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Get acquisition",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "4d5e6f70-8192-43a4-b5c6-e7f8091a2b3b",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

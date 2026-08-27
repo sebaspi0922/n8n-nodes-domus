@@ -1,0 +1,51 @@
+{
+	"id": "d5e6f708-192a-43b4-85c6-d7e8f9091a2b",
+	"name": "Domus - Retry portal publication",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "e6f70819-2a3b-44c5-96d7-e8f9091a2b3c",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "property",
+				"operation": "retryPortalPublication",
+				"propertyCode": "",
+				"retryPropertyId": "",
+				"retryMethod": "2"
+			},
+			"id": "f7081920-3b4c-45d6-a7e8-f9091a2b3c4d",
+			"name": "Retry portal publication",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Retry portal publication",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "08192a3b-4c5d-46e7-b8f9-091a2b3c4d5e",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

@@ -4,8 +4,9 @@ An n8n community node for integrating workflows with **Domus CRM** through
 Domus API 3.0.
 
 > Published as [`n8n-nodes-domus@0.1.0`](https://www.npmjs.com/package/n8n-nodes-domus).
-> That release is the version under n8n Creator Portal review. Later Git
-> commits may add docs and tests without publishing a new npm version.
+> That release is the version under n8n Creator Portal review. The `1.0.0`
+> scope is complete on Git and waits for that review to close before it is
+> published to npm.
 
 ## Features
 
@@ -18,10 +19,22 @@ Domus API 3.0.
 - `Property → Update` using `PUT /properties/{codpro}`
 - `Property → Get Status History` using `GET /properties/status/{codpro}`
 - `Property → Change Status` using `PUT /properties/status/{codpro}`
+- `Property → Get Portal Publications` using `GET /properties/portals/{idpro}/{codpro?}`
+- `Property → Retry Portal Publication` using
+  `GET /properties/retry-portals/{codpro}/{idpro?}`
+- `Owner → Search` using `GET /owners`
+- `Owner → Get` using `GET /owners/{document}`
+- `Owner → Create` using `POST /owners`
+- `Owner → Update` using `PUT /owners/{document}`
+- `Advisor → Search` using `GET /administrative/brokers`
+- `Project → Search` using `GET /projects-v2`
+- `Project → Get` using `GET /projects-v2/{code}?unique_code=`
+- `Acquisition → Search` using `GET /captures-v2`
+- `Acquisition → Get` using `GET /captures-v2/{code}?unique_code=`
 - Bounded results or automatic page-based pagination with **Return All**
-- Dynamic selectors for city, property type, business type, zone, neighborhood, city zone, amenities, status, and source
+- Dynamic selectors for city, country, property type, business type, zone, neighborhood, city zone, amenities, status, source, advisor, branch, document type, and phone type
 - Manual code entry as an alternative to every dynamic selector
-- One n8n output item per property
+- One n8n output item per property, owner, advisor, project, or acquisition
 
 ## Requirements
 
@@ -83,7 +96,8 @@ screenshots, or example workflows.
 2. Create or open a workflow.
 3. Add the **Domus** node.
 4. Create or select a **Domus API** credential.
-5. Select **Property** and choose an operation.
+5. Select **Property**, **Owner**, **Advisor**, **Project**, or
+   **Acquisition** and choose an operation.
 6. Configure the operation and execute the node.
 
 Sanitized importable workflows are available under [`examples/`](examples/).
@@ -182,6 +196,108 @@ slice. Created properties cannot be deleted; status is the documented
 lifecycle control. Write only against the testing host unless you
 intentionally target production.
 
+### Property → Get Portal Publications
+
+Calls `GET /properties/portals/{idpro}/{codpro?}` and returns one n8n item per
+portal publication, including the portal, the business type, the code the
+property has on that portal, and the sync dates. Domus puts the internal
+property ID first here, so **Internal Property ID** is required and
+**Property Code** only narrows the lookup. **Entire Agency** controls the
+`Inmobiliaria` header.
+
+### Property → Retry Portal Publication
+
+Calls `GET /properties/retry-portals/{codpro}/{idpro?}` and requeues a portal
+transaction that failed, without editing the property. **Property Code** is
+required and **Transaction** selects create, update, or unpublish
+(`method=1|2|3`).
+
+Domus documents this path in its request example while the page badge reuses
+the publications path. The node follows the request example, because the badge
+path collides with the publications endpoint. Retrying is not idempotent: each
+call queues another portal transaction.
+
+### Owner → Search
+
+Calls `GET /owners` and returns one n8n item per owner. Filters cover
+branch, city, name, phone, exact phone, email, document, property code,
+and the two flags for owners that have an email or active properties.
+Results can be ordered by first name, last name, or code. **Return All**
+follows pages the same way the property search does.
+
+### Owner → Get
+
+Calls `GET /owners/{document}` and returns the owner with their phones and
+associated properties. Domus expects the identification document in the
+path; send `0` and set **Owner Code** when the document is unknown. An
+optional **Property Status** filter narrows the associated properties.
+
+### Owner → Create
+
+Calls `POST /owners` with `application/x-www-form-urlencoded`. **First
+Name**, **Last Name**, and **Document** are required. Phones are entered
+one per row and sent as the JSON array Domus documents, with types loaded
+from `GET /general/phone-types`. Passing **Property Code** and **Share
+Percentage** associates the new owner with a property in the same request.
+
+### Owner → Update
+
+Calls `PUT /owners/{document}` with `application/x-www-form-urlencoded`.
+Every field is optional, including the document itself, which Domus
+rewrites when it is sent. **Replace Phone List** maps to `phones_recursive`
+and is required when phones are sent in the same shape as owner creation.
+
+### Advisor → Search
+
+Calls `GET /administrative/brokers` and returns one n8n item per advisor,
+including identification, phones, email, picture, department, and city.
+Filters cover branch, city, name, phone, email, and exact email, and results
+can be ordered by code, display order, email, first name, or last name.
+
+Domus does not paginate this endpoint, so it always answers with the complete
+list. Disabling **Return All** truncates that list to **Limit** items inside
+n8n; it does not make a smaller request.
+
+There is no documented get-by-id for a single advisor, and advisor writes are
+planned for a later release.
+
+### Project → Search
+
+Calls `GET /projects-v2` and returns one n8n item per project, with its price
+and area ranges, pictures, branch, and agency. Filters cover city, country,
+branch, neighborhood, name, project code, and status, plus **Any Status** for
+`nostatus=0`. **Return All** follows `current_page` and `last_page` the same
+way the property and owner searches do.
+
+This resource is Domus CRM V2 inventory. Domus documents `GET /projects` as a
+separate MLS list that holds different inventory, so it is intentionally not
+exposed here.
+
+### Project → Get
+
+Calls `GET /projects-v2/{code}` and returns the project `data` object with its
+unit types, price rows, and pictures. **Project Code** is required; send `0`
+and set **Unique Code** for projects the agency never assigned a code to.
+
+### Acquisition → Search
+
+Calls `GET /captures-v2` and returns one n8n item per acquisition, each
+carrying the property snapshot, the capturing advisor, the CRM contact, and
+the branch. Filters cover city, branch, neighborhood, business type, property
+type, stratum, advisor, CRM contact, and ranges for area, value,
+administration, bedrooms, and bathrooms. **Return All** follows pages the same
+way the other searches do.
+
+This is the closest documented CRM intake surface in API 3.0. There is no
+standalone leads or contacts module, and no create or update endpoint for
+acquisitions, so this resource is read-only.
+
+### Acquisition → Get
+
+Calls `GET /captures-v2/{code}` and returns the acquisition `data` object.
+**Acquisition Code** is required; send `0` and set **Unique Code** for
+acquisitions the agency never assigned a code to.
+
 ## Verified behavior
 
 The node has been exercised against Domus API with a real credential without
@@ -249,10 +365,22 @@ Never put a Domus token in Git, fixtures, traces, or screenshots.
 
 ## Release status
 
-`n8n-nodes-domus@0.1.0` is published to npm with provenance from GitHub
-Actions. It is in n8n Creator Portal Manual Review. Do not publish `0.1.1`,
-`0.2.0`, `1.0.0`, or any other npm version while that review is open. The
-next public package after review is `1.0.0`.
+`n8n-nodes-domus@0.1.0` is the published npm version, released with provenance
+from GitHub Actions, and the one submitted to n8n Creator Portal Manual Review.
+
+`1.0.0` is development-complete on git: every P0 and P1 operation on the
+roadmap is implemented and tested, and no further work is planned for it.
+Publishing is gated on the `0.1.0` review closing, not on more development. Do
+not push a version tag while that review is still open.
+
+When the review closes, publishing is:
+
+```bash
+npm run release
+```
+
+That lints, builds, bumps the version, regenerates the changelog, commits, and
+pushes the tag, which triggers the publish workflow.
 
 ## Documentation
 
@@ -260,9 +388,15 @@ next public package after review is `1.0.0`.
 - [Testing strategy](docs/testing-strategy.md)
 - [First-stage report](docs/first-stage-report.md)
 - [Second-stage report](docs/second-stage-report.md)
+- [Third-stage report](docs/third-stage-report.md)
 - [Domus API 3.0](https://apiv3get.domus.la/docs/3.0/)
 - [Property list endpoint](https://apiv3get.domus.la/docs/3.0/inmuebles/lista)
 - [Property detail endpoint](https://apiv3get.domus.la/docs/3.0/inmuebles/detalle)
+- [Owner list endpoint](https://apiv3get.domus.la/docs/3.0/propietarios/lista)
+- [Owner detail endpoint](https://apiv3get.domus.la/docs/3.0/propietarios/detalle)
+- [Advisor list endpoint](https://apiv3get.domus.la/docs/3.0/administrativo/asesores)
+- [Project V2 list endpoint](https://apiv3get.domus.la/docs/3.0/proyectos-v2/lista)
+- [Acquisition V2 list endpoint](https://apiv3get.domus.la/docs/3.0/captaciones-v2/lista)
 - [n8n community node verification guidelines](https://docs.n8n.io/connect/create-nodes/build-your-node/reference/verification-guidelines)
 - [n8n node CLI](https://docs.n8n.io/connect/create-nodes/build-your-node/using-the-n8n-node-tool/)
 

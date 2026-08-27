@@ -1,9 +1,6 @@
-import type {
-	IDataObject,
-	IN8nRequestOperationPaginationGeneric,
-	INodeProperties,
-} from 'n8n-workflow';
-import { createDomusLocator } from './locators';
+import type { INodeProperties } from 'n8n-workflow';
+import { createDomusLocator } from '../locators';
+import { createDomusPagination } from '../pagination';
 
 const showOnlyForPropertySearch = {
 	operation: ['search'],
@@ -54,26 +51,7 @@ const propertySearchQueryParameters = [
 	'zone',
 ] as const;
 
-const paginationQuery = {
-	...Object.fromEntries(
-		propertySearchQueryParameters.map((parameter) => [
-			parameter,
-			`={{ $request.qs?.["${parameter}"] }}`,
-		]),
-	),
-	page: '={{ $response.body?.current_page ? Number($response.body.current_page) + 1 : Number($request.qs?.page ?? 1) }}',
-} as IDataObject;
-
-const propertySearchPagination: IN8nRequestOperationPaginationGeneric = {
-	type: 'generic',
-	properties: {
-		continue:
-			'={{ Number($response.body?.current_page ?? 0) < Number($response.body?.last_page ?? 0) }}',
-		request: {
-			qs: paginationQuery,
-		},
-	},
-};
+const propertySearchPagination = createDomusPagination(propertySearchQueryParameters);
 
 const queryStringFilter = (
 	displayName: string,
@@ -306,20 +284,26 @@ export const propertySearchDescription: INodeProperties[] = [
 					},
 				},
 			},
-			queryStringFilter(
-				'Branch Code',
-				'branch',
-				'branch',
-				'Agency branch code when the inventory spans more than one branch',
-				'e.g. 601',
-			),
-			queryStringFilter(
-				'Broker Code',
-				'broker',
-				'broker',
-				'Advisor code responsible for the property',
-				'e.g. 1256',
-			),
+			createDomusLocator({
+				displayName: 'Branch',
+				name: 'branch',
+				searchListMethod: 'searchBranches',
+				sendType: 'query',
+				sendProperty: 'branch',
+				placeholder: 'e.g. 601',
+				description:
+					'Agency branch when the inventory spans more than one branch; also accepts comma-separated codes',
+			}),
+			createDomusLocator({
+				displayName: 'Broker',
+				name: 'broker',
+				searchListMethod: 'searchBrokers',
+				sendType: 'query',
+				sendProperty: 'broker',
+				placeholder: 'e.g. 1256',
+				description:
+					'Advisor responsible for the property; also accepts comma-separated codes',
+			}),
 			createDomusLocator({
 				displayName: 'Business Type',
 				name: 'businessType',

@@ -1,5 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { createDomusLocator } from './locators';
+import { createDomusLocator } from '../locators';
 
 interface PropertyWriteFieldOptions {
 	cityDependsOn?: string[];
@@ -102,20 +102,24 @@ export const propertyWriteFields = (
 		}),
 		bodyNumberField('Bathrooms', 'bathrooms', 'bathrooms', 'Number of bathrooms'),
 		bodyNumberField('Bedrooms', 'bedrooms', 'bedrooms', 'Number of bedrooms'),
-		bodyStringField(
-			'Branch Code',
-			'branch',
-			'branch',
-			'Agency branch that owns the listing',
-			'e.g. 601',
-		),
-		bodyStringField(
-			'Broker Code',
-			'broker',
-			'broker',
-			'Advisor assigned to the property',
-			'e.g. 1256',
-		),
+		createDomusLocator({
+			displayName: 'Branch',
+			name: 'branch',
+			searchListMethod: 'searchBranches',
+			sendType: 'body',
+			sendProperty: 'branch',
+			placeholder: 'e.g. 601',
+			description: 'Agency branch that owns the listing',
+		}),
+		createDomusLocator({
+			displayName: 'Broker',
+			name: 'broker',
+			searchListMethod: 'searchBrokers',
+			sendType: 'body',
+			sendProperty: 'broker',
+			placeholder: 'e.g. 1256',
+			description: 'Advisor assigned to the property',
+		}),
 		bodyNumberField(
 			'Built Area',
 			'builtArea',
@@ -123,12 +127,15 @@ export const propertyWriteFields = (
 			'Built area in square meters. Required by Domus for some property types.',
 		),
 		bodyNumberField('Built Year', 'builtYear', 'built_year', 'Year the property was built'),
-		bodyStringField(
-			'Catcher Broker',
-			'catcherBroker',
-			'catcher_broker',
-			'Advisor who captured the listing. Defaults to Broker when omitted.',
-		),
+		createDomusLocator({
+			displayName: 'Catcher Broker',
+			name: 'catcherBroker',
+			searchListMethod: 'searchBrokers',
+			sendType: 'body',
+			sendProperty: 'catcher_broker',
+			placeholder: 'e.g. 1256',
+			description: 'Advisor who captured the listing. Defaults to Broker when omitted.',
+		}),
 		createDomusLocator({
 			displayName: 'City Zone',
 			name: 'cityZone',
@@ -203,12 +210,15 @@ export const propertyWriteFields = (
 			'project',
 			'Project unique_code when the property belongs to a project',
 		),
-		bodyStringField(
-			'Promoter Broker',
-			'promoterBroker',
-			'promoter_broker',
-			'Promoter advisor. Defaults to Broker when omitted.',
-		),
+		createDomusLocator({
+			displayName: 'Promoter Broker',
+			name: 'promoterBroker',
+			searchListMethod: 'searchBrokers',
+			sendType: 'body',
+			sendProperty: 'promoter_broker',
+			placeholder: 'e.g. 1256',
+			description: 'Promoter advisor. Defaults to Broker when omitted.',
+		}),
 		bodyStringField(
 			'Publication Date',
 			'publicationDate',

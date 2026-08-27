@@ -8,13 +8,41 @@ const examplesDir = join(__dirname, '../examples');
 describe('packaged example workflows', () => {
 	const files = readdirSync(examplesDir).filter((name) => name.endsWith('.json'));
 
-	it('ships sanitized fixtures for every public property operation', () => {
+	const operationsByResource = {
+		acquisition: ['search', 'get'],
+		advisor: ['search'],
+		owner: ['search', 'get', 'create', 'update'],
+		project: ['search', 'get'],
+		property: [
+			'search',
+			'get',
+			'create',
+			'update',
+			'getStatusHistory',
+			'changeStatus',
+			'getPortalPublications',
+			'retryPortalPublication',
+		],
+	};
+
+	it('ships sanitized fixtures for every public operation', () => {
 		assert.deepEqual(files.sort(), [
 			'change-property-status.json',
+			'create-owner.json',
 			'create-property.json',
+			'get-acquisition.json',
+			'get-owner.json',
+			'get-project.json',
+			'get-property-portal-publications.json',
 			'get-property-status-history.json',
 			'get-property.json',
+			'retry-portal-publication.json',
+			'search-acquisitions.json',
+			'search-advisors.json',
+			'search-owners.json',
+			'search-projects.json',
 			'search-properties.json',
+			'update-owner.json',
 			'update-property.json',
 		]);
 	});
@@ -32,12 +60,9 @@ describe('packaged example workflows', () => {
 			assert.ok(domusNodes.length >= 1);
 			for (const node of domusNodes) {
 				assert.equal(node.credentials, undefined);
-				assert.equal(node.parameters.resource, 'property');
-				assert.ok(
-					['search', 'get', 'create', 'update', 'getStatusHistory', 'changeStatus'].includes(
-						node.parameters.operation,
-					),
-				);
+				const operations = operationsByResource[node.parameters.resource];
+				assert.ok(operations, `unknown resource ${node.parameters.resource}`);
+				assert.ok(operations.includes(node.parameters.operation));
 			}
 		});
 	}

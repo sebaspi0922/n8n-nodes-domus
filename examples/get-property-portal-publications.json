@@ -1,0 +1,51 @@
+{
+	"id": "f1a2b3c4-d5e6-4f70-8192-a3b4c5d6e7f8",
+	"name": "Domus - Get property portal publications",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "a2b3c4d5-e6f7-4081-92a3-b4c5d6e7f809",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "property",
+				"operation": "getPortalPublications",
+				"portalPropertyId": "",
+				"portalPropertyCode": "",
+				"portalEntireAgency": false
+			},
+			"id": "b3c4d5e6-f708-4192-a3b4-c5d6e7f8091a",
+			"name": "Get property portal publications",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Get property portal publications",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "c4d5e6f7-0819-42a3-b4c5-d6e7f8091a2b",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

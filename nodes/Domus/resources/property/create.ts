@@ -1,5 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { createDomusLocator } from './locators';
+import { createDomusLocator } from '../locators';
 import { omitEmptyNumberExpression, propertyWriteFields } from './writeFields';
 
 const showOnlyForPropertyCreate = {

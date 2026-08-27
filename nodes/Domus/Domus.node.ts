@@ -1,7 +1,10 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
 import { DOMUS_BASE_URL_EXPRESSION, DOMUS_CREDENTIAL_NAME } from './constants';
 import {
+	getPhoneTypes,
 	searchAmenities,
+	searchBranches,
+	searchBrokers,
 	searchBusinessTypes,
 	searchCatalogBusinessTypes,
 	searchCatalogCities,
@@ -10,19 +13,28 @@ import {
 	searchCatalogZones,
 	searchCities,
 	searchCityZones,
+	searchCountries,
+	searchDocumentTypes,
 	searchNeighborhoods,
+	searchPhoneTypes,
 	searchPropertyTypes,
 	searchSources,
 	searchStatuses,
 	searchTypedNeighborhoods,
 	searchZones,
 } from './methods';
+import { acquisitionDescription } from './resources/acquisition';
+import { advisorDescription } from './resources/advisor';
+import { ownerDescription } from './resources/owner';
+import { projectDescription } from './resources/project';
 import { propertyDescription } from './resources/property';
 
 export class Domus implements INodeType {
 	methods = {
 		listSearch: {
 			searchAmenities,
+			searchBranches,
+			searchBrokers,
 			searchBusinessTypes,
 			searchCatalogBusinessTypes,
 			searchCatalogCities,
@@ -31,12 +43,18 @@ export class Domus implements INodeType {
 			searchCatalogZones,
 			searchCities,
 			searchCityZones,
+			searchCountries,
+			searchDocumentTypes,
 			searchNeighborhoods,
+			searchPhoneTypes,
 			searchPropertyTypes,
 			searchSources,
 			searchStatuses,
 			searchTypedNeighborhoods,
 			searchZones,
+		},
+		loadOptions: {
+			getPhoneTypes,
 		},
 	};
 
@@ -72,6 +90,22 @@ export class Domus implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
+						name: 'Acquisition',
+						value: 'acquisition',
+					},
+					{
+						name: 'Advisor',
+						value: 'advisor',
+					},
+					{
+						name: 'Owner',
+						value: 'owner',
+					},
+					{
+						name: 'Project',
+						value: 'project',
+					},
+					{
 						name: 'Property',
 						value: 'property',
 					},
@@ -79,6 +113,10 @@ export class Domus implements INodeType {
 				default: 'property',
 			},
 			...propertyDescription,
+			...ownerDescription,
+			...advisorDescription,
+			...projectDescription,
+			...acquisitionDescription,
 		],
 	};
 }

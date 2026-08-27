@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const { describe, it } = require('node:test');
+const { getNodeParameters } = require('n8n-workflow');
 
 const {
 	DOMUS_BASE_URL_EXPRESSION,
@@ -10,7 +11,11 @@ const { DomusApi } = require('../dist/credentials/DomusApi.credentials.js');
 const { Domus } = require('../dist/nodes/Domus/Domus.node.js');
 const {
 	searchAmenities,
+	searchBranches,
+	searchBrokers,
 	searchBusinessTypes,
+	searchDocumentTypes,
+	searchPhoneTypes,
 	searchCatalogBusinessTypes,
 	searchCatalogCities,
 	searchCatalogNeighborhoods,
@@ -18,6 +23,7 @@ const {
 	searchCatalogZones,
 	searchCities,
 	searchCityZones,
+	searchCountries,
 	searchNeighborhoods,
 	searchPropertyTypes,
 	searchSources,
@@ -28,8 +34,18 @@ const {
 const {
 	splitNestedStatusHistory,
 } = require('../dist/nodes/Domus/resources/property/statusHistory.helpers.js');
+const {
+	serializeOwnerPhones,
+} = require('../dist/nodes/Domus/resources/owner/phones.helpers.js');
 
 const getProperty = (properties, name) => properties.find((property) => property.name === name);
+
+const getResourceProperty = (properties, resource, name) =>
+	properties.find(
+		(property) =>
+			property.name === name &&
+			property.displayOptions?.show?.resource?.includes(resource),
+	);
 
 const createListSearchContext = ({ data, entireAgency = true, filters = {}, parameters = {} }) => {
 	const requests = [];
@@ -105,10 +121,19 @@ describe('Domus property search node', () => {
 		const operation = getProperty(node.description.properties, 'operation');
 		const search = operation.options.find((option) => option.value === 'search');
 
-		assert.deepEqual(resource.options, [{ name: 'Property', value: 'property' }]);
+		assert.equal(resource.default, 'property');
 		assert.deepEqual(
 			operation.options.map((option) => option.name),
-			['Search', 'Get', 'Create', 'Update', 'Get Status History', 'Change Status'],
+			[
+				'Search',
+				'Get',
+				'Create',
+				'Update',
+				'Get Status History',
+				'Get Portal Publications',
+				'Retry Portal Publication',
+				'Change Status',
+			],
 		);
 		assert.equal(search.routing.request.method, 'GET');
 		assert.equal(search.routing.request.url, '/properties');
@@ -417,6 +442,7 @@ describe('Domus property get operation', () => {
 			'get',
 			'changeStatus',
 			'getStatusHistory',
+			'retryPortalPublication',
 			'update',
 		]);
 		assert.equal(propertyId.required, undefined);
@@ -588,6 +614,135 @@ describe('Domus property change status operation', () => {
 	});
 });
 
+describe('Domus property portal operations', () => {
+	it('registers the publications endpoint with idpro first and codpro optional', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const publications = operation.options.find(
+			(option) => option.value === 'getPortalPublications',
+		);
+
+		assert.equal(publications.routing.request.method, 'GET');
+		assert.equal(
+			publications.routing.request.url,
+			'=/properties/portals/{{$parameter.portalPropertyId}}{{$parameter.portalPropertyCode ? "/" + $parameter.portalPropertyCode : ""}}',
+		);
+		assert.equal(publications.routing.output, undefined);
+	});
+
+	it('requires idpro and maps the agency header for publications', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+
+		assert.equal(getProperty(properties, 'portalPropertyId').required, true);
+		assert.equal(getProperty(properties, 'portalPropertyCode').required, undefined);
+		assert.equal(
+			getProperty(properties, 'portalEntireAgency').routing.request.headers.Inmobiliaria,
+			'={{ $value ? 1 : 0 }}',
+		);
+	});
+
+	it('uses the documented retry path, not the colliding badge path', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const retry = operation.options.find((option) => option.value === 'retryPortalPublication');
+
+		assert.equal(retry.routing.request.method, 'GET');
+		assert.equal(
+			retry.routing.request.url,
+			'=/properties/retry-portals/{{$parameter.propertyCode}}{{$parameter.retryPropertyId ? "/" + $parameter.retryPropertyId : ""}}',
+		);
+	});
+
+	it('sends the retry transaction as the documented method query parameter', () => {
+		const node = new Domus();
+		const retryMethod = getProperty(node.description.properties, 'retryMethod');
+
+		assert.equal(retryMethod.required, true);
+		assert.equal(retryMethod.routing.send.type, 'query');
+		assert.equal(retryMethod.routing.send.property, 'method');
+		assert.deepEqual(
+			retryMethod.options.map((option) => [option.name, option.value]),
+			[
+				['Create', '1'],
+				['Unpublish', '3'],
+				['Update', '2'],
+			],
+		);
+	});
+
+	it('reuses the shared property code field for the retry operation', () => {
+		const node = new Domus();
+		const propertyCode = getProperty(node.description.properties, 'propertyCode');
+
+		assert.ok(propertyCode.displayOptions.show.operation.includes('retryPortalPublication'));
+	});
+});
+
+describe('Domus advisor and branch locators', () => {
+	it('lists advisors by full name and scopes them with the agency header', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [
+				{ code: 1256, name: 'Ana', last_name: 'Restrepo' },
+				{ code: 1257, name: 'Carlos', last_name: 'Mejía' },
+			],
+		});
+		const brokers = await searchBrokers.call(context);
+
+		assert.deepEqual(brokers, {
+			results: [
+				{ name: 'Ana Restrepo', value: '1256' },
+				{ name: 'Carlos Mejía', value: '1257' },
+			],
+		});
+		assert.equal(requests[0].options.url, '/administrative/brokers');
+		assert.equal(requests[0].options.headers.Inmobiliaria, 1);
+	});
+
+	it('matches an advisor filter against the last name too', async () => {
+		const { context } = createListSearchContext({
+			data: [
+				{ code: 1256, name: 'Ana', last_name: 'Restrepo' },
+				{ code: 1257, name: 'Carlos', last_name: 'Mejía' },
+			],
+		});
+
+		assert.deepEqual(await searchBrokers.call(context, 'restrepo'), {
+			results: [{ name: 'Ana Restrepo', value: '1256' }],
+		});
+	});
+
+	it('lists branches from the administrative directory without the agency header', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [{ code: 601, name: 'Sede Norte' }],
+		});
+		const branches = await searchBranches.call(context);
+
+		assert.deepEqual(branches, { results: [{ name: 'Sede Norte', value: '601' }] });
+		assert.equal(requests[0].options.url, '/administrative/branches');
+		assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
+	});
+
+	it('wires advisor and branch locators into every operation that sends those codes', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const filters = getProperty(properties, 'filters').options;
+		const createFields = getProperty(properties, 'additionalFields').options;
+		const changeStatusFields = getProperty(properties, 'changeStatusFields').options;
+
+		const locatorMethod = (fields, name) =>
+			getProperty(fields, name).modes[0].typeOptions.searchListMethod;
+
+		assert.equal(locatorMethod(filters, 'branch'), 'searchBranches');
+		assert.equal(locatorMethod(filters, 'broker'), 'searchBrokers');
+		assert.equal(locatorMethod(createFields, 'branch'), 'searchBranches');
+		assert.equal(locatorMethod(createFields, 'broker'), 'searchBrokers');
+		assert.equal(locatorMethod(createFields, 'catcherBroker'), 'searchBrokers');
+		assert.equal(locatorMethod(createFields, 'promoterBroker'), 'searchBrokers');
+		assert.equal(locatorMethod(changeStatusFields, 'broker'), 'searchBrokers');
+	});
+});
+
 describe('Domus property create operation', () => {
 	it('registers POST /properties as form-urlencoded and unwraps property', () => {
 		const node = new Domus();
@@ -711,5 +866,599 @@ describe('Domus property update operation', () => {
 		assert.equal(getProperty(extraFields, 'city').routing.send.property, 'city');
 		assert.equal(getProperty(extraFields, 'address').routing.send.property, 'address');
 		assert.equal(getProperty(extraFields, 'salePrice').routing.send.property, 'saleprice');
+	});
+});
+
+const getOwnerOperation = (value) => {
+	const node = new Domus();
+	const operation = node.description.properties.find(
+		(property) =>
+			property.name === 'operation' &&
+			property.displayOptions?.show?.resource?.includes('owner'),
+	);
+
+	return { node, operation, option: operation.options.find((entry) => entry.value === value) };
+};
+
+describe('Domus owner resource', () => {
+	it('exposes the four documented owner operations on their documented endpoints', () => {
+		const { operation } = getOwnerOperation('search');
+
+		assert.deepEqual(
+			operation.options.map((option) => option.name),
+			['Search', 'Get', 'Create', 'Update'],
+		);
+		assert.deepEqual(
+			operation.options.map((option) => [option.routing.request.method, option.routing.request.url]),
+			[
+				['GET', '/owners'],
+				['GET', '=/owners/{{$parameter.ownerDocument}}'],
+				['POST', '/owners'],
+				['PUT', '=/owners/{{$parameter.ownerDocument}}'],
+			],
+		);
+	});
+
+	it('unwraps the list envelope on reads and the property envelope on writes', () => {
+		const dataEnvelope = [{ type: 'rootProperty', properties: { property: 'data' } }];
+		const writeEnvelope = [{ type: 'rootProperty', properties: { property: 'property' } }];
+
+		assert.deepEqual(getOwnerOperation('search').option.routing.output.postReceive, dataEnvelope);
+		assert.deepEqual(getOwnerOperation('get').option.routing.output.postReceive, dataEnvelope);
+		assert.deepEqual(getOwnerOperation('create').option.routing.output.postReceive, writeEnvelope);
+		assert.deepEqual(getOwnerOperation('update').option.routing.output.postReceive, writeEnvelope);
+	});
+
+	it('sends owner writes as form-urlencoded, as Domus documents', () => {
+		for (const value of ['create', 'update']) {
+			assert.equal(
+				getOwnerOperation(value).option.routing.request.headers['Content-Type'],
+				'application/x-www-form-urlencoded',
+			);
+		}
+	});
+
+	it('maps every documented search filter to its query parameter', () => {
+		const node = new Domus();
+		const filters = getResourceProperty(node.description.properties, 'owner', 'filters').options;
+
+		assert.deepEqual(
+			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
+			{
+				branch: 'branch',
+				city: 'city',
+				codpro: 'codpro',
+				document: 'document',
+				email: 'email',
+				hasEmail: 'has_email',
+				hasProperties: 'has_properties',
+				name: 'name',
+				order: 'order',
+				phone: 'phone',
+				precisePhone: 'precise_phone',
+				sort: 'sort',
+			},
+		);
+		assert.equal(
+			getProperty(filters, 'hasEmail').routing.send.value,
+			'={{ $value ? 1 : undefined }}',
+		);
+		assert.deepEqual(
+			getProperty(filters, 'order').options.map((option) => option.value),
+			['code', 'name', 'last_name'],
+		);
+	});
+
+	it('follows Domus pagination for owners while repeating the active filters', () => {
+		const node = new Domus();
+		const returnAll = getResourceProperty(node.description.properties, 'owner', 'returnAll');
+		const pagination = returnAll.routing.operations.pagination;
+
+		assert.equal(returnAll.routing.send.paginate, '={{$value}}');
+		assert.equal(
+			pagination.properties.continue,
+			'={{ Number($response.body?.current_page ?? 0) < Number($response.body?.last_page ?? 0) }}',
+		);
+		assert.equal(pagination.properties.request.qs.document, '={{ $request.qs?.["document"] }}');
+		assert.equal(
+			pagination.properties.request.qs.page,
+			'={{ $response.body?.current_page ? Number($response.body.current_page) + 1 : Number($request.qs?.page ?? 1) }}',
+		);
+	});
+
+	it('requires name, last name, and document on create and maps the optional fields', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const required = ['name', 'lastName', 'document'].map((name) =>
+			getResourceProperty(properties, 'owner', name),
+		);
+		const extraFields = getResourceProperty(properties, 'owner', 'ownerFields').options;
+
+		assert.deepEqual(
+			required.map((field) => [field.required, field.routing.send.property]),
+			[
+				[true, 'name'],
+				[true, 'last_name'],
+				[true, 'document'],
+			],
+		);
+		assert.deepEqual(
+			Object.fromEntries(extraFields.map((field) => [field.name, field.routing.send.property])),
+			{
+				birthday: 'birthday',
+				branch: 'branch',
+				city: 'city',
+				description: 'description',
+				documentType: 'document_type',
+				email: 'email',
+				neighborhood: 'neighborhood',
+				phones: 'phones',
+				property: 'property',
+				sharePercentage: 'share_percentage',
+				verificationDigit: 'verification_digit',
+			},
+		);
+		assert.equal(
+			getProperty(extraFields, 'documentType').modes[0].typeOptions.searchListMethod,
+			'searchDocumentTypes',
+		);
+	});
+
+	it('lets update rewrite the identity fields and replace the phone list', () => {
+		const node = new Domus();
+		const extraFields = getResourceProperty(
+			node.description.properties,
+			'owner',
+			'ownerUpdateFields',
+		).options;
+
+		assert.equal(getProperty(extraFields, 'name').routing.send.property, 'name');
+		assert.equal(getProperty(extraFields, 'lastName').routing.send.property, 'last_name');
+		assert.equal(getProperty(extraFields, 'document').routing.send.property, 'document');
+		assert.equal(
+			getProperty(extraFields, 'phonesRecursive').routing.send.property,
+			'phones_recursive',
+		);
+		assert.equal(
+			getProperty(extraFields, 'phonesRecursive').routing.send.value,
+			'={{ $value ? 1 : undefined }}',
+		);
+	});
+
+	it('offers the owner code and property status filters on get', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const document = getResourceProperty(properties, 'owner', 'ownerDocument');
+		const options = getResourceProperty(properties, 'owner', 'ownerGetOptions').options;
+
+		assert.equal(document.required, true);
+		assert.deepEqual(document.displayOptions.show.operation, ['get', 'update']);
+		assert.equal(getProperty(options, 'code').routing.send.property, 'code');
+		assert.equal(
+			getProperty(options, 'propertyStatusCode').routing.send.property,
+			'property_status_code',
+		);
+	});
+
+	it('loads phone and document types from their documented catalogs', async () => {
+		const { context: phoneContext, requests: phoneRequests } = createListSearchContext({
+			data: [{ code: 1, name: 'Casa' }],
+		});
+		assert.deepEqual(await searchPhoneTypes.call(phoneContext), {
+			results: [{ name: 'Casa', value: '1' }],
+		});
+		assert.equal(phoneRequests[0].options.url, '/general/phone-types');
+		assert.equal(phoneRequests[0].options.headers.Inmobiliaria, undefined);
+
+		const { context: documentContext, requests: documentRequests } = createListSearchContext({
+			data: [{ code: 1, name: 'Cedula' }],
+		});
+		assert.deepEqual(await searchDocumentTypes.call(documentContext), {
+			results: [{ name: 'Cedula', value: '1' }],
+		});
+		assert.equal(documentRequests[0].options.url, '/administrative/document_types');
+	});
+});
+
+describe('Domus advisor resource', () => {
+	const getAdvisorOperation = () => {
+		const node = new Domus();
+		const operation = node.description.properties.find(
+			(property) =>
+				property.name === 'operation' &&
+				property.displayOptions?.show?.resource?.includes('advisor'),
+		);
+
+		return { node, operation };
+	};
+
+	it('registers Advisor as a resource alongside Owner and Property', () => {
+		const node = new Domus();
+		const resource = getProperty(node.description.properties, 'resource');
+
+		assert.deepEqual(resource.options, [
+			{ name: 'Acquisition', value: 'acquisition' },
+			{ name: 'Advisor', value: 'advisor' },
+			{ name: 'Owner', value: 'owner' },
+			{ name: 'Project', value: 'project' },
+			{ name: 'Property', value: 'property' },
+		]);
+	});
+
+	it('exposes only the documented advisor read operation', () => {
+		const { operation } = getAdvisorOperation();
+		const search = operation.options.find((option) => option.value === 'search');
+
+		assert.deepEqual(
+			operation.options.map((option) => option.name),
+			['Search'],
+		);
+		assert.equal(search.routing.request.method, 'GET');
+		assert.equal(search.routing.request.url, '/administrative/brokers');
+		assert.deepEqual(search.routing.output.postReceive, [
+			{ type: 'rootProperty', properties: { property: 'data' } },
+		]);
+	});
+
+	it('maps every documented advisor filter to its query parameter', () => {
+		const node = new Domus();
+		const filters = getResourceProperty(node.description.properties, 'advisor', 'filters')
+			.options;
+
+		assert.deepEqual(
+			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
+			{
+				branch: 'branch',
+				city: 'city',
+				email: 'email',
+				exactEmail: 'exact_email',
+				name: 'name',
+				order: 'order',
+				phone: 'phone',
+				sort: 'sort',
+			},
+		);
+		assert.deepEqual(
+			getProperty(filters, 'order').options.map((option) => option.value),
+			['code', 'order', 'email', 'name', 'last_name'],
+		);
+		assert.equal(getProperty(filters, 'branch').modes[0].typeOptions.searchListMethod, 'searchBranches');
+		assert.equal(
+			getProperty(filters, 'city').modes[0].typeOptions.searchListMethod,
+			'searchCatalogCities',
+		);
+	});
+
+	it('bounds results client-side because Domus does not paginate advisors', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const returnAll = getResourceProperty(properties, 'advisor', 'returnAll');
+		const limit = getResourceProperty(properties, 'advisor', 'limit');
+
+		assert.equal(returnAll.routing, undefined);
+		assert.equal(limit.routing.output.maxResults, '={{$value}}');
+		assert.equal(limit.routing.request, undefined);
+		assert.equal(
+			getResourceProperty(properties, 'advisor', 'entireAgency').routing.request.headers
+				.Inmobiliaria,
+			'={{ $value ? 1 : 0 }}',
+		);
+	});
+});
+
+describe('Domus project resource', () => {
+	const getProjectOperation = (value) => {
+		const node = new Domus();
+		const operation = node.description.properties.find(
+			(property) =>
+				property.name === 'operation' &&
+				property.displayOptions?.show?.resource?.includes('project'),
+		);
+
+		return { node, operation, option: operation.options.find((entry) => entry.value === value) };
+	};
+
+	it('targets the Domus V2 project endpoints, not the MLS ones', () => {
+		const { operation } = getProjectOperation('search');
+
+		assert.deepEqual(
+			operation.options.map((option) => [option.routing.request.method, option.routing.request.url]),
+			[
+				['GET', '/projects-v2'],
+				['GET', '=/projects-v2/{{$parameter.projectCode}}'],
+			],
+		);
+		for (const option of operation.options) {
+			assert.deepEqual(option.routing.output.postReceive, [
+				{ type: 'rootProperty', properties: { property: 'data' } },
+			]);
+		}
+	});
+
+	it('identifies a project by assigned code with unique code as the fallback', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const code = getResourceProperty(properties, 'project', 'projectCode');
+		const uniqueCode = getResourceProperty(properties, 'project', 'projectUniqueCode');
+
+		assert.equal(code.required, true);
+		assert.equal(code.routing, undefined);
+		assert.equal(uniqueCode.required, undefined);
+		assert.equal(uniqueCode.routing.send.type, 'query');
+		assert.equal(uniqueCode.routing.send.property, 'unique_code');
+	});
+
+	it('maps every documented project filter to its query parameter', () => {
+		const node = new Domus();
+		const filters = getResourceProperty(node.description.properties, 'project', 'filters')
+			.options;
+
+		assert.deepEqual(
+			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
+			{
+				anyStatus: 'nostatus',
+				branch: 'branch',
+				city: 'city',
+				code: 'code',
+				country: 'country',
+				name: 'name',
+				neighborhood: 'neighborhood',
+				order: 'order',
+				sort: 'sort',
+				status: 'status',
+			},
+		);
+		assert.equal(
+			getProperty(filters, 'anyStatus').routing.send.value,
+			'={{ $value ? 0 : undefined }}',
+		);
+		assert.equal(
+			getProperty(filters, 'country').modes[0].typeOptions.searchListMethod,
+			'searchCountries',
+		);
+	});
+
+	it('follows the Laravel envelope while repeating the active project filters', () => {
+		const node = new Domus();
+		const returnAll = getResourceProperty(node.description.properties, 'project', 'returnAll');
+		const pagination = returnAll.routing.operations.pagination;
+
+		assert.equal(returnAll.routing.send.paginate, '={{$value}}');
+		assert.equal(
+			pagination.properties.continue,
+			'={{ Number($response.body?.current_page ?? 0) < Number($response.body?.last_page ?? 0) }}',
+		);
+		assert.deepEqual(Object.keys(pagination.properties.request.qs).sort(), [
+			'branch',
+			'city',
+			'code',
+			'country',
+			'name',
+			'neighborhood',
+			'nostatus',
+			'order',
+			'page',
+			'sort',
+			'status',
+		]);
+	});
+
+	it('loads countries from the general catalog without the agency header', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [
+				{ code: 1, name: 'Colombia' },
+				{ code: 2, name: 'Panamá' },
+			],
+		});
+
+		assert.deepEqual(await searchCountries.call(context, 'colom'), {
+			results: [{ name: 'Colombia', value: '1' }],
+		});
+		assert.equal(requests[0].options.url, '/general/countries');
+		assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
+	});
+});
+
+describe('Domus acquisition resource', () => {
+	const getAcquisitionOperation = () => {
+		const node = new Domus();
+		return node.description.properties.find(
+			(property) =>
+				property.name === 'operation' &&
+				property.displayOptions?.show?.resource?.includes('acquisition'),
+		);
+	};
+
+	it('targets the documented captures V2 endpoints', () => {
+		const operation = getAcquisitionOperation();
+
+		assert.deepEqual(
+			operation.options.map((option) => [option.routing.request.method, option.routing.request.url]),
+			[
+				['GET', '/captures-v2'],
+				['GET', '=/captures-v2/{{$parameter.acquisitionCode}}'],
+			],
+		);
+		for (const option of operation.options) {
+			assert.deepEqual(option.routing.output.postReceive, [
+				{ type: 'rootProperty', properties: { property: 'data' } },
+			]);
+		}
+	});
+
+	it('identifies an acquisition by assigned code with unique code as the fallback', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const code = getResourceProperty(properties, 'acquisition', 'acquisitionCode');
+		const uniqueCode = getResourceProperty(properties, 'acquisition', 'acquisitionUniqueCode');
+
+		assert.equal(code.required, true);
+		assert.equal(code.routing, undefined);
+		assert.equal(uniqueCode.routing.send.property, 'unique_code');
+	});
+
+	it('maps every documented acquisition filter to its query parameter', () => {
+		const node = new Domus();
+		const filters = getResourceProperty(node.description.properties, 'acquisition', 'filters')
+			.options;
+
+		assert.deepEqual(
+			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
+			{
+				branch: 'branch',
+				broker: 'broker',
+				businessType: 'biz',
+				city: 'city',
+				contact: 'contact',
+				maxAdministration: 'administration_max',
+				maxArea: 'maxarea',
+				maxBathrooms: 'maxbath',
+				maxBedrooms: 'maxbed',
+				maxValue: 'price_max',
+				minAdministration: 'administration_min',
+				minArea: 'minarea',
+				minBathrooms: 'minbath',
+				minBedrooms: 'minbed',
+				minValue: 'price_min',
+				neighborhood: 'neighborhood',
+				order: 'order',
+				propertyType: 'type',
+				sort: 'sort',
+				stratum: 'stratum',
+			},
+		);
+		assert.equal(
+			getProperty(filters, 'broker').modes[0].typeOptions.searchListMethod,
+			'searchBrokers',
+		);
+		assert.equal(
+			getProperty(filters, 'propertyType').modes[0].typeOptions.searchListMethod,
+			'searchCatalogPropertyTypes',
+		);
+	});
+
+	it('repeats every acquisition filter across paginated requests', () => {
+		const node = new Domus();
+		const returnAll = getResourceProperty(
+			node.description.properties,
+			'acquisition',
+			'returnAll',
+		);
+		const paginationQuery = returnAll.routing.operations.pagination.properties.request.qs;
+
+		assert.deepEqual(Object.keys(paginationQuery).sort(), [
+			'administration_max',
+			'administration_min',
+			'biz',
+			'branch',
+			'broker',
+			'city',
+			'contact',
+			'maxarea',
+			'maxbath',
+			'maxbed',
+			'minarea',
+			'minbath',
+			'minbed',
+			'neighborhood',
+			'order',
+			'page',
+			'price_max',
+			'price_min',
+			'sort',
+			'stratum',
+			'type',
+		]);
+	});
+});
+
+describe('Domus resource isolation', () => {
+	const resolve = (values) => {
+		const node = new Domus();
+		return getNodeParameters(
+			node.description.properties,
+			values,
+			true,
+			false,
+			null,
+			node.description,
+		);
+	};
+
+	it('keeps owner and property parameters apart even where they share a name', () => {
+		assert.deepEqual(Object.keys(resolve({ resource: 'owner', operation: 'create' })).sort(), [
+			'document',
+			'lastName',
+			'name',
+			'operation',
+			'ownerFields',
+			'resource',
+		]);
+		assert.deepEqual(Object.keys(resolve({ resource: 'owner', operation: 'get' })).sort(), [
+			'operation',
+			'ownerDocument',
+			'ownerGetEntireAgency',
+			'ownerGetOptions',
+			'resource',
+		]);
+		assert.deepEqual(Object.keys(resolve({ resource: 'property', operation: 'get' })).sort(), [
+			'getEntireAgency',
+			'getIncludeSheet',
+			'getOptions',
+			'operation',
+			'propertyCode',
+			'propertyId',
+			'resource',
+		]);
+	});
+
+	it('shows the property sheet header only on the property search', () => {
+		const ownerSearch = Object.keys(resolve({ resource: 'owner', operation: 'search' }));
+		const propertySearch = Object.keys(resolve({ resource: 'property', operation: 'search' }));
+
+		assert.equal(ownerSearch.includes('includeSheet'), false);
+		assert.equal(propertySearch.includes('includeSheet'), true);
+		for (const shared of ['returnAll', 'limit', 'page', 'entireAgency', 'filters']) {
+			assert.ok(ownerSearch.includes(shared));
+			assert.ok(propertySearch.includes(shared));
+		}
+	});
+});
+
+describe('Domus owner phone serialization', () => {
+	it('turns the phone collection into the documented JSON array', async () => {
+		const requestOptions = {
+			body: {
+				name: 'Ana',
+				phones: {
+					phone: [
+						{ type: '3', number: '3001234567' },
+						{ type: 1, number: 6015551234 },
+					],
+				},
+			},
+		};
+
+		const result = await serializeOwnerPhones.call({}, requestOptions);
+
+		assert.equal(
+			result.body.phones,
+			'[{"type":"3","number":"3001234567"},{"type":"1","number":"6015551234"}]',
+		);
+		assert.equal(result.body.name, 'Ana');
+	});
+
+	it('drops the field when no number was filled in', async () => {
+		const requestOptions = { body: { phones: { phone: [{ type: '3', number: '  ' }] } } };
+
+		const result = await serializeOwnerPhones.call({}, requestOptions);
+
+		assert.equal('phones' in result.body, false);
+	});
+
+	it('leaves a request without a body untouched', async () => {
+		const requestOptions = { url: '/owners' };
+
+		assert.deepEqual(await serializeOwnerPhones.call({}, requestOptions), requestOptions);
 	});
 });

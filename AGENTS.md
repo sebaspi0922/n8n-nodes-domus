@@ -113,6 +113,17 @@ regarding building community nodes:
 - **Standard commands** live in `package.json` scripts: `npm run lint`,
   `npm run build`, `npm test` (build + `node --test`), and `npm run dev`.
   Prefer the `n8n-node` CLI wrappers already wired there.
+- **`npm run lint` reports eight false errors from `/workspace`.** The
+  `@n8n/community-nodes/no-restricted-imports` rule walks up from each linted
+  file looking for `package.json` so it can treat `devDependencies` as allowed,
+  but it stops one level short of a repository checked out at depth 1. From
+  `/workspace` it never reads the root `package.json`, so every
+  `@playwright/test` import in `playwright.config.ts` and `test/e2e/` is
+  flagged. CI and any normal checkout are unaffected. To lint locally, copy the
+  tree (minus `node_modules`, `.git`, and `dist`) to a deeper path such as
+  `~/lintcheck/n8n-nodes-domus`, symlink `node_modules` into it, and run
+  `npm run lint` there. Do not "fix" this by deleting the Playwright tests or
+  disabling cloud support.
 - **Running the app**: `npm run dev` (`n8n-node dev`) compiles the node, links
   it into `~/.n8n-node-cli/.n8n/custom`, and starts n8n with hot reload at
   http://localhost:5678. The **first** run downloads n8n into
