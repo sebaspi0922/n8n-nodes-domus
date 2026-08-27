@@ -11,6 +11,11 @@ const { Domus } = require('../dist/nodes/Domus/Domus.node.js');
 const {
 	searchAmenities,
 	searchBusinessTypes,
+	searchCatalogBusinessTypes,
+	searchCatalogCities,
+	searchCatalogNeighborhoods,
+	searchCatalogPropertyTypes,
+	searchCatalogZones,
 	searchCities,
 	searchCityZones,
 	searchNeighborhoods,
@@ -26,12 +31,17 @@ const {
 
 const getProperty = (properties, name) => properties.find((property) => property.name === name);
 
-const createListSearchContext = ({ data, entireAgency = true, filters = {} }) => {
+const createListSearchContext = ({ data, entireAgency = true, filters = {}, parameters = {} }) => {
 	const requests = [];
 	const context = {
 		getCredentials: async () => ({ environment: DOMUS_PRODUCTION_BASE_URL }),
-		getCurrentNodeParameter: (name) => (name === 'entireAgency' ? entireAgency : undefined),
-		getCurrentNodeParameters: () => ({ filters }),
+		getCurrentNodeParameter: (name) => {
+			if (name === 'entireAgency') return entireAgency;
+			if (name in parameters) return parameters[name];
+			if (name in filters) return filters[name];
+			return undefined;
+		},
+		getCurrentNodeParameters: () => ({ filters, ...parameters }),
 		helpers: {
 			httpRequestWithAuthentication: async (credentialName, options) => {
 				requests.push({ credentialName, options });
@@ -98,7 +108,7 @@ describe('Domus property search node', () => {
 		assert.deepEqual(resource.options, [{ name: 'Property', value: 'property' }]);
 		assert.deepEqual(
 			operation.options.map((option) => option.name),
-			['Search', 'Get', 'Get Status History', 'Change Status'],
+			['Search', 'Get', 'Create', 'Update', 'Get Status History', 'Change Status'],
 		);
 		assert.equal(search.routing.request.method, 'GET');
 		assert.equal(search.routing.request.url, '/properties');
@@ -331,6 +341,38 @@ describe('Domus property search node', () => {
 		assert.deepEqual(requests[0].options.qs, { city: '11001' });
 	});
 
+	it('loads full catalogs for create and update locators', async () => {
+		const methods = [
+			[searchCatalogCities, '/general/cities'],
+			[searchCatalogPropertyTypes, '/general/types'],
+			[searchCatalogBusinessTypes, '/general/biz'],
+			[searchCatalogZones, '/general/zones'],
+		];
+
+		for (const [method, endpoint] of methods) {
+			const { context, requests } = createListSearchContext({ data: [] });
+			await method.call(context);
+			assert.equal(requests[0].options.url, endpoint);
+			assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
+		}
+	});
+
+	it('scopes catalog neighborhoods by city and forwards the typed name', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [{ code: 4751, name: 'Colina', city_name: 'Bogotá' }],
+			parameters: { city: { mode: 'list', value: '11001' } },
+		});
+
+		const result = await searchCatalogNeighborhoods.call(context, 'colina');
+
+		assert.deepEqual(result, {
+			results: [{ name: 'Colina — Bogotá', value: '4751' }],
+		});
+		assert.equal(requests[0].options.url, '/general/neighborhoods');
+		assert.deepEqual(requests[0].options.qs, { city: '11001', name: 'colina' });
+		assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
+	});
+
 	it('uses typed-neighborhood names as values because Domus omits codes', async () => {
 		const { context, requests } = createListSearchContext({
 			data: [{ name: 'Barrio de prueba', city_code: 11001, city_name: 'Bogotá' }],
@@ -375,6 +417,7 @@ describe('Domus property get operation', () => {
 			'get',
 			'changeStatus',
 			'getStatusHistory',
+			'update',
 		]);
 		assert.equal(propertyId.required, undefined);
 		assert.equal(propertyId.default, '');
@@ -542,5 +585,131 @@ describe('Domus property change status operation', () => {
 		});
 		assert.equal(sourceRequests[0].options.url, '/administrative/sources');
 		assert.equal(sourceRequests[0].options.headers.Inmobiliaria, undefined);
+	});
+});
+
+describe('Domus property create operation', () => {
+	it('registers POST /properties as form-urlencoded and unwraps property', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const create = operation.options.find((option) => option.value === 'create');
+
+		assert.equal(create.routing.request.method, 'POST');
+		assert.equal(create.routing.request.url, '/properties');
+		assert.equal(
+			create.routing.request.headers['Content-Type'],
+			'application/x-www-form-urlencoded',
+		);
+		assert.deepEqual(create.routing.output.postReceive, [
+			{ type: 'rootProperty', properties: { property: 'property' } },
+		]);
+	});
+
+	it('requires city, address, business type, and property type', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+
+		assert.equal(getProperty(properties, 'city').required, true);
+		assert.equal(getProperty(properties, 'city').routing.send.property, 'city');
+		assert.equal(getProperty(properties, 'city').modes[0].typeOptions.searchListMethod, 'searchCatalogCities');
+		assert.equal(getProperty(properties, 'address').required, true);
+		assert.equal(getProperty(properties, 'address').routing.send.property, 'address');
+		assert.equal(getProperty(properties, 'businessType').required, true);
+		assert.equal(getProperty(properties, 'businessType').routing.send.property, 'biz');
+		assert.equal(
+			getProperty(properties, 'propertyType').modes[0].typeOptions.searchListMethod,
+			'searchCatalogPropertyTypes',
+		);
+		assert.equal(getProperty(properties, 'rent').routing.send.property, 'rent');
+		assert.match(getProperty(properties, 'rent').routing.send.value, /undefined/);
+		assert.equal(getProperty(properties, 'salePrice').routing.send.property, 'saleprice');
+	});
+
+	it('maps additional create fields to documented form keys', () => {
+		const node = new Domus();
+		const extraFields = getProperty(node.description.properties, 'additionalFields').options;
+
+		assert.deepEqual(
+			Object.fromEntries(extraFields.map((field) => [field.name, field.routing.send.property])),
+			{
+				administration: 'administration',
+				amenities: 'amenities',
+				bathrooms: 'bathrooms',
+				bedrooms: 'bedrooms',
+				branch: 'branch',
+				broker: 'broker',
+				builtArea: 'area_cons',
+				builtYear: 'built_year',
+				catcherBroker: 'catcher_broker',
+				cityZone: 'city_zone',
+				comment: 'comment',
+				commissionPercentage: 'comission_percentage',
+				consignationDate: 'consignation_date',
+				description: 'description',
+				destination: 'destination',
+				exclusive: 'exclusive',
+				featured: 'great',
+				floor: 'floor',
+				floorType: 'floor_type',
+				iva: 'iva',
+				latitude: 'latitude',
+				levels: 'level',
+				linkWeb: 'link_web',
+				longitude: 'longitude',
+				lotArea: 'area_lot',
+				neighborhood: 'neighborhood',
+				parking: 'parking',
+				parkingCovered: 'parking_covered',
+				privateArea: 'private_area',
+				project: 'project',
+				promoterBroker: 'promoter_broker',
+				propertyCode: 'codpro',
+				publicationDate: 'publication_date',
+				reference: 'reference',
+				registration: 'registration',
+				remodelingYear: 'remodeling_year',
+				status: 'status',
+				stratum: 'stratum',
+				tour3d: 'tour3d',
+				updateDate: 'update_date',
+				video: 'video',
+				windowSign: 'window_sign',
+				zone: 'zone',
+			},
+		);
+		assert.equal(getProperty(extraFields, 'featured').routing.send.value, '={{ $value ? 1 : 0 }}');
+		assert.equal(
+			getProperty(extraFields, 'zone').modes[0].typeOptions.searchListMethod,
+			'searchCatalogZones',
+		);
+		assert.equal(getProperty(extraFields, 'status').type, 'resourceLocator');
+		assert.equal(
+			getProperty(extraFields, 'neighborhoodCode'),
+			undefined,
+		);
+	});
+});
+
+describe('Domus property update operation', () => {
+	it('registers PUT /properties/{codpro} as form-urlencoded without a status field', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const update = operation.options.find((option) => option.value === 'update');
+		const extraFields = getProperty(node.description.properties, 'updateFields').options;
+
+		assert.equal(update.routing.request.method, 'PUT');
+		assert.equal(update.routing.request.url, '=/properties/{{$parameter.propertyCode}}');
+		assert.equal(
+			update.routing.request.headers['Content-Type'],
+			'application/x-www-form-urlencoded',
+		);
+		assert.deepEqual(update.routing.output.postReceive, [
+			{ type: 'rootProperty', properties: { property: 'property' } },
+		]);
+		assert.equal(getProperty(extraFields, 'status'), undefined);
+		assert.equal(getProperty(extraFields, 'deletePictures').routing.send.property, 'delete_pictures');
+		assert.equal(getProperty(extraFields, 'city').routing.send.property, 'city');
+		assert.equal(getProperty(extraFields, 'address').routing.send.property, 'address');
+		assert.equal(getProperty(extraFields, 'salePrice').routing.send.property, 'saleprice');
 	});
 });

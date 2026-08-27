@@ -1,0 +1,50 @@
+{
+	"id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+	"name": "Domus - Update property",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "property",
+				"operation": "update",
+				"propertyCode": "",
+				"updateFields": {}
+			},
+			"id": "a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d",
+			"name": "Update property",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Update property",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

@@ -28,11 +28,7 @@ const isDomusSearchOption = (value: unknown): value is DomusSearchOption => {
 const optionValue = (option: DomusSearchOption): string =>
 	option.code !== undefined && String(option.code).length > 0 ? String(option.code) : option.name;
 
-const getFilterValue = (context: ILoadOptionsFunctions, name: string): string | undefined => {
-	const filters = context.getCurrentNodeParameters()?.filters;
-	if (!filters || typeof filters !== 'object' || Array.isArray(filters)) return undefined;
-
-	const value = (filters as Record<string, unknown>)[name];
+const extractLocatorValue = (value: unknown): string | undefined => {
 	if (typeof value === 'string' || typeof value === 'number') return String(value);
 
 	if (value && typeof value === 'object' && 'value' in value) {
@@ -40,6 +36,39 @@ const getFilterValue = (context: ILoadOptionsFunctions, name: string): string | 
 		if (typeof locatorValue === 'string' || typeof locatorValue === 'number') {
 			return String(locatorValue);
 		}
+	}
+
+	return undefined;
+};
+
+const getCollectionValue = (
+	parameters: Record<string, unknown>,
+	collectionName: string,
+	name: string,
+): string | undefined => {
+	const collection = parameters[collectionName];
+	if (!collection || typeof collection !== 'object' || Array.isArray(collection)) {
+		return undefined;
+	}
+
+	return extractLocatorValue((collection as Record<string, unknown>)[name]);
+};
+
+const getFilterValue = (context: ILoadOptionsFunctions, name: string): string | undefined => {
+	try {
+		const fromParameter = extractLocatorValue(context.getCurrentNodeParameter(name));
+		if (fromParameter) return fromParameter;
+	} catch {
+		// The parameter is absent on operations that do not declare it.
+	}
+
+	const parameters = (context.getCurrentNodeParameters() ?? {}) as Record<string, unknown>;
+	const fromRoot = extractLocatorValue(parameters[name]);
+	if (fromRoot) return fromRoot;
+
+	for (const collectionName of ['filters', 'additionalFields', 'updateFields']) {
+		const fromCollection = getCollectionValue(parameters, collectionName, name);
+		if (fromCollection) return fromCollection;
 	}
 
 	return undefined;
@@ -55,6 +84,7 @@ const getDisplayName = (option: DomusSearchOption): string => {
 interface SearchDomusOptionsConfig {
 	cityScoped?: boolean;
 	includeAgencyScope?: boolean;
+	nameFiltered?: boolean;
 	typeScoped?: boolean;
 }
 
@@ -67,13 +97,21 @@ async function searchDomusOptions(
 	const config = typeof searchConfig === 'boolean' ? { cityScoped: searchConfig } : searchConfig;
 	const cityScoped = config.cityScoped ?? false;
 	const includeAgencyScope = config.includeAgencyScope ?? true;
+	const nameFiltered = config.nameFiltered ?? false;
 	const typeScoped = config.typeScoped ?? false;
 	const credentials = await this.getCredentials(DOMUS_CREDENTIAL_NAME);
-	const entireAgency = this.getCurrentNodeParameter('entireAgency') === true;
+	let entireAgency = false;
+	try {
+		entireAgency = this.getCurrentNodeParameter('entireAgency') === true;
+	} catch {
+		entireAgency = false;
+	}
 	const city = cityScoped ? getFilterValue(this, 'city') : undefined;
 	const type = typeScoped ? getFilterValue(this, 'propertyType') : undefined;
+	const name = nameFiltered ? filter?.trim() : undefined;
 	const qs = {
 		...(city ? { city } : {}),
+		...(name ? { name } : {}),
 		...(type ? { type } : {}),
 	};
 
@@ -195,5 +233,52 @@ export async function searchTypedNeighborhoods(
 ): Promise<INodeListSearchResult> {
 	return await searchDomusOptions.call(this, '/search/digited-neighborhoods', filter, {
 		cityScoped: true,
+	});
+}
+
+export async function searchCatalogCities(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/cities', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchCatalogPropertyTypes(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/types', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchCatalogBusinessTypes(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/biz', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchCatalogZones(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/zones', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchCatalogNeighborhoods(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/neighborhoods', filter, {
+		cityScoped: true,
+		includeAgencyScope: false,
+		nameFiltered: true,
 	});
 }

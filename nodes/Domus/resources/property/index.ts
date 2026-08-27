@@ -1,9 +1,11 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { propertyChangeStatusDescription } from './changeStatus';
+import { propertyCreateDescription } from './create';
 import { propertyGetDescription } from './get';
 import { propertyGetStatusHistoryDescription } from './getStatusHistory';
 import { propertySearchDescription } from './search';
 import { splitNestedStatusHistory } from './statusHistory.helpers';
+import { propertyUpdateDescription } from './update';
 
 const showOnlyForProperties = {
 	resource: ['property'],
@@ -64,6 +66,58 @@ export const propertyDescription: INodeProperties[] = [
 				},
 			},
 			{
+				name: 'Create',
+				value: 'create',
+				action: 'Create a property',
+				description:
+					'Create a property in the token agency. Created records cannot be deleted; only status can change.',
+				routing: {
+					request: {
+						method: 'POST',
+						url: '/properties',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+					},
+					output: {
+						postReceive: [
+							{
+								type: 'rootProperty',
+								properties: {
+									property: 'property',
+								},
+							},
+						],
+					},
+				},
+			},
+			{
+				name: 'Update',
+				value: 'update',
+				action: 'Update a property',
+				description:
+					'Update commercial fields of a property. Status cannot be changed here; use Change Status instead.',
+				routing: {
+					request: {
+						method: 'PUT',
+						url: '=/properties/{{$parameter.propertyCode}}',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+					},
+					output: {
+						postReceive: [
+							{
+								type: 'rootProperty',
+								properties: {
+									property: 'property',
+								},
+							},
+						],
+					},
+				},
+			},
+			{
 				name: 'Get Status History',
 				value: 'getStatusHistory',
 				action: 'Get property status history',
@@ -109,6 +163,8 @@ export const propertyDescription: INodeProperties[] = [
 	},
 	...propertyGetDescription,
 	...propertySearchDescription,
+	...propertyCreateDescription,
+	...propertyUpdateDescription,
 	...propertyGetStatusHistoryDescription,
 	...propertyChangeStatusDescription,
 ];

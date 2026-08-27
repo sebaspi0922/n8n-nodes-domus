@@ -1,6 +1,11 @@
 export {
 	searchAmenities,
 	searchBusinessTypes,
+	searchCatalogBusinessTypes,
+	searchCatalogCities,
+	searchCatalogNeighborhoods,
+	searchCatalogPropertyTypes,
+	searchCatalogZones,
 	searchCities,
 	searchCityZones,
 	searchNeighborhoods,
