@@ -184,6 +184,69 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.equal(typeof neighborhood.name, 'string');
 	});
 
+	it('returns a paginated owner search envelope', async () => {
+		const response = await requestDomus('/owners', {
+			headers: { Perpage: '1', Inmobiliaria: '1' },
+			query: { page: 1 },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		assert.ok(response.data.current_page !== undefined);
+		if (response.data.data.length === 0) return;
+
+		const owner = response.data.data[0];
+		assert.ok(owner.code !== undefined);
+		assert.ok(owner.document !== undefined);
+	});
+
+	it('returns one owner detail object for a discovered document', async () => {
+		const search = await requestDomus('/owners', {
+			headers: { Perpage: '1', Inmobiliaria: '1' },
+			query: { page: 1 },
+		});
+		const document = search.data?.data?.[0]?.document;
+
+		if (document === undefined) {
+			return;
+		}
+
+		const response = await requestDomus(`/owners/${document}`, {
+			headers: { Inmobiliaria: '1' },
+		});
+
+		assert.equal(response.status, 200);
+		const owner = response.data?.data;
+		assert.ok(owner);
+		assert.ok(owner.code !== undefined);
+	});
+
+	it('returns the phone-type and document-type catalogs used by Owner writes', async () => {
+		for (const path of ['/general/phone-types', '/administrative/document_types']) {
+			const response = await requestDomus(path);
+
+			assert.equal(response.status, 200);
+			assert.ok(Array.isArray(response.data?.data), `${path} did not return a data array`);
+			if (response.data.data.length === 0) continue;
+
+			const row = response.data.data[0];
+			assert.ok(row.code !== undefined);
+			assert.equal(typeof row.name, 'string');
+		}
+	});
+
+	it('returns advisors and branches used by the property locators', async () => {
+		const brokers = await requestDomus('/administrative/brokers', {
+			headers: { Inmobiliaria: '1' },
+		});
+		assert.equal(brokers.status, 200);
+		assert.ok(Array.isArray(brokers.data?.data));
+
+		const branches = await requestDomus('/administrative/branches');
+		assert.equal(branches.status, 200);
+		assert.ok(Array.isArray(branches.data?.data));
+	});
+
 	it('returns a nested status-history envelope for a discovered property', async () => {
 		const code = config.propertyCode;
 		let propertyCode = code;

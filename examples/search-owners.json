@@ -1,0 +1,55 @@
+{
+	"id": "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b",
+	"name": "Domus - Search owners",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "owner",
+				"operation": "search",
+				"returnAll": false,
+				"limit": 12,
+				"page": 1,
+				"entireAgency": true,
+				"filters": {
+					"hasProperties": true
+				}
+			},
+			"id": "a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d",
+			"name": "Search owners",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search owners",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8e",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

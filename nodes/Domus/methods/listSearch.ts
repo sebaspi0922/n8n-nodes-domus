@@ -233,6 +233,24 @@ export async function searchBranches(
 	});
 }
 
+export async function searchDocumentTypes(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/administrative/document_types', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchPhoneTypes(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/phone-types', filter, {
+		includeAgencyScope: false,
+	});
+}
+
 export async function searchAmenities(
 	this: ILoadOptionsFunctions,
 	filter?: string,
