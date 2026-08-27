@@ -7,7 +7,7 @@ from those pages, not from guessed OpenAPI.
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
 - Documented HTTP operations: **50**, counting `GET /administrative/document_types`, which has a live docs page linked from owner creation but no entry in the sidebar
 - Public n8n operations in published `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Public n8n operations on this branch (unpublished): **10** (six on Property, four on Owner)
+- Public n8n operations on this branch (unpublished): **12** (eight on Property, four on Owner)
 - Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, document types, phone types, plus full `/general` catalogs for create and update
 
 `n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
@@ -128,8 +128,8 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Inmuebles | `/properties/{codpro}` | PUT | Property | Update | Implemented | P0 | 1.0.0 |
 | Inmuebles | `/properties/status/{codpro}` | PUT | Property | Change Status | Implemented | P0 | 1.0.0 |
 | Inmuebles | `/properties/status/{codpro}` | GET | Property | Get Status History | Implemented | P1 | 1.0.0 |
-| Inmuebles | `/properties/portals/{idpro}/{codpro?}` | GET | Property | Get Portal Publications | Planned | P1 | 1.0.0 |
-| Inmuebles | `/properties/retry-portals/{codpro}/{idpro?}` | GET | Property | Retry Portal Publication | Planned | P1 | 1.0.0 |
+| Inmuebles | `/properties/portals/{idpro}/{codpro?}` | GET | Property | Get Portal Publications | Implemented | P1 | 1.0.0 |
+| Inmuebles | `/properties/retry-portals/{codpro}/{idpro?}` | GET | Property | Retry Portal Publication | Implemented | P1 | 1.0.0 |
 | Inmuebles | `/properties/map` | GET | Property | Search Map | Planned | P2 | 1.1.0 |
 | Inmuebles | `/properties/detach/{codpro}` | PUT | Property | Separate | Planned | P2 | 1.1.0 |
 | Propietarios | `/owners` | GET | Owner | Search | Implemented | P0 | 1.0.0 |
@@ -190,7 +190,7 @@ labels are retired so clients never see another pre-1.0 release.
 | ----- | ----- | ----------------- | --- |
 | **Published** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. | **0.1.0** |
 | **A** | Property writes and status | Search commercial filters, Change Status, Get Status History, Create, and Update. Images, extra-amenities JSON, and multilingual descriptions stay out of this slice. | unpublished until 1.0 |
-| **B** | Owners and portals | Owner Search/Get/Create/Update with phone-type and document-type helpers, done. Property Get Portal Publications and Retry Portal Publication still pending the path check below. | unpublished until 1.0 |
+| **B** | Owners and portals | Owner Search/Get/Create/Update with phone-type and document-type helpers. Property Get Portal Publications and Retry Portal Publication, on the paths the Guzzle examples document. | unpublished until 1.0 |
 | **C** | People and projects | Advisor Search. Project V2 Search/Get. | unpublished until 1.0 |
 | **D** | CRM intake | Acquisition Search/Get. | unpublished until 1.0 |
 | **1.0.0** | Stable core | All P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out. | **first post-review publish** |
@@ -236,8 +236,10 @@ Documented badges and Guzzle examples disagree in three places. Prefer the
 | Actualización de propietario | Page text: the URL number is the owner document | `PUT /owners/123456`, which reads like a code | `/owners/{document}`, matching owner detail |
 
 The retry badge also collides with the publications endpoint
-`GET /properties/portals/{idpro}/{codpro?}`. Confirm the retry path against
-`newapi.domus.la` before coding the portals work in batch B.
+`GET /properties/portals/{idpro}/{codpro?}`, so the node implements
+`/properties/retry-portals/{codpro}/{idpro?}` from the Guzzle example. Note
+that the two portal endpoints take their path segments in opposite orders:
+publications is `{idpro}/{codpro?}` and retry is `{codpro}/{idpro?}`.
 
 ## Endpoint inventory
 
@@ -520,7 +522,7 @@ Domus
     └── Get       GET /properties/{codpro}/{idpro?}
 ```
 
-Unpublished branches (batch A complete, batch B owners complete):
+Unpublished branches (batches A and B complete):
 
 ```text
 Domus
@@ -530,7 +532,9 @@ Domus
 │   ├── Create              POST /properties
 │   ├── Update              PUT /properties/{codpro}
 │   ├── Get Status History  GET /properties/status/{codpro}
-│   └── Change Status       PUT /properties/status/{codpro}
+│   ├── Change Status       PUT /properties/status/{codpro}
+│   ├── Get Portal Publications   GET /properties/portals/{idpro}/{codpro?}
+│   └── Retry Portal Publication  GET /properties/retry-portals/{codpro}/{idpro?}
 └── Owner
     ├── Search              GET /owners
     ├── Get                 GET /owners/{document}

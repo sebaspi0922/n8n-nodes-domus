@@ -126,7 +126,16 @@ describe('Domus property search node', () => {
 		]);
 		assert.deepEqual(
 			operation.options.map((option) => option.name),
-			['Search', 'Get', 'Create', 'Update', 'Get Status History', 'Change Status'],
+			[
+				'Search',
+				'Get',
+				'Create',
+				'Update',
+				'Get Status History',
+				'Get Portal Publications',
+				'Retry Portal Publication',
+				'Change Status',
+			],
 		);
 		assert.equal(search.routing.request.method, 'GET');
 		assert.equal(search.routing.request.url, '/properties');
@@ -435,6 +444,7 @@ describe('Domus property get operation', () => {
 			'get',
 			'changeStatus',
 			'getStatusHistory',
+			'retryPortalPublication',
 			'update',
 		]);
 		assert.equal(propertyId.required, undefined);
@@ -603,6 +613,71 @@ describe('Domus property change status operation', () => {
 		});
 		assert.equal(sourceRequests[0].options.url, '/administrative/sources');
 		assert.equal(sourceRequests[0].options.headers.Inmobiliaria, undefined);
+	});
+});
+
+describe('Domus property portal operations', () => {
+	it('registers the publications endpoint with idpro first and codpro optional', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const publications = operation.options.find(
+			(option) => option.value === 'getPortalPublications',
+		);
+
+		assert.equal(publications.routing.request.method, 'GET');
+		assert.equal(
+			publications.routing.request.url,
+			'=/properties/portals/{{$parameter.portalPropertyId}}{{$parameter.portalPropertyCode ? "/" + $parameter.portalPropertyCode : ""}}',
+		);
+		assert.equal(publications.routing.output, undefined);
+	});
+
+	it('requires idpro and maps the agency header for publications', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+
+		assert.equal(getProperty(properties, 'portalPropertyId').required, true);
+		assert.equal(getProperty(properties, 'portalPropertyCode').required, undefined);
+		assert.equal(
+			getProperty(properties, 'portalEntireAgency').routing.request.headers.Inmobiliaria,
+			'={{ $value ? 1 : 0 }}',
+		);
+	});
+
+	it('uses the documented retry path, not the colliding badge path', () => {
+		const node = new Domus();
+		const operation = getProperty(node.description.properties, 'operation');
+		const retry = operation.options.find((option) => option.value === 'retryPortalPublication');
+
+		assert.equal(retry.routing.request.method, 'GET');
+		assert.equal(
+			retry.routing.request.url,
+			'=/properties/retry-portals/{{$parameter.propertyCode}}{{$parameter.retryPropertyId ? "/" + $parameter.retryPropertyId : ""}}',
+		);
+	});
+
+	it('sends the retry transaction as the documented method query parameter', () => {
+		const node = new Domus();
+		const retryMethod = getProperty(node.description.properties, 'retryMethod');
+
+		assert.equal(retryMethod.required, true);
+		assert.equal(retryMethod.routing.send.type, 'query');
+		assert.equal(retryMethod.routing.send.property, 'method');
+		assert.deepEqual(
+			retryMethod.options.map((option) => [option.name, option.value]),
+			[
+				['Create', '1'],
+				['Unpublish', '3'],
+				['Update', '2'],
+			],
+		);
+	});
+
+	it('reuses the shared property code field for the retry operation', () => {
+		const node = new Domus();
+		const propertyCode = getProperty(node.description.properties, 'propertyCode');
+
+		assert.ok(propertyCode.displayOptions.show.operation.includes('retryPortalPublication'));
 	});
 });
 
