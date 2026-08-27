@@ -25,6 +25,7 @@ Domus API 3.0.
 - `Owner → Get` using `GET /owners/{document}`
 - `Owner → Create` using `POST /owners`
 - `Owner → Update` using `PUT /owners/{document}`
+- `Advisor → Search` using `GET /administrative/brokers`
 - Bounded results or automatic page-based pagination with **Return All**
 - Dynamic selectors for city, property type, business type, zone, neighborhood, city zone, amenities, status, source, advisor, branch, document type, and phone type
 - Manual code entry as an alternative to every dynamic selector
@@ -90,7 +91,7 @@ screenshots, or example workflows.
 2. Create or open a workflow.
 3. Add the **Domus** node.
 4. Create or select a **Domus API** credential.
-5. Select **Property** or **Owner** and choose an operation.
+5. Select **Property**, **Owner**, or **Advisor** and choose an operation.
 6. Configure the operation and execute the node.
 
 Sanitized importable workflows are available under [`examples/`](examples/).
@@ -239,6 +240,20 @@ Calls `PUT /owners/{document}` with `application/x-www-form-urlencoded`.
 Every field is optional, including the document itself, which Domus
 rewrites when it is sent. **Replace Phone List** maps to `phones_recursive`
 and is required when phones are sent in the same shape as owner creation.
+
+### Advisor → Search
+
+Calls `GET /administrative/brokers` and returns one n8n item per advisor,
+including identification, phones, email, picture, department, and city.
+Filters cover branch, city, name, phone, email, and exact email, and results
+can be ordered by code, display order, email, first name, or last name.
+
+Domus does not paginate this endpoint, so it always answers with the complete
+list. Disabling **Return All** truncates that list to **Limit** items inside
+n8n; it does not make a smaller request.
+
+There is no documented get-by-id for a single advisor, and advisor writes are
+planned for a later release.
 
 ## Verified behavior
 

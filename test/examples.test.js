@@ -9,6 +9,7 @@ describe('packaged example workflows', () => {
 	const files = readdirSync(examplesDir).filter((name) => name.endsWith('.json'));
 
 	const operationsByResource = {
+		advisor: ['search'],
 		owner: ['search', 'get', 'create', 'update'],
 		property: [
 			'search',
@@ -32,6 +33,7 @@ describe('packaged example workflows', () => {
 			'get-property-status-history.json',
 			'get-property.json',
 			'retry-portal-publication.json',
+			'search-advisors.json',
 			'search-owners.json',
 			'search-properties.json',
 			'update-owner.json',

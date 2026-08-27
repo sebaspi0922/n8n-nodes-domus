@@ -120,10 +120,7 @@ describe('Domus property search node', () => {
 		const operation = getProperty(node.description.properties, 'operation');
 		const search = operation.options.find((option) => option.value === 'search');
 
-		assert.deepEqual(resource.options, [
-			{ name: 'Owner', value: 'owner' },
-			{ name: 'Property', value: 'property' },
-		]);
+		assert.equal(resource.default, 'property');
 		assert.deepEqual(
 			operation.options.map((option) => option.name),
 			[
@@ -1059,6 +1056,90 @@ describe('Domus owner resource', () => {
 			results: [{ name: 'Cedula', value: '1' }],
 		});
 		assert.equal(documentRequests[0].options.url, '/administrative/document_types');
+	});
+});
+
+describe('Domus advisor resource', () => {
+	const getAdvisorOperation = () => {
+		const node = new Domus();
+		const operation = node.description.properties.find(
+			(property) =>
+				property.name === 'operation' &&
+				property.displayOptions?.show?.resource?.includes('advisor'),
+		);
+
+		return { node, operation };
+	};
+
+	it('registers Advisor as a resource alongside Owner and Property', () => {
+		const node = new Domus();
+		const resource = getProperty(node.description.properties, 'resource');
+
+		assert.deepEqual(resource.options, [
+			{ name: 'Advisor', value: 'advisor' },
+			{ name: 'Owner', value: 'owner' },
+			{ name: 'Property', value: 'property' },
+		]);
+	});
+
+	it('exposes only the documented advisor read operation', () => {
+		const { operation } = getAdvisorOperation();
+		const search = operation.options.find((option) => option.value === 'search');
+
+		assert.deepEqual(
+			operation.options.map((option) => option.name),
+			['Search'],
+		);
+		assert.equal(search.routing.request.method, 'GET');
+		assert.equal(search.routing.request.url, '/administrative/brokers');
+		assert.deepEqual(search.routing.output.postReceive, [
+			{ type: 'rootProperty', properties: { property: 'data' } },
+		]);
+	});
+
+	it('maps every documented advisor filter to its query parameter', () => {
+		const node = new Domus();
+		const filters = getResourceProperty(node.description.properties, 'advisor', 'filters')
+			.options;
+
+		assert.deepEqual(
+			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
+			{
+				branch: 'branch',
+				city: 'city',
+				email: 'email',
+				exactEmail: 'exact_email',
+				name: 'name',
+				order: 'order',
+				phone: 'phone',
+				sort: 'sort',
+			},
+		);
+		assert.deepEqual(
+			getProperty(filters, 'order').options.map((option) => option.value),
+			['code', 'order', 'email', 'name', 'last_name'],
+		);
+		assert.equal(getProperty(filters, 'branch').modes[0].typeOptions.searchListMethod, 'searchBranches');
+		assert.equal(
+			getProperty(filters, 'city').modes[0].typeOptions.searchListMethod,
+			'searchCatalogCities',
+		);
+	});
+
+	it('bounds results client-side because Domus does not paginate advisors', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const returnAll = getResourceProperty(properties, 'advisor', 'returnAll');
+		const limit = getResourceProperty(properties, 'advisor', 'limit');
+
+		assert.equal(returnAll.routing, undefined);
+		assert.equal(limit.routing.output.maxResults, '={{$value}}');
+		assert.equal(limit.routing.request, undefined);
+		assert.equal(
+			getResourceProperty(properties, 'advisor', 'entireAgency').routing.request.headers
+				.Inmobiliaria,
+			'={{ $value ? 1 : 0 }}',
+		);
 	});
 });
 

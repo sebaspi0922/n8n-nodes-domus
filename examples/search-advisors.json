@@ -1,0 +1,55 @@
+{
+	"id": "1a2b3c4d-5e6f-4708-9192-a3b4c5d6e7f0",
+	"name": "Domus - Search advisors",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "2b3c4d5e-6f70-4819-a2b3-c4d5e6f70819",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "advisor",
+				"operation": "search",
+				"returnAll": false,
+				"limit": 50,
+				"entireAgency": true,
+				"filters": {
+					"order": "last_name",
+					"sort": "asc"
+				}
+			},
+			"id": "3c4d5e6f-7081-492a-b3c4-d5e6f7081920",
+			"name": "Search advisors",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search advisors",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "4d5e6f70-8192-4a3b-84c5-d6e7f8091a2b",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}
