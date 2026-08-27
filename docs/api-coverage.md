@@ -10,10 +10,11 @@ from those pages, not from guessed OpenAPI.
 - Public n8n operations on this branch (unpublished): **17** (eight on Property, four on Owner, one on Advisor, two on Project, two on Acquisition)
 - Dynamic selectors already implemented: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, document types, phone types, plus full `/general` catalogs for create and update
 
-`n8n-nodes-domus@0.1.0` is published to npm and is in n8n Creator Portal
-Manual Review. Do not publish a new npm version while that review is open.
-The next public package is **`1.0.0`**, not `0.2.0`. Work lands in small
-git batches; clients should not see another `0.x` release.
+`n8n-nodes-domus@0.1.0` is the published npm version and the one submitted to
+n8n Creator Portal Manual Review. Do not publish a new npm version while that
+review is open. The next public package is **`1.0.0`**, not `0.2.0`, and its
+development scope is now complete on git; clients should not see another `0.x`
+release.
 
 ## Authentication and environments
 
@@ -159,41 +160,46 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Generales | `/general/detach/status` | GET | Property | Separation-status locator | Helper | P2 | 1.1.0 |
 | Generales | `/general/biz` | GET | Property | Full business-type catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/types` | GET | Property | Full property-type catalog | Helper | P1 | 1.0.0 |
-| Generales | `/general/states` | GET | Property / Owner | Department locator | Helper | P2 | 1.0.0 |
+| Generales | `/general/states` | GET | Property / Owner | Department locator | Helper | P2 | 1.3.0 |
 | Generales | `/general/cities` | GET | Property / Owner | Full city catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/zones` | GET | Property | Full zone catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/city-zones` | GET | Property | City-zone locator | Helper | P1 | 1.0.0 |
-| Generales | `/general/populated-centers` | GET | Property | Populated-center locator | Helper | P2 | 1.0.0 |
+| Generales | `/general/populated-centers` | GET | Property | Populated-center locator | Helper | P2 | 1.3.0 |
 | Generales | `/general/neighborhoods` | GET | Property | Full neighborhood catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/amenities` | GET | Property | Amenities locator | Helper | P1 | 1.0.0 |
-| Generales | `/general/amenities-extra` | GET | Property | Extra-amenities locator | Helper | P2 | 1.0.0 |
-| Generales | `/general/destinations` | GET | Property | Destination locator | Helper | P2 | 1.0.0 |
+| Generales | `/general/amenities-extra` | GET | Property | Extra-amenities locator | Helper | P2 | 1.3.0 |
+| Generales | `/general/destinations` | GET | Property | Destination locator | Helper | P2 | 1.3.0 |
 | Generales | `/general/phone-types` | GET | Owner | Phone-type locator | Helper | P1 | 1.0.0 |
 | Generales | `/general/tags` | GET | — | — | Deferred | P3 | — |
 | Proyectos | `/projects` | GET | Project | Search (MLS) | Deferred | P3 | — |
 | Proyectos | `/projects/{code}/{unique_code?}` | GET | Project | Get (MLS) | Deferred | P3 | — |
 
-`/administrative/brokers` and `/administrative/branches` are already wired as
-resource locators for the `broker`, `catcher_broker`, `promoter_broker`, and
-`branch` fields on Property Search, Create, Update, and Change Status. Exposing
-them as user-facing Advisor and Branch resources is a separate concern and stays
-scheduled for batch C and 1.2.0.
+`/administrative/brokers` and `/administrative/branches` are wired as resource
+locators for the `broker`, `catcher_broker`, `promoter_broker`, and `branch`
+fields on Property Search, Create, Update, and Change Status. Advisor is now
+also a user-facing resource; Branch stays a helper only and is scheduled for
+1.2.0.
 
 ## Roadmap
 
-`0.1.0` is published and under n8n Creator Portal review. Do not publish
-another npm version while that review is open. Later work lands on git
-in small batches; the next public package is **`1.0.0`**. Internal `0.2`–`0.6`
-labels are retired so clients never see another pre-1.0 release.
+`0.1.0` is published and was submitted to n8n Creator Portal review. Batches A
+through D are complete, so every P0 and P1 public operation targeted at
+`1.0.0` is implemented and covered by tests. The next public package is
+**`1.0.0`**; internal `0.2`–`0.6` labels are retired so clients never see
+another pre-1.0 release.
+
+Publishing `1.0.0` is gated on the `0.1.0` Creator Portal review being closed,
+not on further development. Do not push a version tag while that review is
+still open.
 
 | Batch | Theme | Public operations | npm |
 | ----- | ----- | ----------------- | --- |
 | **Published** | Read inventory | Property Search, Property Get. Helpers: `/search/{cities,types,biz,zones,neighborhoods}`, credential test on `/general/countries`. | **0.1.0** |
-| **A** | Property writes and status | Search commercial filters, Change Status, Get Status History, Create, and Update. Images, extra-amenities JSON, and multilingual descriptions stay out of this slice. | unpublished until 1.0 |
-| **B** | Owners and portals | Owner Search/Get/Create/Update with phone-type and document-type helpers. Property Get Portal Publications and Retry Portal Publication, on the paths the Guzzle examples document. | unpublished until 1.0 |
-| **C** | People and projects | Advisor Search. Project V2 Search/Get, with a country locator on `/general/countries`. | unpublished until 1.0 |
-| **D** | CRM intake | Acquisition Search/Get, read-only because Domus documents no capture writes. | unpublished until 1.0 |
-| **1.0.0** | Stable core | All P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out. | **first post-review publish** |
+| **A** | Property writes and status | Done. Search commercial filters, Change Status, Get Status History, Create, and Update. Images, extra-amenities JSON, and multilingual descriptions stay out of this slice. | unpublished until 1.0 |
+| **B** | Owners and portals | Done. Owner Search/Get/Create/Update with phone-type and document-type helpers. Property Get Portal Publications and Retry Portal Publication, on the paths the Guzzle examples document. | unpublished until 1.0 |
+| **C** | People and projects | Done. Advisor Search. Project V2 Search/Get, with a country locator on `/general/countries`. | unpublished until 1.0 |
+| **D** | CRM intake | Done. Acquisition Search/Get, read-only because Domus documents no capture writes. | unpublished until 1.0 |
+| **1.0.0** | Stable core | Ready. All P0 and P1 public operations above, with automated tests per operation. MLS v1 projects and partners stay out. | **first post-review publish** |
 | **1.1.0** | Reservations and map | Property Search Map, Separate, Owner Unlink, detach-status helper. | after 1.0 |
 | **1.2.0** | Agency writes | Advisor Create/Update. Branch as a small resource. | after 1.0 |
 | **1.3.0** | Settled public surface | Remaining catalogs, examples, and Cloud listing polish. | the version to point agencies at |
@@ -531,7 +537,7 @@ Domus
     └── Get       GET /properties/{codpro}/{idpro?}
 ```
 
-Unpublished branches (batches A and B complete):
+Unpublished `1.0.0` surface (batches A through D complete):
 
 ```text
 Domus
