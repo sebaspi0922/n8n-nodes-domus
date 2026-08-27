@@ -4,8 +4,9 @@ An n8n community node for integrating workflows with **Domus CRM** through
 Domus API 3.0.
 
 > Published as [`n8n-nodes-domus@0.1.0`](https://www.npmjs.com/package/n8n-nodes-domus).
-> That release is the version under n8n Creator Portal review. Later Git
-> commits may add docs and tests without publishing a new npm version.
+> That release is the version under n8n Creator Portal review. The `1.0.0`
+> scope is complete on Git and waits for that review to close before it is
+> published to npm.
 
 ## Features
 
@@ -364,10 +365,22 @@ Never put a Domus token in Git, fixtures, traces, or screenshots.
 
 ## Release status
 
-`n8n-nodes-domus@0.1.0` is published to npm with provenance from GitHub
-Actions. It is in n8n Creator Portal Manual Review. Do not publish `0.1.1`,
-`0.2.0`, `1.0.0`, or any other npm version while that review is open. The
-next public package after review is `1.0.0`.
+`n8n-nodes-domus@0.1.0` is the published npm version, released with provenance
+from GitHub Actions, and the one submitted to n8n Creator Portal Manual Review.
+
+`1.0.0` is development-complete on git: every P0 and P1 operation on the
+roadmap is implemented and tested, and no further work is planned for it.
+Publishing is gated on the `0.1.0` review closing, not on more development. Do
+not push a version tag while that review is still open.
+
+When the review closes, publishing is:
+
+```bash
+npm run release
+```
+
+That lints, builds, bumps the version, regenerates the changelog, commits, and
+pushes the tag, which triggers the publish workflow.
 
 ## Documentation
 
@@ -375,11 +388,15 @@ next public package after review is `1.0.0`.
 - [Testing strategy](docs/testing-strategy.md)
 - [First-stage report](docs/first-stage-report.md)
 - [Second-stage report](docs/second-stage-report.md)
+- [Third-stage report](docs/third-stage-report.md)
 - [Domus API 3.0](https://apiv3get.domus.la/docs/3.0/)
 - [Property list endpoint](https://apiv3get.domus.la/docs/3.0/inmuebles/lista)
 - [Property detail endpoint](https://apiv3get.domus.la/docs/3.0/inmuebles/detalle)
 - [Owner list endpoint](https://apiv3get.domus.la/docs/3.0/propietarios/lista)
 - [Owner detail endpoint](https://apiv3get.domus.la/docs/3.0/propietarios/detalle)
+- [Advisor list endpoint](https://apiv3get.domus.la/docs/3.0/administrativo/asesores)
+- [Project V2 list endpoint](https://apiv3get.domus.la/docs/3.0/proyectos-v2/lista)
+- [Acquisition V2 list endpoint](https://apiv3get.domus.la/docs/3.0/captaciones-v2/lista)
 - [n8n community node verification guidelines](https://docs.n8n.io/connect/create-nodes/build-your-node/reference/verification-guidelines)
 - [n8n node CLI](https://docs.n8n.io/connect/create-nodes/build-your-node/using-the-n8n-node-tool/)
 
