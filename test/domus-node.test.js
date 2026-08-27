@@ -23,6 +23,7 @@ const {
 	searchCatalogZones,
 	searchCities,
 	searchCityZones,
+	searchCountries,
 	searchNeighborhoods,
 	searchPropertyTypes,
 	searchSources,
@@ -1078,6 +1079,7 @@ describe('Domus advisor resource', () => {
 		assert.deepEqual(resource.options, [
 			{ name: 'Advisor', value: 'advisor' },
 			{ name: 'Owner', value: 'owner' },
+			{ name: 'Project', value: 'project' },
 			{ name: 'Property', value: 'property' },
 		]);
 	});
@@ -1140,6 +1142,119 @@ describe('Domus advisor resource', () => {
 				.Inmobiliaria,
 			'={{ $value ? 1 : 0 }}',
 		);
+	});
+});
+
+describe('Domus project resource', () => {
+	const getProjectOperation = (value) => {
+		const node = new Domus();
+		const operation = node.description.properties.find(
+			(property) =>
+				property.name === 'operation' &&
+				property.displayOptions?.show?.resource?.includes('project'),
+		);
+
+		return { node, operation, option: operation.options.find((entry) => entry.value === value) };
+	};
+
+	it('targets the Domus V2 project endpoints, not the MLS ones', () => {
+		const { operation } = getProjectOperation('search');
+
+		assert.deepEqual(
+			operation.options.map((option) => [option.routing.request.method, option.routing.request.url]),
+			[
+				['GET', '/projects-v2'],
+				['GET', '=/projects-v2/{{$parameter.projectCode}}'],
+			],
+		);
+		for (const option of operation.options) {
+			assert.deepEqual(option.routing.output.postReceive, [
+				{ type: 'rootProperty', properties: { property: 'data' } },
+			]);
+		}
+	});
+
+	it('identifies a project by assigned code with unique code as the fallback', () => {
+		const node = new Domus();
+		const properties = node.description.properties;
+		const code = getResourceProperty(properties, 'project', 'projectCode');
+		const uniqueCode = getResourceProperty(properties, 'project', 'projectUniqueCode');
+
+		assert.equal(code.required, true);
+		assert.equal(code.routing, undefined);
+		assert.equal(uniqueCode.required, undefined);
+		assert.equal(uniqueCode.routing.send.type, 'query');
+		assert.equal(uniqueCode.routing.send.property, 'unique_code');
+	});
+
+	it('maps every documented project filter to its query parameter', () => {
+		const node = new Domus();
+		const filters = getResourceProperty(node.description.properties, 'project', 'filters')
+			.options;
+
+		assert.deepEqual(
+			Object.fromEntries(filters.map((filter) => [filter.name, filter.routing.send.property])),
+			{
+				anyStatus: 'nostatus',
+				branch: 'branch',
+				city: 'city',
+				code: 'code',
+				country: 'country',
+				name: 'name',
+				neighborhood: 'neighborhood',
+				order: 'order',
+				sort: 'sort',
+				status: 'status',
+			},
+		);
+		assert.equal(
+			getProperty(filters, 'anyStatus').routing.send.value,
+			'={{ $value ? 0 : undefined }}',
+		);
+		assert.equal(
+			getProperty(filters, 'country').modes[0].typeOptions.searchListMethod,
+			'searchCountries',
+		);
+	});
+
+	it('follows the Laravel envelope while repeating the active project filters', () => {
+		const node = new Domus();
+		const returnAll = getResourceProperty(node.description.properties, 'project', 'returnAll');
+		const pagination = returnAll.routing.operations.pagination;
+
+		assert.equal(returnAll.routing.send.paginate, '={{$value}}');
+		assert.equal(
+			pagination.properties.continue,
+			'={{ Number($response.body?.current_page ?? 0) < Number($response.body?.last_page ?? 0) }}',
+		);
+		assert.deepEqual(Object.keys(pagination.properties.request.qs).sort(), [
+			'branch',
+			'city',
+			'code',
+			'country',
+			'name',
+			'neighborhood',
+			'nostatus',
+			'order',
+			'page',
+			'sort',
+			'status',
+		]);
+	});
+
+	it('loads countries from the general catalog without the agency header', async () => {
+		const { context, requests } = createListSearchContext({
+			data: [
+				{ code: 1, name: 'Colombia' },
+				{ code: 2, name: 'Panamá' },
+			],
+		});
+
+		assert.deepEqual(await searchCountries.call(context, 'colom'), {
+			results: [{ name: 'Colombia', value: '1' }],
+		});
+		assert.equal(requests[0].options.url, '/general/countries');
+		assert.equal(requests[0].options.headers.Inmobiliaria, undefined);
 	});
 });
 

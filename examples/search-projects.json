@@ -1,0 +1,55 @@
+{
+	"id": "5e6f7081-92a3-4b4c-95d6-e7f8091a2b3c",
+	"name": "Domus - Search projects",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "6f708192-a3b4-4c5d-96e7-f8091a2b3c4d",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "project",
+				"operation": "search",
+				"returnAll": false,
+				"limit": 50,
+				"page": 1,
+				"filters": {
+					"order": "code",
+					"sort": "asc"
+				}
+			},
+			"id": "708192a3-b4c5-4d6e-97f8-091a2b3c4d5e",
+			"name": "Search projects",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search projects",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "8192a3b4-c5d6-4e7f-9809-1a2b3c4d5e6f",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}
