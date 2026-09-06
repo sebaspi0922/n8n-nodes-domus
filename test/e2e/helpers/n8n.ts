@@ -164,11 +164,13 @@ export async function discoverPropertyCode(request: APIRequestContext): Promise<
 }
 
 export async function executeOpenNode(page: Page): Promise<void> {
-	const execute = page
-		.getByTestId('execute-workflow-button')
-		.or(page.getByTestId('ndv-execute'))
-		.or(page.getByRole('button', { name: /execute|test step|test workflow/i }));
+	const ndv = page.getByTestId('ndv');
+	await expect(ndv).toBeVisible();
 
-	await expect(execute.first()).toBeVisible();
-	await execute.first().click();
+	// The canvas also has an Execute step button behind the open NDV.
+	// Target the parameters header, not the canvas toolbar or workflow runner.
+	const execute = ndv.getByTestId('node-execute-button');
+	await expect(execute).toBeVisible();
+	await expect(execute).toBeEnabled();
+	await execute.click();
 }

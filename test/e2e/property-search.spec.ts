@@ -47,6 +47,8 @@ test('executes Property Search and shows output items when a token is available'
 	await expectDomusNodeOpen(page);
 	await executeOpenNode(page);
 
-	const output = page.getByTestId('output-panel').or(page.getByTestId('ndv-output-panel'));
-	await expect(output.or(page.getByText(/item/i).first())).toBeVisible({ timeout: 30_000 });
+	const output = page.getByTestId('ndv').getByTestId('ndv-output-panel');
+	await expect(output.getByTestId('run-data-item-count')).toHaveText(/^[1-9][\d,]* items?$/, {
+		timeout: 30_000,
+	});
 });
