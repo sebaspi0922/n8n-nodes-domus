@@ -15,6 +15,47 @@ const firstProperty = (payload) => {
 	return undefined;
 };
 
+const listRows = (payload) => (Array.isArray(payload) ? payload : payload?.data);
+
+const valueType = (value) => {
+	if (Array.isArray(value)) return 'array';
+	if (value === null) return 'null';
+	return typeof value;
+};
+
+const messageCategory = (payload) => {
+	const message = [payload?.message, payload?.error]
+		.filter((value) => typeof value === 'string')
+		.join(' ')
+		.toLowerCase();
+	if (!message) return undefined;
+	if (/auth|permission|forbidden|unauthori[sz]ed/.test(message)) return 'authorization';
+	if (/not found|no captures?|empty/.test(message)) return 'not-found-or-empty';
+	if (/sql|database|query/.test(message)) return 'backend-data';
+	if (/null|undefined|property|array|offset/.test(message)) return 'backend-exception';
+	return 'other';
+};
+
+const responseSummary = (response) => {
+	const payload = response.data;
+	return {
+		status: response.status,
+		bodyType: valueType(payload),
+		bodyKeys:
+			payload && typeof payload === 'object' && !Array.isArray(payload)
+				? Object.keys(payload).sort()
+				: [],
+		dataType: valueType(payload?.data),
+		arrayLength: Array.isArray(payload)
+			? payload.length
+			: Array.isArray(payload?.data)
+				? payload.data.length
+				: undefined,
+		code: typeof payload?.code === 'number' ? payload.code : undefined,
+		messageCategory: messageCategory(payload),
+	};
+};
+
 describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => {
 	it('validates credentials with GET /general/countries', async () => {
 		const response = await requestDomus('/general/countries');
@@ -171,16 +212,18 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.equal(typeof neighborhood.name, 'string');
 	});
 
-	it('returns typed neighborhoods as name rows without requiring a code', async () => {
+	it('returns typed neighborhoods as name rows without requiring a code', async (t) => {
 		const response = await requestDomus('/search/digited-neighborhoods', {
 			headers: { Inmobiliaria: '1' },
 		});
+		const rows = listRows(response.data);
+		t.diagnostic(`typed-neighborhoods response: ${JSON.stringify(responseSummary(response))}`);
 
 		assert.equal(response.status, 200);
-		assert.ok(Array.isArray(response.data?.data));
-		if (response.data.data.length === 0) return;
+		assert.ok(Array.isArray(rows));
+		if (rows.length === 0) return;
 
-		const neighborhood = response.data.data[0];
+		const neighborhood = rows[0];
 		assert.equal(typeof neighborhood.name, 'string');
 	});
 
@@ -283,13 +326,39 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 		assert.ok(response.data.data.unique_code !== undefined);
 	});
 
-	it('returns a paginated Domus V2 acquisition envelope', async () => {
+	it('returns a paginated Domus V2 acquisition envelope', async (t) => {
 		const response = await requestDomus('/captures-v2', {
 			headers: { Perpage: '1' },
 			query: { page: 1 },
 		});
 
-		assert.equal(response.status, 200);
+		if (response.status !== 200) {
+			const probes = await Promise.all([
+				requestDomus('/captures-v2', { headers: { Perpage: '1' } }),
+				requestDomus('/captures-v2', {
+					headers: { Perpage: '1', Inmobiliaria: '1' },
+					query: { page: 1 },
+				}),
+				requestDomus('/captures-v2', {
+					headers: { Perpage: '1', Inmobiliaria: '0' },
+					query: { page: 1 },
+				}),
+			]);
+			t.diagnostic(
+				`captures-v2 diagnostic: ${JSON.stringify({
+					documented: responseSummary(response),
+					withoutPage: responseSummary(probes[0]),
+					wholeAgency: responseSummary(probes[1]),
+					branchOnly: responseSummary(probes[2]),
+				})}`,
+			);
+		}
+
+		assert.equal(
+			response.status,
+			200,
+			`documented /captures-v2 request failed: ${JSON.stringify(responseSummary(response))}`,
+		);
 		assert.ok(Array.isArray(response.data?.data));
 		assert.ok(response.data.current_page !== undefined);
 		if (response.data.data.length === 0) return;
@@ -304,6 +373,11 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 			headers: { Perpage: '1' },
 			query: { page: 1 },
 		});
+		assert.equal(
+			search.status,
+			200,
+			`cannot discover an acquisition: ${JSON.stringify(responseSummary(search))}`,
+		);
 		const acquisition = search.data?.data?.[0];
 
 		if (!acquisition) {

@@ -13,6 +13,14 @@ interface DomusSearchResponse {
 	data?: unknown;
 }
 
+const extractDomusSearchOptions = (response: unknown): unknown[] => {
+	if (Array.isArray(response)) return response;
+	if (!response || typeof response !== 'object') return [];
+
+	const data = (response as DomusSearchResponse).data;
+	return Array.isArray(data) ? data : [];
+};
+
 const isDomusSearchOption = (value: unknown): value is DomusSearchOption => {
 	if (!value || typeof value !== 'object') return false;
 
@@ -137,7 +145,7 @@ async function searchDomusOptions(
 
 	const normalizedFilter = filter?.trim().toLocaleLowerCase();
 	const seenValues = new Set<string>();
-	const options = Array.isArray(response.data) ? response.data.filter(isDomusSearchOption) : [];
+	const options = extractDomusSearchOptions(response).filter(isDomusSearchOption);
 
 	const results = options
 		.filter((option) => {
