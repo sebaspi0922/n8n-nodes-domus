@@ -68,7 +68,10 @@ describe('n8n REST workflow execution', () => {
 		const run = await client.request(`/rest/workflows/${workflow.id}/run`, {
 			method: 'POST',
 			body: {
-				workflowData: workflow,
+				destinationNode: {
+					nodeName: domusNode.name,
+					mode: 'inclusive',
+				},
 			},
 		});
 		assert.ok(run.ok, `Workflow run failed with HTTP ${run.status}`);

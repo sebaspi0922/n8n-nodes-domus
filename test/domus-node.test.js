@@ -47,7 +47,13 @@ const getResourceProperty = (properties, resource, name) =>
 			property.displayOptions?.show?.resource?.includes(resource),
 	);
 
-const createListSearchContext = ({ data, entireAgency = true, filters = {}, parameters = {} }) => {
+const createListSearchContext = ({
+	data,
+	response,
+	entireAgency = true,
+	filters = {},
+	parameters = {},
+}) => {
 	const requests = [];
 	const context = {
 		getCredentials: async () => ({ environment: DOMUS_PRODUCTION_BASE_URL }),
@@ -61,7 +67,7 @@ const createListSearchContext = ({ data, entireAgency = true, filters = {}, para
 		helpers: {
 			httpRequestWithAuthentication: async (credentialName, options) => {
 				requests.push({ credentialName, options });
-				return { data };
+				return response ?? { data };
 			},
 		},
 	};
@@ -412,6 +418,16 @@ describe('Domus property search node', () => {
 		assert.equal(requests[0].options.url, '/search/digited-neighborhoods');
 		assert.equal(requests[0].options.headers.Inmobiliaria, 1);
 		assert.deepEqual(requests[0].options.qs, { city: '11001' });
+	});
+
+	it('returns no typed-neighborhood options for the testing host no-data envelope', async () => {
+		const { context } = createListSearchContext({
+			response: { code: 200, message: 'No typed neighborhoods found' },
+		});
+
+		const result = await searchTypedNeighborhoods.call(context);
+
+		assert.deepEqual(result, { results: [] });
 	});
 });
 

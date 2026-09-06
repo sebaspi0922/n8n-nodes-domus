@@ -94,6 +94,8 @@ export async function addDomusNode(
 	action:
 		| 'Search properties'
 		| 'Get a property'
+		| 'Create a property'
+		| 'Update a property'
 		| 'Get property status history'
 		| 'Change property status' = 'Search properties',
 ): Promise<void> {
@@ -155,18 +157,22 @@ export async function discoverPropertyCode(request: APIRequestContext): Promise<
 		},
 	});
 
-	if (!response.ok()) return undefined;
+	if (!response.ok()) {
+		throw new Error(`Domus testing property discovery failed with HTTP ${response.status()}`);
+	}
 	const payload = unwrap<{ data?: Array<{ codpro?: string | number }> }>(await response.json());
 	const first = Array.isArray(payload?.data) ? payload.data[0] : undefined;
 	return first?.codpro !== undefined ? String(first.codpro) : undefined;
 }
 
 export async function executeOpenNode(page: Page): Promise<void> {
-	const execute = page
-		.getByTestId('execute-workflow-button')
-		.or(page.getByTestId('ndv-execute'))
-		.or(page.getByRole('button', { name: /execute|test step|test workflow/i }));
+	const ndv = page.getByTestId('ndv');
+	await expect(ndv).toBeVisible();
 
-	await expect(execute.first()).toBeVisible();
-	await execute.first().click();
+	// The canvas also has an Execute step button behind the open NDV.
+	// Target the parameters header, not the canvas toolbar or workflow runner.
+	const execute = ndv.getByTestId('node-execute-button');
+	await expect(execute).toBeVisible();
+	await expect(execute).toBeEnabled();
+	await execute.click();
 }

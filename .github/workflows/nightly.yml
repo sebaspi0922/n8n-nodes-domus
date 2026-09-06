@@ -62,6 +62,7 @@ jobs:
           DOMUS_TEST_WRITE: '0'
 
       - name: n8n workflow REST tests
+        if: always()
         run: npm run test:workflow
         env:
           DOMUS_TEST_TOKEN: ${{ secrets.DOMUS_TEST_TOKEN }}
