@@ -94,6 +94,8 @@ export async function addDomusNode(
 	action:
 		| 'Search properties'
 		| 'Get a property'
+		| 'Create a property'
+		| 'Update a property'
 		| 'Get property status history'
 		| 'Change property status' = 'Search properties',
 ): Promise<void> {
