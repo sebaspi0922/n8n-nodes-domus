@@ -420,16 +420,14 @@ describe('Domus property search node', () => {
 		assert.deepEqual(requests[0].options.qs, { city: '11001' });
 	});
 
-	it('accepts bare arrays from typed-neighborhood endpoints', async () => {
+	it('returns no typed-neighborhood options for the testing host no-data envelope', async () => {
 		const { context } = createListSearchContext({
-			response: [{ name: 'Barrio digitado', city_name: 'Bogotá' }],
+			response: { code: 200, message: 'No typed neighborhoods found' },
 		});
 
 		const result = await searchTypedNeighborhoods.call(context);
 
-		assert.deepEqual(result, {
-			results: [{ name: 'Barrio digitado — Bogotá', value: 'Barrio digitado' }],
-		});
+		assert.deepEqual(result, { results: [] });
 	});
 });
 
