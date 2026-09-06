@@ -157,7 +157,9 @@ export async function discoverPropertyCode(request: APIRequestContext): Promise<
 		},
 	});
 
-	if (!response.ok()) return undefined;
+	if (!response.ok()) {
+		throw new Error(`Domus testing property discovery failed with HTTP ${response.status()}`);
+	}
 	const payload = unwrap<{ data?: Array<{ codpro?: string | number }> }>(await response.json());
 	const first = Array.isArray(payload?.data) ? payload.data[0] : undefined;
 	return first?.codpro !== undefined ? String(first.codpro) : undefined;

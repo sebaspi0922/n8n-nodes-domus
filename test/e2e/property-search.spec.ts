@@ -3,6 +3,7 @@ import { hasDomusToken } from './helpers/env';
 import {
 	addDomusNode,
 	createDomusCredentialViaApi,
+	discoverPropertyCode,
 	ensureOwner,
 	executeOpenNode,
 	expectDomusNodeOpen,
@@ -40,6 +41,9 @@ test('executes Property Search and shows output items when a token is available'
 	page,
 }) => {
 	test.skip(!hasDomusToken, 'Set DOMUS_TEST_TOKEN to execute Search against Domus');
+
+	const propertyCode = await discoverPropertyCode(page.request);
+	test.skip(!propertyCode, 'Testing host returned no properties to search');
 
 	await createDomusCredentialViaApi(page.request);
 	await openBlankWorkflow(page);
