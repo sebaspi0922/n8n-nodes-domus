@@ -61,40 +61,40 @@ if (!domus) throw new Error("The Domus node was not loaded by n8n");
 if (!domus.credentials?.some((credential) => credential.name === "domusApi")) {
 	throw new Error("The Domus API credential was not registered");
 }
-const operations = domus.properties
-	.find((property) => property.name === "operation")
-	?.options ?? [];
-for (const operationName of ["search", "get", "create", "update", "getStatusHistory", "changeStatus"]) {
-	if (!operations.some((operation) => operation.value === operationName)) {
-		throw new Error(`Property operation ${operationName} was not registered`);
+const expected = {
+	property: ["search", "get", "create", "update", "getStatusHistory", "getPortalPublications", "retryPortalPublication", "changeStatus"],
+	owner: ["search", "get", "create", "update"],
+	advisor: ["search"],
+	project: ["search", "get"],
+	acquisition: ["search", "get"],
+};
+const resources = (domus.properties.find((property) => property.name === "resource")?.options ?? [])
+	.map((option) => option.value);
+for (const resource of Object.keys(expected)) {
+	if (!resources.includes(resource)) {
+		throw new Error(`Resource ${resource} was not registered`);
 	}
 }
-console.log(`Loaded ${domus.name} with credential domusApi and operations search/get/create/update/getStatusHistory/changeStatus`);
+const operationProperties = domus.properties.filter((property) => property.name === "operation");
+function operationsFor(resource) {
+	const property = operationProperties.find((candidate) =>
+		candidate.displayOptions?.show?.resource?.includes(resource),
+	);
+	return (property?.options ?? []).map((option) => option.value);
+}
+for (const [resource, names] of Object.entries(expected)) {
+	const registered = operationsFor(resource);
+	for (const name of names) {
+		if (!registered.includes(name)) {
+			throw new Error(`${resource} operation ${name} was not registered`);
+		}
+	}
+}
+console.log("Loaded n8n-nodes-domus.domus with 5 resources and 17 operations");
 '
 
-docker compose --file "${compose_file}" exec --no-TTY n8n \
-	n8n import:workflow \
-	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/search-properties.json"
-
-docker compose --file "${compose_file}" exec --no-TTY n8n \
-	n8n import:workflow \
-	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/get-property.json"
-
-docker compose --file "${compose_file}" exec --no-TTY n8n \
-	n8n import:workflow \
-	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/get-property-status-history.json"
-
-docker compose --file "${compose_file}" exec --no-TTY n8n \
-	n8n import:workflow \
-	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/change-property-status.json"
-
-docker compose --file "${compose_file}" exec --no-TTY n8n \
-	n8n import:workflow \
-	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/create-property.json"
-
-docker compose --file "${compose_file}" exec --no-TTY n8n \
-	n8n import:workflow \
-	--input="/home/node/.n8n/nodes/node_modules/${package_name}/examples/update-property.json"
+docker compose --file "${compose_file}" exec --no-TTY n8n sh -c \
+	"for f in /home/node/.n8n/nodes/node_modules/${package_name}/examples/*.json; do n8n import:workflow --input=\"\$f\"; done"
 
 logs="$(docker compose --file "${compose_file}" logs --no-color n8n)"
 if grep --extended-regexp --ignore-case --quiet \
@@ -104,6 +104,6 @@ if grep --extended-regexp --ignore-case --quiet \
 	exit 1
 fi
 
-echo "Docker integration test passed, including the packaged example workflow."
+echo "Docker integration test passed, including the packaged example workflows."
 echo "n8n is running at http://localhost:5680"
 echo "Run 'npm run docker:down' to stop it and remove its disposable data."

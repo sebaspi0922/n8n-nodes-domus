@@ -1,7 +1,7 @@
 # First-stage report
 
 - Closed: August 20, 2026
-- Status: functional vertical slice tested with Domus API 3.0
+- Status: first vertical slice; later superseded by published `1.0.0`
 - Scope: Domus credentials and `Property → Search`
 
 ## Outcome
@@ -12,8 +12,9 @@ and pass each returned property as an independent item to downstream n8n
 nodes.
 
 This result applies to the implemented operation. It does not imply that the
-entire Domus API is integrated. The package was later published as
-`n8n-nodes-domus@0.1.0` and is in n8n Creator Portal Manual Review.
+entire Domus API is integrated. That slice later shipped as
+`n8n-nodes-domus@0.1.0`. The current package is `1.0.0`, which is published
+and n8n-verified.
 
 ## Implemented
 

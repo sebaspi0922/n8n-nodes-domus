@@ -3,10 +3,8 @@
 An n8n community node for integrating workflows with **Domus CRM** through
 Domus API 3.0.
 
-> Published as [`n8n-nodes-domus@0.1.0`](https://www.npmjs.com/package/n8n-nodes-domus).
-> That release is the version under n8n Creator Portal review. The `1.0.0`
-> scope is complete on Git and waits for that review to close before it is
-> published to npm.
+> Published and n8n-verified as
+> [`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus).
 
 ## Features
 
@@ -38,41 +36,22 @@ Domus API 3.0.
 
 ## Requirements
 
-- Node.js 24 LTS recommended (`>=22.22.0 <26` is currently supported)
-- npm
-- Git
+- An n8n instance (Cloud or self-hosted) that can install community nodes
+- A Domus API token (request it from Domus support)
 
-The repository pins Node.js `24.19.0` in `.node-version`. The system-wide
-Node.js 26 runtime is not used because `isolated-vm` 6.x, a native dependency
-of the tested n8n version, does not provide the required Node.js 26 binding.
+Node.js 24 LTS is required only for local development of this package
+(`>=22.22.0 <26`). The repository pins `24.19.0` in `.node-version`.
 
-## Local development
+## Installation
 
-```bash
-npm install
-npm run dev
-```
+On n8n Cloud and on self-hosted instances with verified community nodes
+enabled, install **Domus** from the nodes panel.
 
-The development command builds and links the community node, starts an n8n
-development instance with hot reload, and exposes it at:
+On self-hosted n8n without that listing, install the npm package from
+**Settings → Community Nodes** as `n8n-nodes-domus`.
 
-```text
-http://localhost:5678
-```
-
-The first run may ask you to create a local n8n owner account.
-
-Run the quality checks with:
-
-```bash
-npm run lint
-npm run build
-npm test
-npm pack --dry-run --json
-```
-
-`0.1.0` was tested with Node.js 24.19.0, `@n8n/node-cli` 0.44.3, and
-n8n 2.35.5.
+The GitHub repository stays public so later versions can keep Creator Portal
+verification and npm provenance.
 
 ## Credentials
 
@@ -92,13 +71,12 @@ screenshots, or example workflows.
 
 ## Usage
 
-1. Start development mode and open `http://localhost:5678`.
-2. Create or open a workflow.
-3. Add the **Domus** node.
-4. Create or select a **Domus API** credential.
-5. Select **Property**, **Owner**, **Advisor**, **Project**, or
+1. Open n8n and create or open a workflow.
+2. Add the **Domus** node.
+3. Create or select a **Domus API** credential.
+4. Select **Property**, **Owner**, **Advisor**, **Project**, or
    **Acquisition** and choose an operation.
-6. Configure the operation and execute the node.
+5. Configure the operation and execute the node.
 
 Sanitized importable workflows are available under [`examples/`](examples/).
 Assign your own Domus credential after importing them; the examples contain
@@ -300,16 +278,55 @@ acquisitions the agency never assigned a code to.
 
 ## Verified behavior
 
-The node has been exercised against Domus API with a real credential without
-storing the token or response fixtures in this repository. Manual verification
-covered:
+`1.0.0` exposes seventeen public operations across Property, Owner, Advisor,
+Project, and Acquisition. Routing, pagination, locators, and example
+workflows are covered by the automated suite in
+[`docs/testing-strategy.md`](docs/testing-strategy.md).
 
-- real property search and downstream field mapping
+Live checks against Domus API used a real credential without storing the
+token or response fixtures in this repository. Those checks covered:
+
+- property search and downstream field mapping
 - bounded results and automatic pagination across 115 properties
 - dynamic and manual-code filters
 - property detail by code and optional internal ID
 - property sheet and whole-agency headers
 - invalid credentials, a missing property (`404`), and a refused connection
+- write operations only against `https://newapi.domus.la` (created records
+  cannot be deleted; use **Change Status** to retire them)
+
+## Local development
+
+Node.js 24 LTS is recommended (`>=22.22.0 <26`). The repository pins
+`24.19.0` in `.node-version`. The system-wide Node.js 26 runtime is not used
+because `isolated-vm` 6.x, a native dependency of the tested n8n version,
+does not provide the required Node.js 26 binding.
+
+```bash
+npm install
+npm run dev
+```
+
+The development command builds and links the community node, starts an n8n
+development instance with hot reload, and exposes it at:
+
+```text
+http://localhost:5678
+```
+
+The first run may ask you to create a local n8n owner account.
+
+Run the quality checks with:
+
+```bash
+npm run lint
+npm run build
+npm test
+npm pack --dry-run --json
+```
+
+`1.0.0` was tested with Node.js 24.19.0, `@n8n/node-cli` 0.44.3, and
+n8n 2.35.5.
 
 ## Docker integration test
 
@@ -331,7 +348,8 @@ build → npm pack → clean volume → install .tgz → start n8n → inspect l
 
 The package is written to the ignored `artifacts/` directory. The test installs
 it in `/home/node/.n8n/nodes`, starts n8n, and verifies the `domusApi`
-credential plus the `search` and `get` operations.
+credential, all five resources, all seventeen operations, and every packaged
+example workflow.
 
 Open the clean instance at:
 
@@ -365,22 +383,21 @@ Never put a Domus token in Git, fixtures, traces, or screenshots.
 
 ## Release status
 
-`n8n-nodes-domus@0.1.0` is the published npm version, released with provenance
-from GitHub Actions, and the one submitted to n8n Creator Portal Manual Review.
+[`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus) is
+the current npm release. It was published with provenance from GitHub Actions
+and verified through the n8n Creator Portal. `0.1.0` remains on npm as the
+earlier two-operation package.
 
-`1.0.0` is development-complete on git: every P0 and P1 operation on the
-roadmap is implemented and tested, and no further work is planned for it.
-Publishing is gated on the `0.1.0` review closing, not on more development. Do
-not push a version tag while that review is still open.
-
-When the review closes, publishing is:
+The next planned public version is `1.1.0` (map search, property separate,
+owner unlink). To publish a later version:
 
 ```bash
 npm run release
 ```
 
 That lints, builds, bumps the version, regenerates the changelog, commits, and
-pushes the tag, which triggers the publish workflow.
+pushes the tag, which triggers the publish workflow. The GitHub repository
+must stay public for Creator Portal checks and npm provenance.
 
 ## Documentation
 
