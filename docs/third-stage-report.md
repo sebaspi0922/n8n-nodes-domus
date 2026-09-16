@@ -1,18 +1,19 @@
 # Third-stage report
 
 - Closed: August 27, 2026
-- Status: `1.0.0` development scope complete, publish pending review closure
+- Status: `1.0.0` published on npm and verified through the n8n Creator Portal
 - Scope: batches A through D of the `1.0.0` roadmap
 
 ## Outcome
 
-Every public operation the roadmap targets at `1.0.0` is implemented on git and
-covered by automated tests. The node grew from the two read operations in
-published `0.1.0` to seventeen operations across five resources, and the
-selector layer grew from five inventory-search endpoints to fifteen catalogs.
+Every public operation the roadmap targets at `1.0.0` is implemented,
+covered by automated tests, published to npm, and verified through the n8n
+Creator Portal. The node grew from the two read operations in `0.1.0` to
+seventeen operations across five resources, and the selector layer grew from
+five inventory-search endpoints to fifteen catalogs.
 
-Nothing further is planned for `1.0.0`. Publishing is gated on the `0.1.0`
-Creator Portal review closing, not on additional development.
+Nothing further is planned for `1.0.0`. Later work follows the `1.1.0`
+roadmap in [`docs/api-coverage.md`](api-coverage.md).
 
 ## Public surface at 1.0.0
 

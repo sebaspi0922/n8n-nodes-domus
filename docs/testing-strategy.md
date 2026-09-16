@@ -280,19 +280,20 @@ Do not add a production token. Do not pass secrets to `pull_request` from forks
 
 ## Coverage of the current node
 
-Approximate share of `0.1.0` behavior that can be validated without a human:
+Approximate share of `1.0.0` behavior that can be validated without a human:
 
 | Area | Automated | Residual manual |
 | ---- | --------- | --------------- |
 | Credential shape and auth header | Capa 1 | — |
-| Search/Get routing and pagination config | Capa 1 | — |
+| Search/Get/write routing and pagination config | Capa 1 | — |
 | Dynamic locator HTTP and filtering | Capa 1 | visual density of the locator popover |
 | Package install in clean n8n | Capa 4 | — |
-| Node and operations appear in the editor | Capa 5 | fine CSS/layout |
+| Node, five resources, and seventeen operations appear in the editor | Capa 5 | fine CSS/layout |
 | Credential environment options | Capa 5 | — |
 | Live Search/Get against Domus | Capa 2 + 3 + 5 if token | first-time token issuance |
+| Live writes against `newapi.domus.la` | Capa 2 with `DOMUS_TEST_WRITE=1` | confirm the testing host is reset-safe |
 | "Does this look right in a demo video" | — | yes, once per release |
 
-For the two public operations, automated layers cover the contract, package
-load, and editor happy path. The remaining 10–20% is visual polish and the
-n8n Creator Portal demo, not functional regression.
+For the seventeen public operations, automated layers cover the contract,
+package load, and editor happy path. The remaining 10–20% is visual polish
+and a release demo, not functional regression.

@@ -73,4 +73,5 @@ npm run test:docker
 ```
 
 `n8n-nodes-domus@0.1.0` was subsequently published to npm with provenance and
-submitted to the n8n Creator Portal, where it is in Manual Review.
+submitted to the n8n Creator Portal. That review closed; `1.0.0` is the
+current published and verified package.
