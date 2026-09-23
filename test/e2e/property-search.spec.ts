@@ -3,6 +3,7 @@ import { hasDomusToken } from './helpers/env';
 import {
 	addDomusNode,
 	createDomusCredentialViaApi,
+	discoverPropertyCode,
 	ensureOwner,
 	executeOpenNode,
 	expectDomusNodeOpen,
@@ -41,12 +42,17 @@ test('executes Property Search and shows output items when a token is available'
 }) => {
 	test.skip(!hasDomusToken, 'Set DOMUS_TEST_TOKEN to execute Search against Domus');
 
+	const propertyCode = await discoverPropertyCode(page.request);
+	test.skip(!propertyCode, 'Testing host returned no properties to search');
+
 	await createDomusCredentialViaApi(page.request);
 	await openBlankWorkflow(page);
 	await addDomusNode(page, 'Search properties');
 	await expectDomusNodeOpen(page);
 	await executeOpenNode(page);
 
-	const output = page.getByTestId('output-panel').or(page.getByTestId('ndv-output-panel'));
-	await expect(output.or(page.getByText(/item/i).first())).toBeVisible({ timeout: 30_000 });
+	const output = page.getByTestId('ndv').getByTestId('ndv-output-panel');
+	await expect(output.getByTestId('run-data-item-count')).toHaveText(/^[1-9][\d,]* items?$/, {
+		timeout: 30_000,
+	});
 });

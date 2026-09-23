@@ -16,7 +16,8 @@ test('shows required create fields and additional-field options', async ({ page 
 	await expect(page.getByText('Property Type', { exact: true })).toBeVisible();
 	await expect(page.getByText(/cannot be deleted/i).first()).toBeVisible();
 
-	await page.getByRole('button', { name: /add field/i }).click();
+	// Collections with several options render a combobox, not an Add Field button.
+	await page.getByTestId('collection-parameter-add').getByRole('combobox').click();
 	await expect(page.getByRole('option', { name: /^Status$/i })).toBeVisible();
 	await expect(page.getByRole('option', { name: /^Description$/i })).toBeVisible();
 });
@@ -29,7 +30,7 @@ test('shows Property Code and update fields without a Status control', async ({ 
 	await expect(page.getByText('Property Code', { exact: true })).toBeVisible();
 	await expect(page.getByText(/cannot be changed here/i).first()).toBeVisible();
 
-	await page.getByRole('button', { name: /add field/i }).click();
+	await page.getByTestId('collection-parameter-add').getByRole('combobox').click();
 	await expect(page.getByRole('option', { name: /^Description$/i })).toBeVisible();
 	await expect(page.getByRole('option', { name: /^Status$/i })).toHaveCount(0);
 });

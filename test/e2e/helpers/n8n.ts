@@ -94,6 +94,8 @@ export async function addDomusNode(
 	action:
 		| 'Search properties'
 		| 'Get a property'
+		| 'Create a property'
+		| 'Update a property'
 		| 'Get property status history'
 		| 'Change property status' = 'Search properties',
 ): Promise<void> {
@@ -162,11 +164,13 @@ export async function discoverPropertyCode(request: APIRequestContext): Promise<
 }
 
 export async function executeOpenNode(page: Page): Promise<void> {
-	const execute = page
-		.getByTestId('execute-workflow-button')
-		.or(page.getByTestId('ndv-execute'))
-		.or(page.getByRole('button', { name: /execute|test step|test workflow/i }));
+	const ndv = page.getByTestId('ndv');
+	await expect(ndv).toBeVisible();
 
-	await expect(execute.first()).toBeVisible();
-	await execute.first().click();
+	// The canvas Execute step button sits behind the open node panel and
+	// cannot receive the click. Use the button in the panel header.
+	const execute = ndv.getByTestId('node-execute-button');
+	await expect(execute).toBeVisible();
+	await expect(execute).toBeEnabled();
+	await execute.click();
 }
