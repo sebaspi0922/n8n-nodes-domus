@@ -413,6 +413,14 @@ describe('Domus property search node', () => {
 		assert.equal(requests[0].options.headers.Inmobiliaria, 1);
 		assert.deepEqual(requests[0].options.qs, { city: '11001' });
 	});
+
+	it('returns no typed-neighborhood options when Domus omits the data array', async () => {
+		const { context } = createListSearchContext({ data: undefined });
+
+		const result = await searchTypedNeighborhoods.call(context);
+
+		assert.deepEqual(result, { results: [] });
+	});
 });
 
 describe('Domus property get operation', () => {
