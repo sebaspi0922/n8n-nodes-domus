@@ -93,11 +93,17 @@ export async function addDomusNode(
 	page: Page,
 	action:
 		| 'Search properties'
+		| 'Search properties on a map'
 		| 'Get a property'
 		| 'Create a property'
 		| 'Update a property'
 		| 'Get property status history'
-		| 'Change property status' = 'Search properties',
+		| 'Change property status'
+		| 'Separate a property'
+		| 'Unlink an owner from a property'
+		| 'Create an advisor'
+		| 'Update an advisor'
+		| 'Search branches' = 'Search properties',
 ): Promise<void> {
 	await searchDomusInCreator(page);
 	await page.getByText(action, { exact: true }).click();

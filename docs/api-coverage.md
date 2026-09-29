@@ -7,13 +7,15 @@ from those pages, not from guessed OpenAPI.
 - Documentation index: 51 pages (2 introductory, 49 endpoint pages)
 - Documented HTTP operations: **50**, counting `GET /administrative/document_types`, which has a live docs page linked from owner creation but no entry in the sidebar
 - Public n8n operations in published `1.0.0`: **17** (eight on Property, four on Owner, one on Advisor, two on Project, two on Acquisition)
+- Public n8n operations in `1.1.0`: **23** (the `1.0.0` surface plus Property Search Map, Property Separate, Owner Unlink, Advisor Create, Advisor Update, and Branch Search). The Domus node stays on version 1.
 - Public n8n operations in `0.1.0`: **2** (`Property → Search`, `Property → Get`)
-- Dynamic selectors: cities, property types, business types, zones, neighborhoods, statuses, sources, amenities, city zones, typed neighborhoods, advisors, branches, document types, phone types, plus full `/general` catalogs for create and update
+- Dynamic selectors: cities, departments, property types, business types, zones, neighborhoods, statuses, separation statuses, sources, amenities, extra amenities, destinations, city zones, populated centers, typed neighborhoods, advisors, branches, document types, phone types, plus full `/general` catalogs for create and update
 
 [`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus) is the
-current npm package and the n8n Creator Portal verified release. `0.1.0`
-remains on npm as the earlier inventory-read slice. The next public package is
-**`1.1.0`**.
+n8n Creator Portal verified release. `0.1.0` remains on npm as the earlier
+inventory-read slice. **`1.1.0`** ships the property roadmap that this document
+previously split across `1.1.0`, `1.2.0`, and `1.3.0`. The Domus node stays on
+version 1.
 
 ## Authentication and environments
 
@@ -42,7 +44,7 @@ Domus
 ├── Advisor
 ├── Project
 ├── Acquisition
-└── Branch            (small; optional public resource)
+└── Branch
 ```
 
 Catalog, search-facet, and status lists stay as **helpers** that feed
@@ -112,7 +114,7 @@ Leads or Contacts module in API 3.0. Capture list filters include `contact`
 
 | Operation | API | Role |
 | --------- | --- | ---- |
-| Search | `GET /administrative/branches` | Public or helper |
+| Search | `GET /administrative/branches` | Public |
 
 Useful as a locator when creating properties or owners with `branch`.
 
@@ -130,21 +132,21 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Inmuebles | `/properties/status/{codpro}` | GET | Property | Get Status History | Implemented | P1 | 1.0.0 |
 | Inmuebles | `/properties/portals/{idpro}/{codpro?}` | GET | Property | Get Portal Publications | Implemented | P1 | 1.0.0 |
 | Inmuebles | `/properties/retry-portals/{codpro}/{idpro?}` | GET | Property | Retry Portal Publication | Implemented | P1 | 1.0.0 |
-| Inmuebles | `/properties/map` | GET | Property | Search Map | Planned | P2 | 1.1.0 |
-| Inmuebles | `/properties/detach/{codpro}` | PUT | Property | Separate | Planned | P2 | 1.1.0 |
+| Inmuebles | `/properties/map` | GET | Property | Search Map | Implemented | P2 | 1.1.0 |
+| Inmuebles | `/properties/detach/{codpro}` | PUT | Property | Separate | Implemented | P2 | 1.1.0 |
 | Propietarios | `/owners` | GET | Owner | Search | Implemented | P0 | 1.0.0 |
 | Propietarios | `/owners/{document}` | GET | Owner | Get | Implemented | P0 | 1.0.0 |
 | Propietarios | `/owners` | POST | Owner | Create | Implemented | P1 | 1.0.0 |
 | Propietarios | `/owners/{document}` | PUT | Owner | Update | Implemented | P1 | 1.0.0 |
-| Propietarios | `/owners/{owner_code}/{codpro}` | DELETE | Owner | Unlink Property | Planned | P2 | 1.1.0 |
+| Propietarios | `/owners/{owner_code}/{codpro}` | DELETE | Owner | Unlink Property | Implemented | P2 | 1.1.0 |
 | Administrativo | `/administrative/brokers` | GET | Advisor | Search | Implemented | P1 | 1.0.0 |
-| Administrativo | `/administrative/brokers` | POST | Advisor | Create | Planned | P2 | 1.2.0 |
-| Administrativo | `/administrative/brokers/{code}` | PUT | Advisor | Update | Planned | P2 | 1.2.0 |
+| Administrativo | `/administrative/brokers` | POST | Advisor | Create | Implemented | P2 | 1.1.0 |
+| Administrativo | `/administrative/brokers/{code}` | PUT | Advisor | Update | Implemented | P2 | 1.1.0 |
 | Proyectos V2 | `/projects-v2` | GET | Project | Search | Implemented | P1 | 1.0.0 |
 | Proyectos V2 | `/projects-v2/{code}` | GET | Project | Get | Implemented | P1 | 1.0.0 |
 | Captaciones V2 | `/captures-v2` | GET | Acquisition | Search | Implemented | P1 | 1.0.0 |
 | Captaciones V2 | `/captures-v2/{code}` | GET | Acquisition | Get | Implemented | P1 | 1.0.0 |
-| Administrativo | `/administrative/branches` | GET | Branch | Search | Planned | P2 | 1.2.0 |
+| Administrativo | `/administrative/branches` | GET | Branch | Search | Implemented | P2 | 1.1.0 |
 | Administrativo | `/administrative/sources` | GET | — | Change-status locator | Helper | P1 | 1.0.0 |
 | Administrativo | `/administrative/document_types` | GET | Owner | Document-type locator | Helper | P1 | 1.0.0 |
 | Administrativo | `/administrative/partners` | GET | — | — | Deferred | P3 | — |
@@ -156,18 +158,18 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 | Búsqueda | `/search/digited-neighborhoods` | GET | Property | Typed-neighborhood helper | Helper | P2 | 1.0.0 |
 | Generales | `/general/countries` | GET | Credential / Project | Credential test and country locator | Helper | P0 | 0.1.0 |
 | Generales | `/general/status` | GET | Property | Status locator | Helper | P0 | 1.0.0 |
-| Generales | `/general/detach/status` | GET | Property | Separation-status locator | Helper | P2 | 1.1.0 |
+| Generales | `/general/detach/status` | GET | Property | Separation-status locator | Implemented | P2 | 1.1.0 |
 | Generales | `/general/biz` | GET | Property | Full business-type catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/types` | GET | Property | Full property-type catalog | Helper | P1 | 1.0.0 |
-| Generales | `/general/states` | GET | Property / Owner | Department locator | Helper | P2 | 1.3.0 |
+| Generales | `/general/states` | GET | Property / Owner | Department locator | Implemented | P2 | 1.1.0 |
 | Generales | `/general/cities` | GET | Property / Owner | Full city catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/zones` | GET | Property | Full zone catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/city-zones` | GET | Property | City-zone locator | Helper | P1 | 1.0.0 |
-| Generales | `/general/populated-centers` | GET | Property | Populated-center locator | Helper | P2 | 1.3.0 |
+| Generales | `/general/populated-centers` | GET | Property | Populated-center locator | Implemented | P2 | 1.1.0 |
 | Generales | `/general/neighborhoods` | GET | Property | Full neighborhood catalog | Helper | P1 | 1.0.0 |
 | Generales | `/general/amenities` | GET | Property | Amenities locator | Helper | P1 | 1.0.0 |
-| Generales | `/general/amenities-extra` | GET | Property | Extra-amenities locator | Helper | P2 | 1.3.0 |
-| Generales | `/general/destinations` | GET | Property | Destination locator | Helper | P2 | 1.3.0 |
+| Generales | `/general/amenities-extra` | GET | Property | Extra-amenities locator | Implemented | P2 | 1.1.0 |
+| Generales | `/general/destinations` | GET | Property | Destination locator | Implemented | P2 | 1.1.0 |
 | Generales | `/general/phone-types` | GET | Owner | Phone-type locator | Helper | P1 | 1.0.0 |
 | Generales | `/general/tags` | GET | — | — | Deferred | P3 | — |
 | Proyectos | `/projects` | GET | Project | Search (MLS) | Deferred | P3 | — |
@@ -175,16 +177,18 @@ Statuses: `Implemented`, `Planned`, `Helper`, `Deferred`.
 
 `/administrative/brokers` and `/administrative/branches` are wired as resource
 locators for the `broker`, `catcher_broker`, `promoter_broker`, and `branch`
-fields on Property Search, Create, Update, and Change Status. Advisor is now
-also a user-facing resource; Branch stays a helper only and is scheduled for
-1.2.0.
+fields on Property Search, Create, Update, and Change Status. Advisor is a
+user-facing resource with Search, Create, and Update. Branch Search is a
+public resource on the same `GET /administrative/branches` call the locator
+uses. There is still no documented get-by-id for one advisor.
 
 ## Roadmap
 
 `1.0.0` is published on npm and verified through the n8n Creator Portal.
 Batches A through D shipped in that release: every P0 and P1 public operation
-targeted at `1.0.0` is implemented and covered by tests. The next public
-package is **`1.1.0`**.
+targeted at `1.0.0` is implemented and covered by tests. **`1.1.0`** closes
+the remaining property roadmap below in one package. The Domus node stays on
+version 1.
 
 | Batch | Theme | Public operations | npm |
 | ----- | ----- | ----------------- | --- |
@@ -194,11 +198,9 @@ package is **`1.1.0`**.
 | **C** | People and projects | Advisor Search. Project V2 Search/Get, with a country locator on `/general/countries`. | in **1.0.0** |
 | **D** | CRM intake | Acquisition Search/Get, read-only because Domus documents no capture writes. | in **1.0.0** |
 | **1.0.0** | Stable core | All P0 and P1 public operations above. MLS v1 projects and partners stay out. | **published and verified** |
-| **1.1.0** | Reservations and map | Property Search Map, Separate, Owner Unlink, detach-status helper. | next |
-| **1.2.0** | Agency writes | Advisor Create/Update. Branch as a small resource. | after 1.1 |
-| **1.3.0** | Remaining catalogs | Department, populated-center, extra-amenities, and destination locators, plus extra examples. | after 1.2 |
+| **1.1.0** | Remaining property roadmap | Property Search Map, Separate, Owner Unlink, detach-status helper, Advisor Create/Update, Branch Search, and the department, populated-center, extra-amenities, and destination locators. | this package |
 
-Keep pull requests small and coherent. Do not ship 40 endpoints in one change.
+Keep later pull requests small and coherent. `1.1.0` is the exception: it closes the remaining property batches together and does not start photos, amenities JSON, multilingual descriptions, owner phone edits, MLS projects, partners, tags, or Domus CRM.
 
 ## Classification notes
 
@@ -522,26 +524,35 @@ No create/update capture endpoints are documented.
 
 ## Current node vs API
 
-Published `1.0.0` public surface:
+`1.1.0` public surface. The Domus node remains version 1. `1.0.0` was the
+previous surface: the same tree without Search Map, Separate, Unlink, Advisor
+Create, Advisor Update, and Branch.
 
 ```text
 Domus
 ├── Property
 │   ├── Search              GET /properties          (core commercial filters)
+│   ├── Search Map          GET /properties/map
 │   ├── Get                 GET /properties/{codpro}/{idpro?}
 │   ├── Create              POST /properties
 │   ├── Update              PUT /properties/{codpro}
 │   ├── Get Status History  GET /properties/status/{codpro}
 │   ├── Change Status       PUT /properties/status/{codpro}
 │   ├── Get Portal Publications   GET /properties/portals/{idpro}/{codpro?}
-│   └── Retry Portal Publication  GET /properties/retry-portals/{codpro}/{idpro?}
+│   ├── Retry Portal Publication  GET /properties/retry-portals/{codpro}/{idpro?}
+│   └── Separate            PUT /properties/detach/{codpro}
 ├── Owner
 │   ├── Search              GET /owners
 │   ├── Get                 GET /owners/{document}
 │   ├── Create              POST /owners
-│   └── Update              PUT /owners/{document}
+│   ├── Update              PUT /owners/{document}
+│   └── Unlink Property     DELETE /owners/{owner_code}/{codpro}
 ├── Advisor
-│   └── Search              GET /administrative/brokers
+│   ├── Search              GET /administrative/brokers
+│   ├── Create              POST /administrative/brokers
+│   └── Update              PUT /administrative/brokers/{code}
+├── Branch
+│   └── Search              GET /administrative/branches
 ├── Project
 │   ├── Search              GET /projects-v2
 │   └── Get                 GET /projects-v2/{code}?unique_code=
@@ -576,12 +587,21 @@ Helpers already wired:
 /administrative/branches        (branch locator)
 /administrative/document_types  (Owner document-type locator)
 /general/phone-types            (Owner phone-type dropdown)
+/general/detach/status          (Property Separate status locator)
+/general/states                 (department locator; scopes the full city catalog)
+/general/populated-centers      (Property Create/Update locator; city query)
+/general/amenities-extra        (Property Create/Update locator; type query; JSON body is not sent)
+/general/destinations           (Property Search, Search Map, Create, and Update locator)
 ```
 
-Search covers the Batch A commercial filters. Create and Update send the
-documented commercial form fields. Still omitted on write: image_# /
-image360_#, image delete indexes, amenities_extra JSON, multilingual
-descriptions, and populated-center / destination locators.
+Search covers the Batch A commercial filters plus department (`estate`) and
+destination. Search Map uses the map page's commercial filters, including
+destination and polygon, and follows pages the same way. Create and Update
+send the documented commercial form fields, including `populated_center` and
+`destination`. Department narrows `GET /general/cities?state=` and is not a
+body field. Extra amenities are listed from `GET /general/amenities-extra`
+and are not submitted. Still omitted on write: image_# / image360_#, image
+delete indexes, the amenities_extra JSON body, and multilingual descriptions.
 
 Owner Create and Update send every documented form field. Still omitted:
 per-entry phone editing through the `oldType` / `newType` / `delete` grammar,

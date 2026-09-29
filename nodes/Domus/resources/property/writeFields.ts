@@ -3,6 +3,7 @@ import { createDomusLocator } from '../locators';
 
 interface PropertyWriteFieldOptions {
 	cityDependsOn?: string[];
+	departmentDependsOn?: string[];
 	includeAddress?: boolean;
 	includeBusinessType?: boolean;
 	includeCity?: boolean;
@@ -161,14 +162,35 @@ export const propertyWriteFields = (
 			'Consignation date in Domus format YYYY-MM-DD HH:mm:ss',
 			'e.g. 2020-03-30 11:10:00',
 		),
+		createDomusLocator({
+			displayName: 'Department',
+			name: 'department',
+			searchListMethod: 'searchStates',
+			send: false,
+			placeholder: 'e.g. 11',
+			description:
+				'Department used to narrow the city catalog. Domus stores the city on the property.',
+		}),
 		bodyStringField('Description', 'description', 'description', 'Property description'),
-		bodyStringField(
-			'Destination',
-			'destination',
-			'destination',
-			'Property destination code',
-			'e.g. 2',
-		),
+		createDomusLocator({
+			displayName: 'Destination',
+			name: 'destination',
+			searchListMethod: 'searchDestinations',
+			sendType: 'body',
+			sendProperty: 'destination',
+			placeholder: 'e.g. 2',
+			description: 'Intended use of the property, from the destinations catalog',
+		}),
+		createDomusLocator({
+			displayName: 'Extra Amenities',
+			name: 'extraAmenities',
+			searchListMethod: 'searchExtraAmenities',
+			send: false,
+			placeholder: 'e.g. 33',
+			description:
+				'Extra features for the selected property type. This lists the catalog. The amenities_extra JSON body is not sent.',
+			loadOptionsDependsOn: typeDependsOn,
+		}),
 		bodyBooleanField('Exclusive', 'exclusive', 'exclusive', 'Whether the listing is exclusive'),
 		bodyBooleanField('Featured', 'featured', 'great', 'Whether the listing is featured (great)'),
 		bodyNumberField('Floor', 'floor', 'floor', 'Floor where the property is located'),
@@ -196,6 +218,17 @@ export const propertyWriteFields = (
 			'neighborhood',
 			'Typed neighborhood name. Required by Domus if Neighborhood is not sent.',
 		),
+		createDomusLocator({
+			displayName: 'Populated Center',
+			name: 'populatedCenter',
+			searchListMethod: 'searchPopulatedCenters',
+			sendType: 'body',
+			sendProperty: 'populated_center',
+			placeholder: 'e.g. 14',
+			description:
+				'Populated center inside the selected city, such as a rural district. Scoped to the selected city.',
+			loadOptionsDependsOn: cityDependsOn,
+		}),
 		bodyNumberField('Parking', 'parking', 'parking', 'Number of parking spaces'),
 		bodyNumberField(
 			'Parking Covered',
@@ -309,7 +342,8 @@ export const propertyWriteFields = (
 				sendType: 'body',
 				sendProperty: 'city',
 				placeholder: 'e.g. 11001',
-				description: 'City from the full Domus catalog',
+				description: 'City from the full Domus catalog. Narrow it with Department when one is selected.',
+				loadOptionsDependsOn: options.departmentDependsOn,
 			}),
 		);
 	}

@@ -6,6 +6,8 @@ import { propertyGetPortalPublicationsDescription } from './getPortalPublication
 import { propertyGetStatusHistoryDescription } from './getStatusHistory';
 import { propertyRetryPortalPublicationDescription } from './retryPortalPublication';
 import { propertySearchDescription } from './search';
+import { propertySearchMapDescription } from './searchMap';
+import { propertySeparateDescription } from './separate';
 import { splitNestedStatusHistory } from './statusHistory.helpers';
 import { propertyUpdateDescription } from './update';
 
@@ -32,6 +34,29 @@ export const propertyDescription: INodeProperties[] = [
 					request: {
 						method: 'GET',
 						url: '/properties',
+					},
+					output: {
+						postReceive: [
+							{
+								type: 'rootProperty',
+								properties: {
+									property: 'data',
+								},
+							},
+						],
+					},
+				},
+			},
+			{
+				name: 'Search Map',
+				value: 'searchMap',
+				action: 'Search properties on a map',
+				description:
+					'Search lightweight map pins and return each property with its coordinates as an n8n item',
+				routing: {
+					request: {
+						method: 'GET',
+						url: '/properties/map',
 					},
 					output: {
 						postReceive: [
@@ -165,7 +190,7 @@ export const propertyDescription: INodeProperties[] = [
 				value: 'changeStatus',
 				action: 'Change property status',
 				description:
-					'Change a property status. This is the only documented way to move a property through its lifecycle; created properties cannot be deleted.',
+					'Change a property status. Created properties cannot be deleted. Reserve a property with Separate instead of this operation.',
 				routing: {
 					request: {
 						method: 'PUT',
@@ -186,6 +211,32 @@ export const propertyDescription: INodeProperties[] = [
 					},
 				},
 			},
+			{
+				name: 'Separate',
+				value: 'separate',
+				action: 'Separate a property',
+				description:
+					'Reserve a property with a separation status. This is not Change Status, and it does not delete the property.',
+				routing: {
+					request: {
+						method: 'PUT',
+						url: '=/properties/detach/{{$parameter.propertyCode}}',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+					},
+					output: {
+						postReceive: [
+							{
+								type: 'rootProperty',
+								properties: {
+									property: 'data',
+								},
+							},
+						],
+					},
+				},
+			},
 		],
 		default: 'search',
 	},
@@ -197,4 +248,6 @@ export const propertyDescription: INodeProperties[] = [
 	...propertyGetPortalPublicationsDescription,
 	...propertyRetryPortalPublicationDescription,
 	...propertyChangeStatusDescription,
+	...propertySearchMapDescription,
+	...propertySeparateDescription,
 ];

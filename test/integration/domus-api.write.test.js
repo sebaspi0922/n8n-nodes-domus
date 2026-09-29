@@ -58,4 +58,42 @@ describe('Domus API write cycle (manual opt-in)', { skip: skipWithoutWrite }, ()
 		});
 		assert.ok(update.ok, `Update failed with HTTP ${update.status}`);
 	});
+
+	it('creates and updates a testing advisor when explicitly enabled', async () => {
+		assertOfficialWriteHost(config.baseURL);
+
+		const stamp = Date.now();
+		const create = await requestDomus('/administrative/brokers', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				name: 'n8n-e2e',
+				last_name: `Advisor ${stamp}`,
+				document: String(stamp),
+				email: `n8n-e2e-${stamp}@example.com`,
+				phone: '6015550100',
+			}).toString(),
+		});
+
+		assert.ok(create.status < 500, `Advisor create failed with HTTP ${create.status}`);
+		if (!create.ok) {
+			return;
+		}
+
+		const advisorCode = create.data?.broker?.code;
+		assert.ok(advisorCode);
+
+		const update = await requestDomus(`/administrative/brokers/${advisorCode}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				description: `n8n-e2e advisor ${stamp}`,
+			}).toString(),
+		});
+		assert.ok(update.ok, `Advisor update failed with HTTP ${update.status}`);
+	});
 });

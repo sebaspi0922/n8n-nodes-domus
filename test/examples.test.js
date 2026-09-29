@@ -10,11 +10,13 @@ describe('packaged example workflows', () => {
 
 	const operationsByResource = {
 		acquisition: ['search', 'get'],
-		advisor: ['search'],
-		owner: ['search', 'get', 'create', 'update'],
+		advisor: ['search', 'create', 'update'],
+		branch: ['search'],
+		owner: ['search', 'get', 'create', 'update', 'unlink'],
 		project: ['search', 'get'],
 		property: [
 			'search',
+			'searchMap',
 			'get',
 			'create',
 			'update',
@@ -22,6 +24,7 @@ describe('packaged example workflows', () => {
 			'changeStatus',
 			'getPortalPublications',
 			'retryPortalPublication',
+			'separate',
 		],
 	};
 
@@ -29,6 +32,7 @@ describe('packaged example workflows', () => {
 		assert.deepEqual(files.sort(), [
 			'change-property-status.json',
 			'confirm-meeting.json',
+			'create-advisor.json',
 			'create-contact.json',
 			'create-meeting.json',
 			'create-opportunity.json',
@@ -45,13 +49,18 @@ describe('packaged example workflows', () => {
 			'retry-portal-publication.json',
 			'search-acquisitions.json',
 			'search-advisors.json',
+			'search-branches.json',
 			'search-contacts.json',
 			'search-meetings.json',
 			'search-opportunities.json',
 			'search-owners.json',
 			'search-profiles.json',
 			'search-projects.json',
+			'search-properties-map.json',
 			'search-properties.json',
+			'separate-property.json',
+			'unlink-owner.json',
+			'update-advisor.json',
 			'update-contact.json',
 			'update-meeting.json',
 			'update-owner.json',

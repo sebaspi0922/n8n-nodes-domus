@@ -2,6 +2,7 @@ import type { INodeProperties } from 'n8n-workflow';
 import { ownerCreateDescription } from './create';
 import { ownerGetDescription } from './get';
 import { ownerSearchDescription } from './search';
+import { ownerUnlinkDescription } from './unlink';
 import { ownerUpdateDescription } from './update';
 
 const showOnlyForOwners = {
@@ -112,6 +113,29 @@ export const ownerDescription: INodeProperties[] = [
 					},
 				},
 			},
+			{
+				name: 'Unlink Property',
+				value: 'unlink',
+				action: 'Unlink an owner from a property',
+				description:
+					'Remove the association between an owner and a property. The owner record is not deleted.',
+				routing: {
+					request: {
+						method: 'DELETE',
+						url: '=/owners/{{$parameter.ownerCode}}/{{$parameter.linkedPropertyCode}}',
+					},
+					output: {
+						postReceive: [
+							{
+								type: 'rootProperty',
+								properties: {
+									property: 'data',
+								},
+							},
+						],
+					},
+				},
+			},
 		],
 		default: 'search',
 	},
@@ -119,4 +143,5 @@ export const ownerDescription: INodeProperties[] = [
 	...ownerSearchDescription,
 	...ownerCreateDescription,
 	...ownerUpdateDescription,
+	...ownerUnlinkDescription,
 ];

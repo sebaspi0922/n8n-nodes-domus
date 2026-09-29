@@ -138,7 +138,7 @@ describe('Domus CRM API credentials', () => {
 });
 
 describe('Domus CRM meeting node', () => {
-	it('keeps the property node on its five resources at version 1', () => {
+	it('keeps the property node at version 1 with Branch included', () => {
 		const node = new Domus();
 		const resource = getProperty(node.description.properties, 'resource');
 
@@ -146,7 +146,7 @@ describe('Domus CRM meeting node', () => {
 		assert.equal(node.description.version, 1);
 		assert.deepEqual(
 			resource.options.map((option) => option.value),
-			['acquisition', 'advisor', 'owner', 'project', 'property'],
+			['acquisition', 'advisor', 'branch', 'owner', 'project', 'property'],
 		);
 	});
 
@@ -680,7 +680,7 @@ describe('Domus CRM profile node', () => {
 
 		assert.deepEqual(
 			domusResource.options.map((option) => option.value),
-			['acquisition', 'advisor', 'owner', 'project', 'property'],
+			['acquisition', 'advisor', 'branch', 'owner', 'project', 'property'],
 		);
 		assert.deepEqual(
 			meeting.options.map((option) => option.value),
@@ -822,7 +822,7 @@ describe('Domus CRM contact node', () => {
 
 		assert.deepEqual(
 			domusResource.options.map((option) => option.value),
-			['acquisition', 'advisor', 'owner', 'project', 'property'],
+			['acquisition', 'advisor', 'branch', 'owner', 'project', 'property'],
 		);
 		assert.equal(domus.description.version, 1);
 		assert.equal(node.description.version, 1);

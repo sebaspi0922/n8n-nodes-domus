@@ -80,6 +80,8 @@ Default suite is **read-only**:
 7. `GET /search/digited-neighborhoods` — typed-neighborhood helper (name rows)
 8. `GET /properties/status/{codpro}` — nested history envelope
 9. `GET /general/{cities,types,biz,zones,neighborhoods}` — Create/Update catalogs
+10. `GET /properties/map` — map envelope
+11. `GET /general/detach/status`, `GET /administrative/branches`, `GET /general/states`, `GET /general/destinations`, `GET /general/amenities-extra`, and `GET /general/populated-centers?city=` — `1.1.0` catalogs
 
 Assertions are structural (`Array.isArray(data)`, `codpro` present), never
 "property 12345 must exist".
@@ -114,7 +116,9 @@ PUT  /properties/status/{codpro} only if a documented test status is configured
 
 Cleanup is "change status / leave for monthly reset", not DELETE. Do not
 call Separate, Unlink, or Retry Portals from CI unless a dedicated fixture
-property is reserved.
+property is reserved. `1.1.0` does not reserve one, so those calls stay out
+of the write suite. Advisor Create and Update run in that same manual suite
+when `DOMUS_TEST_WRITE=1`. The nightly job never sets that flag.
 
 ## Capa 3 — Workflow tests
 
@@ -141,7 +145,8 @@ Sanitized fixtures live in `examples/`. They contain no token and no
 credential id. Skip when `N8N_BASE_URL` is down or the token is missing.
 
 This layer proves the packaged node runs inside a real n8n routing engine
-without opening the GUI.
+without opening the GUI. The executed example is Property Search. Create,
+Update, Separate, Unlink, Advisor writes, and any DELETE are not executed.
 
 ## Capa 4 — Docker integration
 
@@ -194,6 +199,7 @@ Current specs:
 | `property-get.spec.ts` | Property Code field; execute uses a code discovered at runtime |
 | `property-status.spec.ts` | Change Status and Get Status History fields; history execute is read-only |
 | `property-write.spec.ts` | Create and Update field surfaces; no live write |
+| `new-operations.spec.ts` | Search Map, Separate, Unlink, Advisor Create/Update, Branch Search, and the new property catalogs. Writes and DELETE are not executed |
 | `crm-meetings.spec.ts` | Domus CRM in the panel; Token without an environment field; Meeting Search dates, type selector, and Profile selector. Create, Update, and Confirm show their own fields and do not execute writes. Opportunity Search, Get, and Create show their own fields. Profile Search shows branch, name, and alternative code. Contact Search shows name and phone. Contact Create and Update show their fields and do not execute. Live Search only with `DOMUS_CRM_TEST_TOKEN` |
 
 Playwright does **not** assert every query parameter. That belongs in capas 1–2.
@@ -344,12 +350,12 @@ Approximate share of `1.0.0` behavior that can be validated without a human:
 | Search/Get/write routing and pagination config | Capa 1 | — |
 | Dynamic locator HTTP and filtering | Capa 1 | visual density of the locator popover |
 | Package install in clean n8n | Capa 4 | — |
-| Node, five resources, and seventeen operations appear in the editor | Capa 5 | fine CSS/layout |
+| Node, six resources, and twenty-three operations appear in the editor | Capa 5 | fine CSS/layout |
 | Credential environment options | Capa 5 | — |
 | Live Search/Get against Domus | Capa 2 + 3 + 5 if token | first-time token issuance |
 | Live writes against `newapi.domus.la` | Capa 2 with `DOMUS_TEST_WRITE=1` | confirm the testing host is reset-safe |
 | "Does this look right in a demo video" | — | yes, once per release |
 
-For the seventeen public operations, automated layers cover the contract,
+For the twenty-three public operations, automated layers cover the contract,
 package load, and editor happy path. The remaining 10–20% is visual polish
 and a release demo, not functional regression.
