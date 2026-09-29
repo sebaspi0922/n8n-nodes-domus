@@ -1,6 +1,6 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-interface DomusLocatorConfig {
+type DomusLocatorConfig = {
 	description: string;
 	displayName: string;
 	displayOptions?: INodeProperties['displayOptions'];
@@ -9,9 +9,16 @@ interface DomusLocatorConfig {
 	placeholder: string;
 	required?: boolean;
 	searchListMethod: string;
-	sendProperty: string;
-	sendType: 'body' | 'query';
-}
+} & (
+	| {
+			send?: true;
+			sendProperty: string;
+			sendType: 'body' | 'query';
+	  }
+	| {
+			send: false;
+	  }
+);
 
 export const createDomusLocator = (config: DomusLocatorConfig): INodeProperties => ({
 	displayName: config.displayName,
@@ -42,10 +49,14 @@ export const createDomusLocator = (config: DomusLocatorConfig): INodeProperties 
 			placeholder: config.placeholder,
 		},
 	],
-	routing: {
-		send: {
-			type: config.sendType,
-			property: config.sendProperty,
-		},
-	},
+	...(config.send === false
+		? {}
+		: {
+				routing: {
+					send: {
+						type: config.sendType,
+						property: config.sendProperty,
+					},
+				},
+			}),
 });

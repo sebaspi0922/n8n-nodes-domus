@@ -3,6 +3,7 @@ import { createDomusLocator } from '../locators';
 import { serializeOwnerPhones } from './phones.helpers';
 
 interface OwnerWriteFieldOptions {
+	departmentDependsOn?: string[];
 	includeIdentity?: boolean;
 	includePhonesRecursive?: boolean;
 }
@@ -99,7 +100,18 @@ export const ownerWriteFields = (options: OwnerWriteFieldOptions = {}): INodePro
 			sendType: 'body',
 			sendProperty: 'city',
 			placeholder: 'e.g. 11001',
-			description: 'City the owner belongs to. Defaults to the city of the branch in session.',
+			description:
+				'City the owner belongs to. Defaults to the city of the branch in session. Narrow it with Department when one is selected.',
+			loadOptionsDependsOn: options.departmentDependsOn,
+		}),
+		createDomusLocator({
+			displayName: 'Department',
+			name: 'department',
+			searchListMethod: 'searchStates',
+			send: false,
+			placeholder: 'e.g. 11',
+			description:
+				'Department used to narrow the city catalog. Domus stores the city on the owner.',
 		}),
 		bodyStringField(
 			'Description',

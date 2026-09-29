@@ -27,10 +27,11 @@ export const propertyCreateDescription: INodeProperties[] = [
 		placeholder: 'e.g. 11001',
 		required: true,
 		description:
-			'City where the property is located. Uses the full Domus city catalog, not only cities that already have inventory.',
+			'City where the property is located. Uses the full Domus city catalog, not only cities that already have inventory. Narrow it with Department when one is selected.',
 		displayOptions: {
 			show: showOnlyForPropertyCreate,
 		},
+		loadOptionsDependsOn: ['additionalFields.department.value'],
 	}),
 	{
 		displayName: 'Address',

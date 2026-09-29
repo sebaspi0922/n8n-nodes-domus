@@ -405,4 +405,69 @@ describe('Domus API contract (testing host)', { skip: skipWithoutToken }, () => 
 			assert.ok(envelope.data[0].status !== undefined || envelope.data[0].code !== undefined);
 		}
 	});
+
+	it('returns a paginated map envelope', async () => {
+		const response = await requestDomus('/properties/map', {
+			headers: { Perpage: '1', Inmobiliaria: '1' },
+			query: { page: 1 },
+		});
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		assert.ok(response.data.current_page !== undefined);
+		if (response.data.data.length === 0) return;
+
+		const pin = response.data.data[0];
+		assert.ok(pin.codpro !== undefined);
+		assert.ok(pin.latitude !== undefined);
+		assert.ok(pin.longitude !== undefined);
+	});
+
+	it('returns separation statuses from the detach catalog', async () => {
+		const response = await requestDomus('/general/detach/status');
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const status = response.data.data[0];
+		assert.ok(status.code !== undefined);
+		assert.equal(typeof status.name, 'string');
+	});
+
+	it('returns the branch directory used by Branch Search', async () => {
+		const response = await requestDomus('/administrative/branches');
+
+		assert.equal(response.status, 200);
+		assert.ok(Array.isArray(response.data?.data));
+		if (response.data.data.length === 0) return;
+
+		const branch = response.data.data[0];
+		assert.ok(branch.code !== undefined);
+		assert.equal(typeof branch.name, 'string');
+	});
+
+	it('returns departments, destinations, populated centers, and extra amenities', async () => {
+		for (const path of ['/general/states', '/general/destinations', '/general/amenities-extra']) {
+			const response = await requestDomus(path);
+			assert.equal(response.status, 200, path);
+			assert.ok(Array.isArray(response.data?.data), path);
+			if (response.data.data.length === 0) continue;
+
+			const row = response.data.data[0];
+			assert.ok(row.code !== undefined, path);
+			assert.equal(typeof row.name, 'string', path);
+		}
+
+		const centers = await requestDomus('/general/populated-centers', {
+			query: { city: 11001 },
+		});
+		assert.equal(centers.status, 200);
+		assert.ok(Array.isArray(centers.data?.data));
+		if (centers.data.data.length === 0) return;
+
+		const center = centers.data.data[0];
+		assert.ok(center.code !== undefined);
+		assert.equal(typeof center.name, 'string');
+	});
 });

@@ -10,11 +10,13 @@ describe('packaged example workflows', () => {
 
 	const operationsByResource = {
 		acquisition: ['search', 'get'],
-		advisor: ['search'],
-		owner: ['search', 'get', 'create', 'update'],
+		advisor: ['search', 'create', 'update'],
+		branch: ['search'],
+		owner: ['search', 'get', 'create', 'update', 'unlink'],
 		project: ['search', 'get'],
 		property: [
 			'search',
+			'searchMap',
 			'get',
 			'create',
 			'update',
@@ -22,12 +24,14 @@ describe('packaged example workflows', () => {
 			'changeStatus',
 			'getPortalPublications',
 			'retryPortalPublication',
+			'separate',
 		],
 	};
 
 	it('ships sanitized fixtures for every public operation', () => {
 		assert.deepEqual(files.sort(), [
 			'change-property-status.json',
+			'create-advisor.json',
 			'create-owner.json',
 			'create-property.json',
 			'get-acquisition.json',
@@ -39,9 +43,14 @@ describe('packaged example workflows', () => {
 			'retry-portal-publication.json',
 			'search-acquisitions.json',
 			'search-advisors.json',
+			'search-branches.json',
 			'search-owners.json',
 			'search-projects.json',
+			'search-properties-map.json',
 			'search-properties.json',
+			'separate-property.json',
+			'unlink-owner.json',
+			'update-advisor.json',
 			'update-owner.json',
 			'update-property.json',
 		]);

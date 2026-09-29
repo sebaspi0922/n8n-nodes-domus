@@ -1,9 +1,9 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { ownerWriteFields } from './writeFields';
+import { advisorWriteFields } from './writeFields';
 
-const showOnlyForOwnerCreate = {
+const showOnlyForAdvisorCreate = {
 	operation: ['create'],
-	resource: ['owner'],
+	resource: ['advisor'],
 };
 
 const requiredCreateField = (
@@ -21,7 +21,7 @@ const requiredCreateField = (
 	description,
 	placeholder,
 	displayOptions: {
-		show: showOnlyForOwnerCreate,
+		show: showOnlyForAdvisorCreate,
 	},
 	routing: {
 		send: {
@@ -31,27 +31,25 @@ const requiredCreateField = (
 	},
 });
 
-export const ownerCreateDescription: INodeProperties[] = [
-	requiredCreateField('First Name', 'name', 'name', 'Owner given names', 'e.g. Ana'),
-	requiredCreateField('Last Name', 'lastName', 'last_name', 'Owner family names', 'e.g. Restrepo'),
+export const advisorCreateDescription: INodeProperties[] = [
+	requiredCreateField('First Name', 'name', 'name', 'Advisor given names', 'e.g. Ana'),
+	requiredCreateField('Last Name', 'lastName', 'last_name', 'Advisor family names', 'e.g. Restrepo'),
 	requiredCreateField(
 		'Document',
 		'document',
 		'document',
-		'Identification document number of the owner',
-		'e.g. 123456789',
+		'Identification document number of the advisor',
+		'e.g. 123456',
 	),
 	{
 		displayName: 'Additional Fields',
-		name: 'ownerFields',
+		name: 'advisorFields',
 		type: 'collection',
 		placeholder: 'Add Field',
 		default: {},
 		displayOptions: {
-			show: showOnlyForOwnerCreate,
+			show: showOnlyForAdvisorCreate,
 		},
-		options: ownerWriteFields({
-			departmentDependsOn: ['ownerFields.department.value'],
-		}),
+		options: advisorWriteFields(),
 	},
 ];

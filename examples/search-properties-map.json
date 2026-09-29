@@ -1,0 +1,53 @@
+{
+	"id": "b1c2d3e4-f5a6-4789-a012-b3c4d5e6f708",
+	"name": "Domus - Search properties on a map",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "c2d3e4f5-a6b7-4890-b123-c4d5e6f70819",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "property",
+				"operation": "searchMap",
+				"returnAll": false,
+				"limit": 50,
+				"page": 1,
+				"entireAgency": true,
+				"filters": {}
+			},
+			"id": "d3e4f5a6-b7c8-4901-c234-d5e6f7081920",
+			"name": "Search properties on a map",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search properties on a map",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "e4f5a6b7-c8d9-4012-d345-e6f708192031",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

@@ -27,6 +27,7 @@ export const ownerUpdateDescription: INodeProperties[] = [
 			show: showOnlyForOwnerUpdate,
 		},
 		options: ownerWriteFields({
+			departmentDependsOn: ['ownerUpdateFields.department.value'],
 			includeIdentity: true,
 			includePhonesRecursive: true,
 		}),
