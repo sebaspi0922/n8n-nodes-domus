@@ -16,6 +16,8 @@ test('loads Domus with all Property operations in the editor', async ({ page }) 
 	await expect(page.getByText('Get property portal publications')).toBeVisible();
 	await expect(page.getByText('Retry a property portal publication')).toBeVisible();
 	await expect(page.getByText('Change property status')).toBeVisible();
+	await expect(page.getByText('Search properties on a map')).toBeVisible();
+	await expect(page.getByText('Separate a property')).toBeVisible();
 
 	await page.getByText('Search properties', { exact: true }).click();
 	await expectDomusNodeOpen(page);
@@ -29,6 +31,7 @@ test('loads the Domus owner operations in the editor', async ({ page }) => {
 	await expect(page.getByText('Get an owner')).toBeVisible();
 	await expect(page.getByText('Create an owner')).toBeVisible();
 	await expect(page.getByText('Update an owner')).toBeVisible();
+	await expect(page.getByText('Unlink an owner from a property')).toBeVisible();
 
 	await page.getByText('Create an owner', { exact: true }).click();
 	await expectDomusNodeOpen(page);
@@ -41,6 +44,9 @@ test('loads the Domus advisor, project, and acquisition operations in the editor
 	await openBlankWorkflow(page);
 	await searchDomusInCreator(page);
 	await expect(page.getByText('Search advisors')).toBeVisible();
+	await expect(page.getByText('Create an advisor')).toBeVisible();
+	await expect(page.getByText('Update an advisor')).toBeVisible();
+	await expect(page.getByText('Search branches')).toBeVisible();
 	await expect(page.getByText('Search projects')).toBeVisible();
 	await expect(page.getByText('Get a project')).toBeVisible();
 	await expect(page.getByText('Search acquisitions')).toBeVisible();

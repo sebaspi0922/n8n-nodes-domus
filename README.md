@@ -3,8 +3,9 @@
 An n8n community node for integrating workflows with **Domus CRM** through
 Domus API 3.0.
 
-> Published and n8n-verified as
-> [`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus).
+> [`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus)
+> is the n8n-verified release. `1.1.0` adds Search Map, Separate, Owner
+> Unlink, advisor writes, Branch Search, and the remaining catalog selectors.
 
 ## Features
 
@@ -12,6 +13,7 @@ Domus API 3.0.
 - Raw token authentication through `Authorization: <token>` (without `Bearer`)
 - Credential test against `GET /general/countries`
 - `Property → Search` using `GET /properties`
+- `Property → Search Map` using `GET /properties/map`
 - `Property → Get` using `GET /properties/{codpro}/{idpro?}`
 - `Property → Create` using `POST /properties`
 - `Property → Update` using `PUT /properties/{codpro}`
@@ -20,19 +22,24 @@ Domus API 3.0.
 - `Property → Get Portal Publications` using `GET /properties/portals/{idpro}/{codpro?}`
 - `Property → Retry Portal Publication` using
   `GET /properties/retry-portals/{codpro}/{idpro?}`
+- `Property → Separate` using `PUT /properties/detach/{codpro}`
 - `Owner → Search` using `GET /owners`
 - `Owner → Get` using `GET /owners/{document}`
 - `Owner → Create` using `POST /owners`
 - `Owner → Update` using `PUT /owners/{document}`
+- `Owner → Unlink Property` using `DELETE /owners/{owner_code}/{codpro}`
 - `Advisor → Search` using `GET /administrative/brokers`
+- `Advisor → Create` using `POST /administrative/brokers`
+- `Advisor → Update` using `PUT /administrative/brokers/{code}`
+- `Branch → Search` using `GET /administrative/branches`
 - `Project → Search` using `GET /projects-v2`
 - `Project → Get` using `GET /projects-v2/{code}?unique_code=`
 - `Acquisition → Search` using `GET /captures-v2`
 - `Acquisition → Get` using `GET /captures-v2/{code}?unique_code=`
 - Bounded results or automatic page-based pagination with **Return All**
-- Dynamic selectors for city, country, property type, business type, zone, neighborhood, city zone, amenities, status, source, advisor, branch, document type, and phone type
+- Dynamic selectors for city, country, department, property type, business type, zone, neighborhood, city zone, populated center, amenities, extra amenities, destination, status, separation status, source, advisor, branch, document type, and phone type
 - Manual code entry as an alternative to every dynamic selector
-- One n8n output item per property, owner, advisor, project, or acquisition
+- One n8n output item per property, owner, advisor, branch, project, or acquisition
 
 ## Requirements
 
@@ -74,7 +81,7 @@ screenshots, or example workflows.
 1. Open n8n and create or open a workflow.
 2. Add the **Domus** node.
 3. Create or select a **Domus API** credential.
-4. Select **Property**, **Owner**, **Advisor**, **Project**, or
+4. Select **Property**, **Owner**, **Advisor**, **Branch**, **Project**, or
    **Acquisition** and choose an operation.
 5. Configure the operation and execute the node.
 
@@ -141,10 +148,15 @@ in a city or type that does not already have inventory.
 when it is 2 or 3. Neighborhood can be a catalog code or a typed name in
 **Additional Fields**. Zone or city zone may also be required by the agency.
 
+**Department** narrows the city catalog and is not sent on the property.
+**Populated Center** and **Destination** are catalog locators.
+**Extra Amenities** lists `GET /general/amenities-extra` and does not send
+the `amenities_extra` JSON body.
+
 Created properties **cannot be deleted**. Use **Change Status** to take them
 out of inventory. Prefer the testing host unless you intend to create a live
-listing. Image upload, extra amenities JSON, and multilingual descriptions
-are not in this slice.
+listing. Image upload, the extra-amenities JSON body, and multilingual
+descriptions are not in this release.
 
 ### Property → Update
 
@@ -168,11 +180,26 @@ chosen from `GET /general/status` or entered by code. Optional fields
 include comment, change date, deal value, source, broker, and partner
 agency.
 
-Do not use this operation to reserve or separate a property. Domus
-documents a dedicated Separate endpoint for that, which is not in this
-slice. Created properties cannot be deleted; status is the documented
-lifecycle control. Write only against the testing host unless you
-intentionally target production.
+Do not use this operation to reserve or separate a property. Use
+**Property → Separate**, which calls `PUT /properties/detach/{codpro}`.
+Created properties cannot be deleted; status is the documented lifecycle
+control besides a reservation. Write only against the testing host unless
+you intentionally target production.
+
+### Property → Search Map
+
+Calls `GET /properties/map` and returns one n8n item per pin (`idpro`,
+`codpro`, `latitude`, `longitude`). Headers and filters follow the property
+list: **Perpage**, **Inmobiliaria**, and the same commercial filters the map
+page documents, including **Destination** and **Polygon**. **Return All**
+follows `current_page` and `last_page`.
+
+### Property → Separate
+
+Calls `PUT /properties/detach/{codpro}` with
+`application/x-www-form-urlencoded`. The path is `detach`. **Status** comes
+from `GET /general/detach/status`. Optional fields are days, comment, and
+value. This reserves the property. It does not delete it.
 
 ### Property → Get Portal Publications
 
@@ -225,6 +252,12 @@ Every field is optional, including the document itself, which Domus
 rewrites when it is sent. **Replace Phone List** maps to `phones_recursive`
 and is required when phones are sent in the same shape as owner creation.
 
+### Owner → Unlink Property
+
+Calls `DELETE /owners/{owner_code}/{codpro}`. **Owner Code** is the owner
+code, not the identification document. **Property Code** is the associated
+listing. The call removes that association. The owner record stays.
+
 ### Advisor → Search
 
 Calls `GET /administrative/brokers` and returns one n8n item per advisor,
@@ -236,8 +269,27 @@ Domus does not paginate this endpoint, so it always answers with the complete
 list. Disabling **Return All** truncates that list to **Limit** items inside
 n8n; it does not make a smaller request.
 
-There is no documented get-by-id for a single advisor, and advisor writes are
-planned for a later release.
+There is no documented get-by-id for a single advisor.
+
+### Advisor → Create
+
+Calls `POST /administrative/brokers` with
+`application/x-www-form-urlencoded`. **First Name**, **Last Name**, and
+**Document** are required. Phone or mobile phone is required when the other
+is empty. The response unwraps `broker`.
+
+### Advisor → Update
+
+Calls `PUT /administrative/brokers/{code}` with the same form fields, all
+optional, plus **Status** (`1` active, `2` inactive). Send only the fields
+that should change.
+
+### Branch → Search
+
+Calls `GET /administrative/branches` and returns one n8n item per branch.
+Domus does not paginate this endpoint. Disabling **Return All** truncates
+the list inside n8n. The same directory still feeds the branch selector on
+other operations.
 
 ### Project → Search
 
@@ -278,8 +330,9 @@ acquisitions the agency never assigned a code to.
 
 ## Verified behavior
 
-`1.0.0` exposes seventeen public operations across Property, Owner, Advisor,
-Project, and Acquisition. Routing, pagination, locators, and example
+`1.1.0` exposes twenty-three public operations across Property, Owner,
+Advisor, Branch, Project, and Acquisition. The Domus node stays on version
+1. Routing, pagination, locators, and example
 workflows are covered by the automated suite in
 [`docs/testing-strategy.md`](docs/testing-strategy.md).
 
@@ -348,7 +401,7 @@ build → npm pack → clean volume → install .tgz → start n8n → inspect l
 
 The package is written to the ignored `artifacts/` directory. The test installs
 it in `/home/node/.n8n/nodes`, starts n8n, and verifies the `domusApi`
-credential, all five resources, all seventeen operations, and every packaged
+credential, all six resources, all twenty-three operations, and every packaged
 example workflow.
 
 Open the clean instance at:
@@ -384,12 +437,15 @@ Never put a Domus token in Git, fixtures, traces, or screenshots.
 ## Release status
 
 [`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus) is
-the current npm release. It was published with provenance from GitHub Actions
+the n8n-verified release. It was published with provenance from GitHub Actions
 and verified through the n8n Creator Portal. `0.1.0` remains on npm as the
 earlier two-operation package.
 
-The next planned public version is `1.1.0` (map search, property separate,
-owner unlink). To publish a later version:
+`1.1.0` is the npm release for Search Map, Separate, Owner Unlink, Advisor
+Create and Update, Branch Search, and the department, populated-center,
+extra-amenities, and destination selectors. Image upload, the
+`amenities_extra` JSON body, multilingual descriptions, per-entry owner phone
+edits, MLS projects, partners, and tags stay out. To publish it:
 
 ```bash
 npm run release

@@ -14,17 +14,23 @@ import {
 	searchCities,
 	searchCityZones,
 	searchCountries,
+	searchDestinations,
+	searchDetachStatuses,
 	searchDocumentTypes,
+	searchExtraAmenities,
 	searchNeighborhoods,
 	searchPhoneTypes,
+	searchPopulatedCenters,
 	searchPropertyTypes,
 	searchSources,
+	searchStates,
 	searchStatuses,
 	searchTypedNeighborhoods,
 	searchZones,
 } from './methods';
 import { acquisitionDescription } from './resources/acquisition';
 import { advisorDescription } from './resources/advisor';
+import { branchDescription } from './resources/branch';
 import { ownerDescription } from './resources/owner';
 import { projectDescription } from './resources/project';
 import { propertyDescription } from './resources/property';
@@ -44,11 +50,16 @@ export class Domus implements INodeType {
 			searchCities,
 			searchCityZones,
 			searchCountries,
+			searchDestinations,
+			searchDetachStatuses,
 			searchDocumentTypes,
+			searchExtraAmenities,
 			searchNeighborhoods,
 			searchPhoneTypes,
+			searchPopulatedCenters,
 			searchPropertyTypes,
 			searchSources,
+			searchStates,
 			searchStatuses,
 			searchTypedNeighborhoods,
 			searchZones,
@@ -98,6 +109,10 @@ export class Domus implements INodeType {
 						value: 'advisor',
 					},
 					{
+						name: 'Branch',
+						value: 'branch',
+					},
+					{
 						name: 'Owner',
 						value: 'owner',
 					},
@@ -115,6 +130,7 @@ export class Domus implements INodeType {
 			...propertyDescription,
 			...ownerDescription,
 			...advisorDescription,
+			...branchDescription,
 			...projectDescription,
 			...acquisitionDescription,
 		],

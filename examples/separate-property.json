@@ -1,0 +1,54 @@
+{
+	"id": "f5a6b7c8-d9e0-4123-e456-f70819203142",
+	"name": "Domus - Separate property",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "a6b7c8d9-e0f1-4234-f567-081920314253",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "property",
+				"operation": "separate",
+				"propertyCode": "",
+				"separationStatus": {
+					"mode": "id",
+					"value": ""
+				},
+				"separateFields": {}
+			},
+			"id": "b7c8d9e0-f1a2-4345-a678-192031425364",
+			"name": "Separate a property",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Separate a property",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "c8d9e0f1-a2b3-4456-b789-203142536475",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

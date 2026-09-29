@@ -5,6 +5,7 @@ interface DomusSearchOption {
 	code?: number | string;
 	name: string;
 	city_name?: string;
+	country_name?: string;
 	last_name?: string;
 	state_name?: string;
 }
@@ -67,7 +68,13 @@ const getFilterValue = (context: ILoadOptionsFunctions, name: string): string | 
 	const fromRoot = extractLocatorValue(parameters[name]);
 	if (fromRoot) return fromRoot;
 
-	for (const collectionName of ['filters', 'additionalFields', 'updateFields']) {
+	for (const collectionName of [
+		'filters',
+		'additionalFields',
+		'updateFields',
+		'ownerFields',
+		'ownerUpdateFields',
+	]) {
 		const fromCollection = getCollectionValue(parameters, collectionName, name);
 		if (fromCollection) return fromCollection;
 	}
@@ -80,7 +87,7 @@ const getFullName = (option: DomusSearchOption): string =>
 
 const getDisplayName = (option: DomusSearchOption): string => {
 	const fullName = getFullName(option);
-	const location = option.city_name ?? option.state_name;
+	const location = option.city_name ?? option.state_name ?? option.country_name;
 	return location && location.toLocaleLowerCase() !== fullName.toLocaleLowerCase()
 		? `${fullName} — ${location}`
 		: fullName;
@@ -90,6 +97,7 @@ interface SearchDomusOptionsConfig {
 	cityScoped?: boolean;
 	includeAgencyScope?: boolean;
 	nameFiltered?: boolean;
+	stateScoped?: boolean;
 	typeScoped?: boolean;
 }
 
@@ -103,6 +111,7 @@ async function searchDomusOptions(
 	const cityScoped = config.cityScoped ?? false;
 	const includeAgencyScope = config.includeAgencyScope ?? true;
 	const nameFiltered = config.nameFiltered ?? false;
+	const stateScoped = config.stateScoped ?? false;
 	const typeScoped = config.typeScoped ?? false;
 	const credentials = await this.getCredentials(DOMUS_CREDENTIAL_NAME);
 	let entireAgency = false;
@@ -112,11 +121,13 @@ async function searchDomusOptions(
 		entireAgency = false;
 	}
 	const city = cityScoped ? getFilterValue(this, 'city') : undefined;
+	const state = stateScoped ? getFilterValue(this, 'department') : undefined;
 	const type = typeScoped ? getFilterValue(this, 'propertyType') : undefined;
 	const name = nameFiltered ? filter?.trim() : undefined;
 	const qs = {
 		...(city ? { city } : {}),
 		...(name ? { name } : {}),
+		...(state ? { state } : {}),
 		...(type ? { type } : {}),
 	};
 
@@ -152,6 +163,7 @@ async function searchDomusOptions(
 				getFullName(option),
 				value,
 				option.city_name,
+				option.country_name,
 				option.state_name,
 			].some((candidate) => candidate?.toLocaleLowerCase().includes(normalizedFilter));
 		})
@@ -294,6 +306,54 @@ export async function searchCatalogCities(
 	filter?: string,
 ): Promise<INodeListSearchResult> {
 	return await searchDomusOptions.call(this, '/general/cities', filter, {
+		includeAgencyScope: false,
+		stateScoped: true,
+	});
+}
+
+export async function searchStates(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/states', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchPopulatedCenters(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/populated-centers', filter, {
+		cityScoped: true,
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchExtraAmenities(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/amenities-extra', filter, {
+		includeAgencyScope: false,
+		typeScoped: true,
+	});
+}
+
+export async function searchDestinations(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/destinations', filter, {
+		includeAgencyScope: false,
+	});
+}
+
+export async function searchDetachStatuses(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	return await searchDomusOptions.call(this, '/general/detach/status', filter, {
 		includeAgencyScope: false,
 	});
 }

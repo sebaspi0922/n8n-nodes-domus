@@ -126,6 +126,7 @@ describe('Domus property search node', () => {
 			operation.options.map((option) => option.name),
 			[
 				'Search',
+				'Search Map',
 				'Get',
 				'Create',
 				'Update',
@@ -133,6 +134,7 @@ describe('Domus property search node', () => {
 				'Get Portal Publications',
 				'Retry Portal Publication',
 				'Change Status',
+				'Separate',
 			],
 		);
 		assert.equal(search.routing.request.method, 'GET');
@@ -166,6 +168,8 @@ describe('Domus property search node', () => {
 			'city',
 			'city_zone',
 			'codpro',
+			'destination',
+			'estate',
 			'keyword',
 			'maxarea',
 			'maxbath',
@@ -225,6 +229,8 @@ describe('Domus property search node', () => {
 				businessType: 'biz',
 				city: 'city',
 				cityZone: 'city_zone',
+				department: 'estate',
+				destination: 'destination',
 				keyword: 'keyword',
 				maxBathrooms: 'maxbath',
 				maxBedrooms: 'maxbed',
@@ -265,6 +271,8 @@ describe('Domus property search node', () => {
 			businessType: 'searchBusinessTypes',
 			city: 'searchCities',
 			cityZone: 'searchCityZones',
+			department: 'searchStates',
+			destination: 'searchDestinations',
 			neighborhoodCode: 'searchNeighborhoods',
 			propertyType: 'searchPropertyTypes',
 			status: 'searchStatuses',
@@ -451,6 +459,7 @@ describe('Domus property get operation', () => {
 			'changeStatus',
 			'getStatusHistory',
 			'retryPortalPublication',
+			'separate',
 			'update',
 		]);
 		assert.equal(propertyId.required, undefined);
@@ -793,7 +802,11 @@ describe('Domus property create operation', () => {
 		const extraFields = getProperty(node.description.properties, 'additionalFields').options;
 
 		assert.deepEqual(
-			Object.fromEntries(extraFields.map((field) => [field.name, field.routing.send.property])),
+			Object.fromEntries(
+				extraFields
+					.filter((field) => field.routing?.send?.property)
+					.map((field) => [field.name, field.routing.send.property]),
+			),
 			{
 				administration: 'administration',
 				amenities: 'amenities',
@@ -822,6 +835,7 @@ describe('Domus property create operation', () => {
 				lotArea: 'area_lot',
 				neighborhood: 'neighborhood',
 				parking: 'parking',
+				populatedCenter: 'populated_center',
 				parkingCovered: 'parking_covered',
 				privateArea: 'private_area',
 				project: 'project',
@@ -841,6 +855,22 @@ describe('Domus property create operation', () => {
 			},
 		);
 		assert.equal(getProperty(extraFields, 'featured').routing.send.value, '={{ $value ? 1 : 0 }}');
+		assert.equal(getProperty(extraFields, 'destination').type, 'resourceLocator');
+		assert.equal(
+			getProperty(extraFields, 'destination').modes[0].typeOptions.searchListMethod,
+			'searchDestinations',
+		);
+		assert.equal(getProperty(extraFields, 'department').routing, undefined);
+		assert.equal(
+			getProperty(extraFields, 'department').modes[0].typeOptions.searchListMethod,
+			'searchStates',
+		);
+		assert.equal(getProperty(extraFields, 'extraAmenities').routing, undefined);
+		assert.equal(
+			getProperty(extraFields, 'extraAmenities').modes[0].typeOptions.searchListMethod,
+			'searchExtraAmenities',
+		);
+		assert.equal(JSON.stringify(extraFields).includes('"amenities_extra"'), false);
 		assert.equal(
 			getProperty(extraFields, 'zone').modes[0].typeOptions.searchListMethod,
 			'searchCatalogZones',
@@ -889,12 +919,12 @@ const getOwnerOperation = (value) => {
 };
 
 describe('Domus owner resource', () => {
-	it('exposes the four documented owner operations on their documented endpoints', () => {
+	it('exposes the documented owner operations on their documented endpoints', () => {
 		const { operation } = getOwnerOperation('search');
 
 		assert.deepEqual(
 			operation.options.map((option) => option.name),
-			['Search', 'Get', 'Create', 'Update'],
+			['Search', 'Get', 'Create', 'Update', 'Unlink Property'],
 		);
 		assert.deepEqual(
 			operation.options.map((option) => [option.routing.request.method, option.routing.request.url]),
@@ -903,6 +933,7 @@ describe('Domus owner resource', () => {
 				['GET', '=/owners/{{$parameter.ownerDocument}}'],
 				['POST', '/owners'],
 				['PUT', '=/owners/{{$parameter.ownerDocument}}'],
+				['DELETE', '=/owners/{{$parameter.ownerCode}}/{{$parameter.linkedPropertyCode}}'],
 			],
 		);
 	});
@@ -991,7 +1022,11 @@ describe('Domus owner resource', () => {
 			],
 		);
 		assert.deepEqual(
-			Object.fromEntries(extraFields.map((field) => [field.name, field.routing.send.property])),
+			Object.fromEntries(
+				extraFields
+					.filter((field) => field.routing?.send?.property)
+					.map((field) => [field.name, field.routing.send.property]),
+			),
 			{
 				birthday: 'birthday',
 				branch: 'branch',
@@ -1010,6 +1045,14 @@ describe('Domus owner resource', () => {
 			getProperty(extraFields, 'documentType').modes[0].typeOptions.searchListMethod,
 			'searchDocumentTypes',
 		);
+		assert.equal(getProperty(extraFields, 'department').routing, undefined);
+		assert.equal(
+			getProperty(extraFields, 'department').modes[0].typeOptions.searchListMethod,
+			'searchStates',
+		);
+		assert.deepEqual(getProperty(extraFields, 'city').typeOptions.loadOptionsDependsOn, [
+			'ownerFields.department.value',
+		]);
 	});
 
 	it('lets update rewrite the identity fields and replace the phone list', () => {
@@ -1087,19 +1130,24 @@ describe('Domus advisor resource', () => {
 		assert.deepEqual(resource.options, [
 			{ name: 'Acquisition', value: 'acquisition' },
 			{ name: 'Advisor', value: 'advisor' },
+			{ name: 'Branch', value: 'branch' },
 			{ name: 'Owner', value: 'owner' },
 			{ name: 'Project', value: 'project' },
 			{ name: 'Property', value: 'property' },
 		]);
 	});
 
-	it('exposes only the documented advisor read operation', () => {
+	it('exposes advisor search plus the documented create and update writes', () => {
 		const { operation } = getAdvisorOperation();
 		const search = operation.options.find((option) => option.value === 'search');
 
 		assert.deepEqual(
 			operation.options.map((option) => option.name),
-			['Search'],
+			['Search', 'Create', 'Update'],
+		);
+		assert.equal(
+			operation.options.find((option) => option.value === 'get'),
+			undefined,
 		);
 		assert.equal(search.routing.request.method, 'GET');
 		assert.equal(search.routing.request.url, '/administrative/brokers');

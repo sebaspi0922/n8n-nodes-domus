@@ -62,9 +62,10 @@ if (!domus.credentials?.some((credential) => credential.name === "domusApi")) {
 	throw new Error("The Domus API credential was not registered");
 }
 const expected = {
-	property: ["search", "get", "create", "update", "getStatusHistory", "getPortalPublications", "retryPortalPublication", "changeStatus"],
-	owner: ["search", "get", "create", "update"],
-	advisor: ["search"],
+	property: ["search", "searchMap", "get", "create", "update", "getStatusHistory", "getPortalPublications", "retryPortalPublication", "changeStatus", "separate"],
+	owner: ["search", "get", "create", "update", "unlink"],
+	advisor: ["search", "create", "update"],
+	branch: ["search"],
 	project: ["search", "get"],
 	acquisition: ["search", "get"],
 };
@@ -90,7 +91,7 @@ for (const [resource, names] of Object.entries(expected)) {
 		}
 	}
 }
-console.log("Loaded n8n-nodes-domus.domus with 5 resources and 17 operations");
+console.log("Loaded n8n-nodes-domus.domus with 6 resources and 23 operations");
 '
 
 docker compose --file "${compose_file}" exec --no-TTY n8n sh -c \

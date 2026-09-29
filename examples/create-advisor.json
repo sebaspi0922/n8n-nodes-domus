@@ -1,0 +1,52 @@
+{
+	"id": "b3c4d5e6-f708-4901-a234-758697081920",
+	"name": "Domus - Create advisor",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "c4d5e6f7-0819-4012-b345-869708192031",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "advisor",
+				"operation": "create",
+				"name": "",
+				"lastName": "",
+				"document": "",
+				"advisorFields": {}
+			},
+			"id": "d5e6f708-1920-4123-c456-970819203142",
+			"name": "Create an advisor",
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Create an advisor",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "e6f70819-2031-4234-d567-081920314253",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

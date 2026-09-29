@@ -2,32 +2,30 @@ import type { INodeProperties } from 'n8n-workflow';
 import { createDomusLocator } from '../locators';
 import { createDomusPagination } from '../pagination';
 
-const showOnlyForPropertySearch = {
-	operation: ['search'],
+const showOnlyForPropertySearchMap = {
+	operation: ['searchMap'],
 	resource: ['property'],
 };
 
 const showOnlyWhenReturningAll = {
-	...showOnlyForPropertySearch,
+	...showOnlyForPropertySearchMap,
 	returnAll: [true],
 };
 
 const showOnlyWhenLimitingResults = {
-	...showOnlyForPropertySearch,
+	...showOnlyForPropertySearchMap,
 	returnAll: [false],
 };
 
-const propertySearchQueryParameters = [
+const propertySearchMapQueryParameters = [
 	'amenities',
 	'amenitiesin',
 	'branch',
 	'broker',
 	'biz',
 	'city',
-	'city_zone',
 	'codpro',
 	'destination',
-	'estate',
 	'keyword',
 	'maxarea',
 	'maxbath',
@@ -35,25 +33,23 @@ const propertySearchQueryParameters = [
 	'minarea',
 	'minbath',
 	'minbed',
-	'multiple_codpro',
 	'neighborhood',
 	'neighborhood_code',
 	'nostatus',
 	'order',
 	'pcmax',
 	'pcmin',
+	'polygon',
 	'pvmax',
 	'pvmin',
-	'reference',
 	'sort',
 	'status',
 	'stratum',
 	'type',
-	'update',
 	'zone',
 ] as const;
 
-const propertySearchPagination = createDomusPagination(propertySearchQueryParameters);
+const propertySearchMapPagination = createDomusPagination(propertySearchMapQueryParameters);
 
 const queryStringFilter = (
 	displayName: string,
@@ -121,7 +117,7 @@ const searchOrderOptions = [
 	{ name: 'Zone', value: 'zone' },
 ];
 
-export const propertySearchDescription: INodeProperties[] = [
+export const propertySearchMapDescription: INodeProperties[] = [
 	{
 		displayName: 'Return All',
 		name: 'returnAll',
@@ -129,14 +125,14 @@ export const propertySearchDescription: INodeProperties[] = [
 		default: false,
 		description: 'Whether to return all results or only up to a given limit',
 		displayOptions: {
-			show: showOnlyForPropertySearch,
+			show: showOnlyForPropertySearchMap,
 		},
 		routing: {
 			send: {
 				paginate: '={{$value}}',
 			},
 			operations: {
-				pagination: propertySearchPagination,
+				pagination: propertySearchMapPagination,
 			},
 		},
 	},
@@ -172,7 +168,7 @@ export const propertySearchDescription: INodeProperties[] = [
 			minValue: 1,
 		},
 		default: 12,
-		description: 'Number of properties requested per page',
+		description: 'Number of map pins requested per page',
 		displayOptions: {
 			show: showOnlyWhenReturningAll,
 		},
@@ -195,7 +191,7 @@ export const propertySearchDescription: INodeProperties[] = [
 		description:
 			'Starting page; when returning all results, requests continue automatically through the last page',
 		displayOptions: {
-			show: showOnlyForPropertySearch,
+			show: showOnlyForPropertySearchMap,
 		},
 		routing: {
 			send: {
@@ -212,29 +208,12 @@ export const propertySearchDescription: INodeProperties[] = [
 		description:
 			'Whether to include properties from the whole agency instead of only the branch associated with the token',
 		displayOptions: {
-			show: showOnlyForPropertySearch,
+			show: showOnlyForPropertySearchMap,
 		},
 		routing: {
 			request: {
 				headers: {
 					Inmobiliaria: '={{ $value ? 1 : 0 }}',
-				},
-			},
-		},
-	},
-	{
-		displayName: 'Include Property Sheet',
-		name: 'includeSheet',
-		type: 'boolean',
-		default: false,
-		description: 'Whether to include the full property sheet in the response',
-		displayOptions: {
-			show: showOnlyForPropertySearch,
-		},
-		routing: {
-			request: {
-				headers: {
-					Ficha: '={{ $value ? 1 : 0 }}',
 				},
 			},
 		},
@@ -246,7 +225,7 @@ export const propertySearchDescription: INodeProperties[] = [
 		placeholder: 'Add Filter',
 		default: {},
 		displayOptions: {
-			show: showOnlyForPropertySearch,
+			show: showOnlyForPropertySearchMap,
 		},
 		options: [
 			createDomusLocator({
@@ -303,8 +282,7 @@ export const propertySearchDescription: INodeProperties[] = [
 				sendType: 'query',
 				sendProperty: 'broker',
 				placeholder: 'e.g. 1256',
-				description:
-					'Advisor responsible for the property; also accepts comma-separated codes',
+				description: 'Advisor responsible for the property; also accepts comma-separated codes',
 			}),
 			createDomusLocator({
 				displayName: 'Business Type',
@@ -324,30 +302,8 @@ export const propertySearchDescription: INodeProperties[] = [
 				sendType: 'query',
 				sendProperty: 'city',
 				placeholder: 'e.g. 76001',
-				description:
-					'City with available properties; also accepts one or more comma-separated codes',
+				description: 'City with available properties; also accepts one or more comma-separated codes',
 				loadOptionsDependsOn: ['entireAgency'],
-			}),
-			createDomusLocator({
-				displayName: 'City Zone',
-				name: 'cityZone',
-				searchListMethod: 'searchCityZones',
-				sendType: 'query',
-				sendProperty: 'city_zone',
-				placeholder: 'e.g. 1,2',
-				description:
-					'City-specific zone (locality); also accepts one or more comma-separated codes. This is not the same catalog as Zone.',
-				loadOptionsDependsOn: ['filters.city.value'],
-			}),
-			createDomusLocator({
-				displayName: 'Department',
-				name: 'department',
-				searchListMethod: 'searchStates',
-				sendType: 'query',
-				sendProperty: 'estate',
-				placeholder: 'e.g. 11',
-				description:
-					'Department or state from the general catalog; also accepts comma-separated codes',
 			}),
 			createDomusLocator({
 				displayName: 'Destination',
@@ -364,18 +320,8 @@ export const propertySearchDescription: INodeProperties[] = [
 				'keyword',
 				'General filter across fields such as description and property code',
 			),
-			queryNumberFilter(
-				'Max Bathrooms',
-				'maxBathrooms',
-				'maxbath',
-				'Maximum number of bathrooms',
-			),
-			queryNumberFilter(
-				'Max Bedrooms',
-				'maxBedrooms',
-				'maxbed',
-				'Maximum number of bedrooms',
-			),
+			queryNumberFilter('Max Bathrooms', 'maxBathrooms', 'maxbath', 'Maximum number of bathrooms'),
+			queryNumberFilter('Max Bedrooms', 'maxBedrooms', 'maxbed', 'Maximum number of bedrooms'),
 			queryNumberFilter(
 				'Max Built Area',
 				'maxBuiltArea',
@@ -383,24 +329,9 @@ export const propertySearchDescription: INodeProperties[] = [
 				'Maximum built area in square meters',
 			),
 			queryNumberFilter('Max Rent', 'maxRent', 'pcmax', 'Maximum rental price'),
-			queryNumberFilter(
-				'Max Sale Price',
-				'maxSalePrice',
-				'pvmax',
-				'Maximum sale price',
-			),
-			queryNumberFilter(
-				'Min Bathrooms',
-				'minBathrooms',
-				'minbath',
-				'Minimum number of bathrooms',
-			),
-			queryNumberFilter(
-				'Min Bedrooms',
-				'minBedrooms',
-				'minbed',
-				'Minimum number of bedrooms',
-			),
+			queryNumberFilter('Max Sale Price', 'maxSalePrice', 'pvmax', 'Maximum sale price'),
+			queryNumberFilter('Min Bathrooms', 'minBathrooms', 'minbath', 'Minimum number of bathrooms'),
+			queryNumberFilter('Min Bedrooms', 'minBedrooms', 'minbed', 'Minimum number of bedrooms'),
 			queryNumberFilter(
 				'Min Built Area',
 				'minBuiltArea',
@@ -408,19 +339,7 @@ export const propertySearchDescription: INodeProperties[] = [
 				'Minimum built area in square meters',
 			),
 			queryNumberFilter('Min Rent', 'minRent', 'pcmin', 'Minimum rental price'),
-			queryNumberFilter(
-				'Min Sale Price',
-				'minSalePrice',
-				'pvmin',
-				'Minimum sale price',
-			),
-			queryStringFilter(
-				'Multiple Property Codes',
-				'multiplePropertyCodes',
-				'multiple_codpro',
-				'Comma-separated property codes to fetch in one request',
-				'e.g. 262,263',
-			),
+			queryNumberFilter('Min Sale Price', 'minSalePrice', 'pvmin', 'Minimum sale price'),
 			createDomusLocator({
 				displayName: 'Neighborhood',
 				name: 'neighborhoodCode',
@@ -454,11 +373,12 @@ export const propertySearchDescription: INodeProperties[] = [
 				},
 			},
 			queryStringFilter(
-				'Property Code',
-				'propertyCode',
-				'codpro',
-				'Property code in Domus',
+				'Polygon',
+				'polygon',
+				'polygon',
+				'Map polygon generated when an area is drawn. Send the value Domus expects for polygon.',
 			),
+			queryStringFilter('Property Code', 'propertyCode', 'codpro', 'Property code in Domus'),
 			createDomusLocator({
 				displayName: 'Property Type',
 				name: 'propertyType',
@@ -469,7 +389,6 @@ export const propertySearchDescription: INodeProperties[] = [
 				description: 'Available property type; also accepts one or more comma-separated codes',
 				loadOptionsDependsOn: ['entireAgency'],
 			}),
-			queryStringFilter('Reference', 'reference', 'reference', 'Property reference'),
 			{
 				displayName: 'Sort Direction',
 				name: 'sort',
@@ -502,13 +421,6 @@ export const propertySearchDescription: INodeProperties[] = [
 				'stratum',
 				'Colombian socioeconomic stratum; accepts comma-separated values',
 			),
-			queryStringFilter(
-				'Updated Since',
-				'updatedSince',
-				'update',
-				'Only properties updated from this date through today, in YYYY-MM-DD',
-				'e.g. 2022-12-19',
-			),
 			createDomusLocator({
 				displayName: 'Zone',
 				name: 'zone',
@@ -516,8 +428,7 @@ export const propertySearchDescription: INodeProperties[] = [
 				sendType: 'query',
 				sendProperty: 'zone',
 				placeholder: 'e.g. 2',
-				description:
-					'Zone with available properties; also accepts one or more comma-separated codes',
+				description: 'Zone with available properties; also accepts one or more comma-separated codes',
 				loadOptionsDependsOn: ['entireAgency', 'filters.city.value'],
 			}),
 		],

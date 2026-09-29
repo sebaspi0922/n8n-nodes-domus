@@ -28,6 +28,7 @@ export const propertyUpdateDescription: INodeProperties[] = [
 		},
 		options: propertyWriteFields({
 			cityDependsOn: ['updateFields.city.value'],
+			departmentDependsOn: ['updateFields.department.value'],
 			includeAddress: true,
 			includeBusinessType: true,
 			includeCity: true,
