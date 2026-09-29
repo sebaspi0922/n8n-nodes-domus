@@ -3,6 +3,8 @@ const { resolve } = require('node:path');
 
 const DOMUS_PRODUCTION_HOST = 'api.domus.la';
 const DOMUS_OFFICIAL_WRITE_BASE_URL = 'https://newapi.domus.la';
+const DOMUS_CRM_BASE_URL = 'https://apind.domus.la';
+const DOMUS_CONTACTS_BASE_URL = 'https://api.domus.la';
 
 const loadLocalEnv = (fileName = '.env') => {
 	const envPath = resolve(process.cwd(), fileName);
@@ -98,6 +100,49 @@ const assertOfficialWriteHost = (baseURL) => {
 	}
 };
 
+const assertDomusCrmHost = (baseURL) => {
+	if (baseURL !== DOMUS_CRM_BASE_URL) {
+		throw new Error(`Refusing Domus CRM tests: host must be exactly ${DOMUS_CRM_BASE_URL}`);
+	}
+};
+
+const assertDomusContactsHost = (baseURL) => {
+	if (baseURL !== DOMUS_CONTACTS_BASE_URL) {
+		throw new Error(`Refusing Domus contact tests: host must be exactly ${DOMUS_CONTACTS_BASE_URL}`);
+	}
+};
+
+const assertDomusContactsRequestUrl = (url) => {
+	const pathname = url.pathname.replace(/\/+$/, '') || '/';
+	if (
+		url.origin !== DOMUS_CONTACTS_BASE_URL ||
+		url.username ||
+		url.password ||
+		pathname === '/3.0' ||
+		pathname.startsWith('/3.0/')
+	) {
+		throw new Error(`Refusing Domus contact tests: host must be exactly ${DOMUS_CONTACTS_BASE_URL}`);
+	}
+};
+
+const getDomusCrmTestConfig = () => {
+	const token = readEnv('DOMUS_CRM_TEST_TOKEN');
+	const propertyToken = readEnv('DOMUS_TEST_TOKEN');
+	if (token && propertyToken && token === propertyToken) {
+		throw new Error('DOMUS_CRM_TEST_TOKEN must be different from DOMUS_TEST_TOKEN');
+	}
+
+	const configured = readEnv('DOMUS_CRM_TEST_BASE_URL') || DOMUS_CRM_BASE_URL;
+	assertDomusCrmHost(configured);
+
+	return {
+		token,
+		baseURL: DOMUS_CRM_BASE_URL,
+		hasToken: token.length > 0,
+		writeEnabled: readEnv('DOMUS_CRM_TEST_WRITE') === '1',
+	};
+};
+
 const getN8nTestConfig = () => {
 	const baseURL = readEnv('N8N_BASE_URL') || 'http://127.0.0.1:5680';
 	return {
@@ -110,9 +155,15 @@ const getN8nTestConfig = () => {
 };
 
 module.exports = {
+	DOMUS_CONTACTS_BASE_URL,
+	DOMUS_CRM_BASE_URL,
 	DOMUS_OFFICIAL_WRITE_BASE_URL,
+	assertDomusContactsHost,
+	assertDomusContactsRequestUrl,
+	assertDomusCrmHost,
 	assertOfficialWriteHost,
 	assertTestingHost,
+	getDomusCrmTestConfig,
 	getDomusTestConfig,
 	getN8nTestConfig,
 	readEnv,

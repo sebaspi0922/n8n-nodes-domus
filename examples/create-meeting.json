@@ -1,0 +1,59 @@
+{
+	"id": "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
+	"name": "Domus CRM - Create meeting",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "meeting",
+				"operation": "create",
+				"startDate": "",
+				"finishDate": "",
+				"notes": "",
+				"dateType": {
+					"mode": "id",
+					"value": ""
+				},
+				"place": "",
+				"propertyCode": "",
+				"contact": 0,
+				"broker": 0
+			},
+			"id": "e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6a7b",
+			"name": "Create meeting",
+			"type": "n8n-nodes-domus.domusCrm",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Create meeting",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "f4a5b6c7-d8e9-4f0a-1b2c-3d4e5f6a7b8c",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

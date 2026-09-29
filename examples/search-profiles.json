@@ -1,0 +1,48 @@
+{
+	"id": "c4d8e2f1-7a63-4b90-8d15-2e6f0a9b3c47",
+	"name": "Domus CRM - Search profiles",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "d5e9f3a2-8b74-4c01-9e26-3f7a1b0c4d58",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "profile",
+				"operation": "search"
+			},
+			"id": "e6f0a4b3-9c85-4d12-af37-4a8b2c1d5e69",
+			"name": "Search profiles",
+			"type": "n8n-nodes-domus.domusCrm",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search profiles",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "f7a1b5c4-0d96-4e23-b048-5b9c3d2e6f70",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

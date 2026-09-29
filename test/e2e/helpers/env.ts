@@ -44,5 +44,7 @@ export const owner = {
 
 export const domusToken = (process.env.DOMUS_TEST_TOKEN || '').trim();
 export const hasDomusToken = domusToken.length > 0;
+export const domusCrmToken = (process.env.DOMUS_CRM_TEST_TOKEN || '').trim();
+export const hasDomusCrmToken = domusCrmToken.length > 0;
 export const domusBaseURL = process.env.DOMUS_TEST_BASE_URL || 'https://newapi.domus.la';
 export const configuredPropertyCode = (process.env.DOMUS_TEST_PROPERTY_CODE || '').trim();

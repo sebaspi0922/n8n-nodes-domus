@@ -38,8 +38,9 @@
 		"lint:fix": "n8n-node lint --fix",
 		"test": "npm run build && npm run test:unit",
 		"test:unit": "node --test test/*.test.js",
-		"test:integration": "node --test test/integration/domus-api.integration.test.js",
+		"test:integration": "node --test test/integration/domus-api.integration.test.js test/integration/domus-crm-api.integration.test.js",
 		"test:integration:write": "node --test test/integration/domus-api.write.test.js",
+		"test:integration:crm-write": "node --test test/integration/domus-crm-api.write.test.js",
 		"test:workflow": "node --test test/workflow/**/*.test.js",
 		"test:docker": "bash scripts/docker-integration.sh",
 		"test:e2e": "bash scripts/e2e.sh",
@@ -60,10 +61,12 @@
 		"n8nNodesApiVersion": 1,
 		"strict": true,
 		"credentials": [
-			"dist/credentials/DomusApi.credentials.js"
+			"dist/credentials/DomusApi.credentials.js",
+			"dist/credentials/DomusCrmApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/Domus/Domus.node.js"
+			"dist/nodes/Domus/Domus.node.js",
+			"dist/nodes/DomusCrm/DomusCrm.node.js"
 		]
 	},
 	"devDependencies": {

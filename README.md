@@ -2,6 +2,7 @@
 
 An n8n community node for integrating workflows with **Domus CRM** through
 Domus API 3.0.
+The same package includes a separate **Domus CRM** node for meetings, opportunities, and profiles on `https://apind.domus.la`, and contacts on `https://api.domus.la`. It uses its own token.
 
 > [`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus)
 > is the n8n-verified release. `1.1.0` adds Search Map, Separate, Owner
@@ -441,11 +442,13 @@ the n8n-verified release. It was published with provenance from GitHub Actions
 and verified through the n8n Creator Portal. `0.1.0` remains on npm as the
 earlier two-operation package.
 
-`1.1.0` is the npm release for Search Map, Separate, Owner Unlink, Advisor
-Create and Update, Branch Search, and the department, populated-center,
-extra-amenities, and destination selectors. Image upload, the
-`amenities_extra` JSON body, multilingual descriptions, per-entry owner phone
-edits, MLS projects, partners, and tags stay out. To publish it:
+`1.1.0` adds Search Map, Separate, Owner Unlink, Advisor Create and Update,
+Branch Search, and the department, populated-center, extra-amenities, and
+destination selectors. Image upload, the `amenities_extra` JSON body,
+multilingual descriptions, per-entry owner phone edits, MLS projects,
+partners, and tags stay out.
+
+`1.2.0` adds the Domus CRM node. To publish a later version:
 
 ```bash
 npm run release

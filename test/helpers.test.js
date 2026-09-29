@@ -1,6 +1,12 @@
 const assert = require('node:assert/strict');
 const { describe, it } = require('node:test');
-const { assertOfficialWriteHost, assertTestingHost, redactSecret } = require('./helpers/env');
+const {
+	assertDomusContactsHost,
+	assertDomusCrmHost,
+	assertOfficialWriteHost,
+	assertTestingHost,
+	redactSecret,
+} = require('./helpers/env');
 
 describe('live-test safety helpers', () => {
 	it('refuses the Domus production host', () => {
@@ -21,6 +27,34 @@ describe('live-test safety helpers', () => {
 	it('allows write tests only against the exact official testing URL', () => {
 		assert.doesNotThrow(() => assertOfficialWriteHost('https://newapi.domus.la'));
 		assert.doesNotThrow(() => assertOfficialWriteHost('https://newapi.domus.la/'));
+	});
+
+	it('allows Domus contact tests only against https://api.domus.la', () => {
+		assert.doesNotThrow(() => assertDomusContactsHost('https://api.domus.la'));
+		assert.throws(
+			() => assertDomusContactsHost('https://api.domus.la/3.0'),
+			/exactly https:\/\/api\.domus\.la/,
+		);
+		assert.throws(
+			() => assertDomusContactsHost('https://newapi.domus.la'),
+			/exactly https:\/\/api\.domus\.la/,
+		);
+		assert.throws(
+			() => assertDomusContactsHost('https://apind.domus.la'),
+			/exactly https:\/\/api\.domus\.la/,
+		);
+	});
+
+	it('allows Domus CRM tests only against https://apind.domus.la', () => {
+		assert.doesNotThrow(() => assertDomusCrmHost('https://apind.domus.la'));
+		assert.throws(
+			() => assertDomusCrmHost('https://newapi.domus.la'),
+			/exactly https:\/\/apind\.domus\.la/,
+		);
+		assert.throws(
+			() => assertDomusCrmHost('https://api.domus.la/3.0'),
+			/exactly https:\/\/apind\.domus\.la/,
+		);
 	});
 
 	it('fails write tests immediately for any other host, including production', () => {

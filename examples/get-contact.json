@@ -1,0 +1,49 @@
+{
+	"id": "e2a5c8f6-0179-43b4-8d5c-6f103192a3a5",
+	"name": "Domus CRM - Get contact",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "f3b6d907-128a-44c5-9e6d-702142a3b4b6",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "contact",
+				"operation": "get",
+				"code": ""
+			},
+			"id": "04c7ea18-239b-45d6-af7e-813253b4c5c7",
+			"name": "Get contact",
+			"type": "n8n-nodes-domus.domusCrm",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Get contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "15d8fb29-34ac-46e7-b08f-924364c5d6d8",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}
