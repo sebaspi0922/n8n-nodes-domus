@@ -2,6 +2,7 @@
 
 An n8n community node for integrating workflows with **Domus CRM** through
 Domus API 3.0.
+The same package includes a separate **Domus CRM** node for meetings, opportunities, and profiles on `https://apind.domus.la`, and contacts on `https://api.domus.la`. It uses its own token.
 
 > Published and n8n-verified as
 > [`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus).

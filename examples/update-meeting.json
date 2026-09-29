@@ -1,0 +1,61 @@
+{
+	"id": "a6b7c8d9-e0f1-4a2b-3c4d-5e6f7a8b9c0d",
+	"name": "Domus CRM - Update meeting",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "b7c8d9e0-f1a2-4b3c-4d5e-6f7a8b9c0d1e",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "meeting",
+				"operation": "update",
+				"meetingId": "",
+				"status": {
+					"mode": "id",
+					"value": ""
+				},
+				"result": {
+					"mode": "id",
+					"value": ""
+				},
+				"latitude": 0,
+				"longitude": 0,
+				"comment": "",
+				"opportunityStatus": 0
+			},
+			"id": "c8d9e0f1-a2b3-4c4d-5e6f-7a8b9c0d1e2f",
+			"name": "Update meeting",
+			"type": "n8n-nodes-domus.domusCrm",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Update meeting",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "d9e0f1a2-b3c4-4d5e-6f7a-8b9c0d1e2f3a",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

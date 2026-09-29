@@ -1,0 +1,50 @@
+{
+	"id": "e0f1a2b3-c4d5-4e6f-7a8b-9c0d1e2f3a4b",
+	"name": "Domus CRM - Confirm meeting",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "f1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "meeting",
+				"operation": "confirm",
+				"meetingId": "",
+				"verify": 1
+			},
+			"id": "a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6d",
+			"name": "Confirm meeting",
+			"type": "n8n-nodes-domus.domusCrm",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Confirm meeting",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "b3c4d5e6-f7a8-4b9c-0d1e-2f3a4b5c6d7e",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

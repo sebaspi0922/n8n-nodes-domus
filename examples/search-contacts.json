@@ -1,0 +1,48 @@
+{
+	"id": "a8c1e4b2-6d35-4f70-9a18-2b7c0d5e4f61",
+	"name": "Domus CRM - Search contacts",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "b9d2f5c3-7e46-4081-ab29-3c8d1e6f5072",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "contact",
+				"operation": "search"
+			},
+			"id": "c0e3a6d4-8f57-4192-bc3a-4d9e2f708183",
+			"name": "Search contacts",
+			"type": "n8n-nodes-domus.domusCrm",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search contacts",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "d1f4b7e5-9068-42a3-cd4b-5e0f30819294",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

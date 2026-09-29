@@ -194,6 +194,7 @@ Current specs:
 | `property-get.spec.ts` | Property Code field; execute uses a code discovered at runtime |
 | `property-status.spec.ts` | Change Status and Get Status History fields; history execute is read-only |
 | `property-write.spec.ts` | Create and Update field surfaces; no live write |
+| `crm-meetings.spec.ts` | Domus CRM in the panel; Token without an environment field; Meeting Search dates, type selector, and Profile selector. Create, Update, and Confirm show their own fields and do not execute writes. Opportunity Search, Get, and Create show their own fields. Profile Search shows branch, name, and alternative code. Contact Search shows name and phone. Contact Create and Update show their fields and do not execute. Live Search only with `DOMUS_CRM_TEST_TOKEN` |
 
 Playwright does **not** assert every query parameter. That belongs in capas 1–2.
 
@@ -264,10 +265,65 @@ Secrets, when added later:
 
 | Secret | Use |
 | ------ | --- |
-| `DOMUS_TEST_TOKEN` | Testing environment token |
+| `DOMUS_TEST_TOKEN` | Testing environment token for API 3.0 |
+| `DOMUS_CRM_TEST_TOKEN` | Domus CRM token for `https://apind.domus.la`. Never the API 3.0 token |
 
 Do not add a production token. Do not pass secrets to `pull_request` from forks
 (`pull_request_target` is not used).
+
+## Domus CRM
+
+The CRM node calls `https://apind.domus.la` with `DOMUS_CRM_TEST_TOKEN` for
+meetings, opportunities, and profiles. Contacts call `https://api.domus.la`.
+That token is separate from `DOMUS_TEST_TOKEN`. The CRM read suite skips when the
+CRM token is missing. `requestDomusCrm` allows only `https://apind.domus.la` and
+refuses `https://newapi.domus.la`, `https://api.domus.la`, and
+`https://api.domus.la/3.0`. Contact reads use `requestDomusContacts`, which
+allows only `https://api.domus.la` and refuses `https://api.domus.la/3.0`,
+`https://newapi.domus.la`, and `https://apind.domus.la`.
+
+`requestDomusCrm` stays read-only. Meeting and opportunity writes live in
+`test/integration/domus-crm-api.write.test.js` and still require exactly
+`https://apind.domus.la`. Contact writes in the same file use
+`requestDomusContactsWrite` and allow only `https://api.domus.la`. There is no
+DELETE. They run only through:
+
+```text
+DOMUS_CRM_TEST_TOKEN=... DOMUS_CRM_TEST_WRITE=1 npm run test:integration:crm-write
+```
+
+The file skips when the flag or the CRM token is missing. Meeting notes and
+opportunity comments use the `n8n-e2e-` prefix. `contact` is sent only when
+`DOMUS_CRM_TEST_CONTACT_ID` is set. Opportunity create reads `service_id` from
+the first `GET /opportunities/status` row and skips when that row has none. It
+does not send `property`. Contact create sends a name with the `n8n-e2e-`
+prefix and an email, so phone is not required. It sends `source` only when
+`DOMUS_CRM_TEST_SOURCE_ID` is set, and skips when that value is missing. There
+is no DELETE, so the test does not clean up. The nightly workflow never sets
+`DOMUS_CRM_TEST_WRITE` and does not call `test:integration:crm-write`.
+`DOMUS_TEST_WRITE` does not enable these writes.
+
+Example workflows exist for meeting create, update, and confirm, for
+opportunity search, get, and create, for profile search, and for contact
+search, get, create, and update. They contain no token and no credential id.
+The workflow REST test executes Meeting Search, Opportunity Search, Profile
+Search, and Contact Search only.
+
+`GET /profiles` is part of the read suite. When a row is present, the test
+asserts `code`. It does not call another route and does not paginate. There is
+no profile write test. The nightly workflow does not add one.
+
+`GET /contacts` is part of the read suite and calls `https://api.domus.la`.
+When a row is present, the test asserts `code` and calls `GET /contacts/{code}`.
+It does not paginate.
+
+| Layer | CRM check |
+| ----- | --------- |
+| 1 | `test/domus-crm-node.test.js` |
+| 2 | `test/integration/domus-crm-api.integration.test.js` for reads, including `GET /profiles` and `GET /contacts`. Writes: `test/integration/domus-crm-api.write.test.js` with `DOMUS_CRM_TEST_WRITE=1` |
+| 3 | `examples/search-meetings.json`, `examples/search-opportunities.json`, `examples/search-profiles.json`, and `examples/search-contacts.json` through the workflow REST test. Create, update, confirm, opportunity get, and contact get fixtures are not executed |
+| 4 | Docker script loads both nodes and both credentials, the 17 property operations, Meeting search, get, create, update, and confirm, Opportunity search, get, and create, Profile search, and Contact search, get, create, and update |
+| 5 | `test/e2e/crm-meetings.spec.ts` |
 
 ## Adding a new operation
 

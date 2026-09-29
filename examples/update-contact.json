@@ -1,0 +1,52 @@
+{
+	"id": "6a2d407e-89f1-4b3c-85d4-e798b91a2b2d",
+	"name": "Domus CRM - Update contact",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "7b3e518f-9a02-4c4d-96e5-f8a9ca2b3c3e",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "contact",
+				"operation": "update",
+				"code": "",
+				"name": "",
+				"email": "",
+				"description": ""
+			},
+			"id": "8c4f6290-ab13-4d5e-a7f6-09badb3c4d4f",
+			"name": "Update contact",
+			"type": "n8n-nodes-domus.domusCrm",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Update contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "9d5073a1-bc24-4e6f-b807-1acbec4d5e50",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

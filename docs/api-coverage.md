@@ -586,3 +586,94 @@ descriptions, and populated-center / destination locators.
 Owner Create and Update send every documented form field. Still omitted:
 per-entry phone editing through the `oldType` / `newType` / `delete` grammar,
 which only Update accepts.
+
+## Domus CRM API
+
+Meetings, opportunities, and profiles live on a different Domus API from the inventory API 3.0 mapped above. Contacts use API 2.0 on `https://api.domus.la`.
+Source: [Domus CRM API](https://apind.domus.la/docs), including
+[meeting list](https://apind.domus.la/docs/meetings/list),
+[meeting detail](https://apind.domus.la/docs/meetings/detail),
+[create meeting](https://apind.domus.la/docs/meetings/store),
+[update meeting](https://apind.domus.la/docs/meetings/update),
+[confirm meeting](https://apind.domus.la/docs/meetings/confirmation),
+[opportunity list](https://apind.domus.la/docs/opportunities/list),
+[opportunity detail](https://apind.domus.la/docs/opportunities/detail),
+[create opportunity](https://apind.domus.la/docs/opportunities/store),
+[opportunity statuses](https://apind.domus.la/docs/opportunities/status),
+[profile list](https://apind.domus.la/docs/profiles/list),
+[contact list](https://apind.domus.la/docs/contacts/list),
+[contact detail](https://apind.domus.la/docs/contacts/detail),
+[create contact](https://apind.domus.la/docs/contacts/store), and
+[update contact](https://apind.domus.la/docs/contacts/update).
+
+| Item | Value |
+| ---- | ----- |
+| Host | `https://apind.domus.la` for meetings, opportunities, and profiles. Contacts use `https://api.domus.la` |
+| Credential | Domus CRM API (`domusCrmApi`) |
+| Auth header | `Authorization: <TOKEN>` without `Bearer` |
+| Token | A CRM token. It is not the API 3.0 token and there is no environment selector |
+| Node | Domus CRM (`domusCrm`), version 1, declarative |
+
+Meeting Search sends `profile` from the `searchProfiles` selector. The value is `code` from this API, not an advisor code from the property node.
+
+### Meeting
+
+| Operation | API | Role | Status |
+| --------- | --- | ---- | ------ |
+| Search | `GET /meetings` | Public read. Required `start_date` and `end_date` (`YYYY-MM-DD`). Optional `profile` (selector `searchProfiles`; the sent value is `code`) and `type`. Each `data` element is one n8n item. No page or Return All: the list contract has neither `page` nor `last_page`. | Implemented |
+| Get | `GET /meetings/{meeting_id}` | Public read. Uses `meeting_id` from Search. | Implemented |
+| Create | `POST /meetings` | Public write. Form body, not query. Required `start_date`, `finish_date` (`yyyy-mm-dd hh:mm:ss`), `notes`, and `date_type`. `place` is required when `codpro` is empty, and `codpro` is required when `place` is empty. Optional numeric `contact` and `broker` ids from this API. Response is an object with `id`, not a `data` array. | Implemented |
+| Update | `PUT /meetings/{meeting_id}` | Public write. Same `meeting_id` as Get. Form body. Required `status` and `result`. `result` is filtered by the selected status. Optional `latitude`, `longitude`, `comment`, and numeric `opportunity_status`. | Implemented |
+| Confirm | `PUT /meetings/verify/{meeting_id}` | Public write. Form body `verify`: `1` confirms and `0` does not. Response is `{ message }`, not a `data` array. | Implemented |
+
+Write bodies are `application/x-www-form-urlencoded`. Domus asks callers not to put those fields on the query string or in the URL. There is no DELETE for a meeting. Create, Update, and Confirm do not set `rootProperty: data`. Search and Get still do, because those responses are `data` arrays.
+
+### Selectors
+
+These are `listSearch` helpers. They are not public resources.
+
+| Helper | API | Status |
+| ------ | --- | ------ |
+| Meeting type | `GET /meetings/types` | Implemented. Credential test uses this call. Create sends the selected id as `date_type`. Search still sends it as `type`. |
+| Meeting status | `GET /meetings/status` | Implemented. Update sends the selected id as `status`. |
+| Meeting result | `GET /meetings/results` | Implemented. Sends `status` when the node has a status id, and Update reloads the list from the selected status. |
+| Opportunity status | `GET /opportunities/status` | Implemented. Search sends the selected id as `status_id`. The request has no query. It is not the active or inactive `status` filter. |
+| Profile | `GET /profiles` | Implemented. Meeting Search sends the selected `code` as query `profile`. The selector calls `GET /profiles` with no query, so it does not send `branch`, `name`, or `alt_code`. The label is `first_name` plus `last_name`. |
+
+### Opportunity
+
+| Operation | API | Role | Status |
+| --------- | --- | ---- | ------ |
+| Search | `GET /opportunities` | Public read. Optional query filters: numeric `contact`, `status` (`1` active, `2` inactive; the unset choice does not send `status`), `status_id`, numeric `service`, and `last_follow_update_from` / `last_follow_update_to` (`YYYY-MM-DD`). Each `data` element is one n8n item, identified by `opportunity_id`. The envelope also has `current` and `last`. No page, Perpage, or Return All. | Implemented |
+| Get | `GET /opportunities/{opportunity_id}` | Public read. Uses `opportunity_id` from Search. The response is a `data` array. Follow-ups are nested on the object. | Implemented |
+| Create | `POST /opportunities` | Public write. Form body, not query. Required `date` (`yyyy-mm-dd hh:mm:ss`), `comment`, and numeric `service`. There is no service catalog. Optional numeric `contact`, `property` (codpro text), and numeric `value`. Response is an object with `opportunity_id`, not a `data` array. | Implemented |
+
+The documented API has no opportunity update and no DELETE. Create does not set `rootProperty: data`. Search and Get do, because those responses are `data` arrays. `status` `1`/`2` stays a fixed choice. `status_id` is the only field that loads `GET /opportunities/status`.
+
+### Profile
+
+| Operation | API | Role | Status |
+| --------- | --- | ---- | ------ |
+| Search | `GET /profiles` | Public read. Optional query filters: numeric `branch` (there is no branch catalog), `name` (first name or last name), and numeric `alt_code` (alternative MLS code, not the profile id). Each `data` element is one n8n item, identified by `code`, not `user_code` or `alt_code`. The row has no `name`; the visible name is `first_name` plus `last_name`. The envelope also has `total`, `from`, and `to`. No page, Perpage, or Return All. | Implemented |
+
+The documented API has no profile detail, create, update, or DELETE. Search sets `rootProperty: data` because the response is a `data` array. `branch` and `alt_code` stay numbers. Profile Search fields appear only on Profile Search. Meeting Search shows the profile selector and does not show `branch`, `name`, or `alt_code`. Opportunity does not use the selector. These `code` values belong to this CRM API. They are not the advisors on the property node. Profile Search does not call `https://newapi.domus.la` or `https://api.domus.la/3.0`.
+
+### Contact
+
+Contacts are API 2.0. Each operation sets its request host to exactly `https://api.domus.la`. The node `requestDefaults` stays on `https://apind.domus.la`. These four methods do not call `https://apind.domus.la`, `https://newapi.domus.la`, or `https://api.domus.la/3.0`. They use the same Domus CRM API credential and the same raw `Authorization` token. There is no DELETE.
+
+| Operation | API | Role | Status |
+| --------- | --- | ---- | ------ |
+| Search | `GET https://api.domus.la/contacts` | Public read. Optional query filters: `name` (name, part of the name, or part of the email) and `phone` (phone or part of the phone). Each `data` element is one n8n item, identified by `code`, not `agent_code` or `agent_alt_code`. The envelope also has `total`, `perpage`, `current`, and `last`. The request documents neither `page` nor `Perpage`. No Return All. | Implemented |
+| Get | `GET https://api.domus.la/contacts/{code}` | Public read. Uses `code` from Search. The response is a `data` array. | Implemented |
+| Create | `POST https://api.domus.la/contacts` | Public write. Form body, not query. Required `name` and numeric `source`. There is no source catalog. `email` is required when `phone` is empty, and `phone` is required when `email` is empty. `phone` is comma-separated text. Optional `last_name`, `birthdate` (`YYYY-MM-DD`), numeric `city`, `neighborhood`, `description`, and numeric `broker`, omitted when empty. `city` and `broker` are ids from this API. Response is an object with `code`, not a `data` array. | Implemented |
+| Update | `PUT https://api.domus.la/contacts/{code}` | Public write. Same `code` as Get. Form body. Optional `name`, `email`, and `description` only. Response is an object with `code`, not a `data` array. | Implemented |
+
+Search and Get set `rootProperty: data`. Create and Update do not. `source`, `city`, and `broker` stay numbers. Contact fields appear only on Contact. `phone_type_#` stays out: there is no catalog and the field is an indexed suffix. Meeting and Opportunity still send `contact` as a numeric id from this API. That id is not a contact selector.
+
+### Outside this slice
+
+| Area | Why it stays out |
+| ---- | ---------------- |
+| Opportunity update or delete | The documented API has no update and no DELETE |
+| Following as a resource | Follow-ups are nested on the opportunity detail |

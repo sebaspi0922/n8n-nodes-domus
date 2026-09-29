@@ -1,0 +1,48 @@
+{
+	"id": "9a1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c5d",
+	"name": "Domus CRM - Search opportunities",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f",
+			"name": "When clicking Execute workflow",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "opportunity",
+				"operation": "search"
+			},
+			"id": "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+			"name": "Search opportunities",
+			"type": "n8n-nodes-domus.domusCrm",
+			"typeVersion": 1,
+			"position": [260, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"When clicking Execute workflow": {
+			"main": [
+				[
+					{
+						"node": "Search opportunities",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "3d4e5f6a-7b8c-4d9e-8f1a-2b3c4d5e6f7a",
+	"meta": {
+		"templateCredsSetupCompleted": false
+	},
+	"tags": []
+}

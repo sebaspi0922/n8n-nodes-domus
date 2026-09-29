@@ -1,5 +1,5 @@
 import { type APIRequestContext, type Page, expect } from '@playwright/test';
-import { configuredPropertyCode, domusBaseURL, domusToken } from './env';
+import { configuredPropertyCode, domusBaseURL, domusCrmToken, domusToken } from './env';
 
 const jsonHeaders = {
 	Accept: 'application/json',
@@ -134,6 +134,98 @@ export async function createDomusCredentialViaApi(
 
 	if (!response.ok()) {
 		throw new Error(`Creating Domus credential failed with HTTP ${response.status()}`);
+	}
+
+	const payload = unwrap<{ id?: string }>(await response.json());
+	if (!payload?.id) {
+		throw new Error('n8n did not return a credential id');
+	}
+
+	return String(payload.id);
+}
+
+export async function searchDomusCrmInCreator(page: Page): Promise<void> {
+	await openNodeCreator(page);
+	const search = page.getByTestId('node-creator-search-bar');
+	await expect(search).toBeVisible();
+	await search.fill('Domus CRM');
+
+	const actionsVisible = await page
+		.getByText('Search meetings', { exact: true })
+		.first()
+		.isVisible()
+		.catch(() => false);
+	if (!actionsVisible) {
+		await page.getByText('Domus CRM', { exact: true }).first().click();
+	}
+
+	await expect(page.getByText('Search meetings', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Get a meeting', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Create a meeting', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Update a meeting', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Confirm a meeting', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Search opportunities', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Get an opportunity', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Create an opportunity', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Search profiles', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Search contacts', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Get a contact', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Create a contact', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Update a contact', { exact: true }).first()).toBeVisible();
+}
+
+export async function addDomusCrmNode(
+	page: Page,
+	action:
+		| 'Search meetings'
+		| 'Get a meeting'
+		| 'Create a meeting'
+		| 'Update a meeting'
+		| 'Confirm a meeting'
+		| 'Search opportunities'
+		| 'Get an opportunity'
+		| 'Create an opportunity'
+		| 'Search profiles'
+		| 'Search contacts'
+		| 'Get a contact'
+		| 'Create a contact'
+		| 'Update a contact' = 'Search meetings',
+): Promise<void> {
+	await searchDomusCrmInCreator(page);
+	await page.getByText(action, { exact: true }).click();
+}
+
+export async function expectDomusCrmNodeOpen(page: Page): Promise<void> {
+	const panel = page.getByTestId('ndv');
+	await expect(panel).toBeVisible();
+	await expect(panel.getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Meeting');
+	await expect(panel.getByText('Start Date', { exact: true })).toBeVisible();
+}
+
+export async function createDomusCrmCredentialViaApi(
+	request: APIRequestContext,
+	name = `Domus CRM E2E ${Date.now()}`,
+): Promise<string> {
+	if (!domusCrmToken) {
+		throw new Error('DOMUS_CRM_TEST_TOKEN is required to create a live CRM credential');
+	}
+	if (domusToken && domusCrmToken === domusToken) {
+		throw new Error('DOMUS_CRM_TEST_TOKEN must be different from DOMUS_TEST_TOKEN');
+	}
+
+	const response = await request.post('/rest/credentials', {
+		headers: jsonHeaders,
+		data: {
+			name,
+			type: 'domusCrmApi',
+			data: {
+				token: domusCrmToken,
+			},
+		},
+	});
+
+	if (!response.ok()) {
+		throw new Error(`Creating Domus CRM credential failed with HTTP ${response.status()}`);
 	}
 
 	const payload = unwrap<{ id?: string }>(await response.json());
