@@ -24,7 +24,7 @@ test.beforeEach(async ({ page }) => {
 test('shows Domus CRM in the nodes panel', async ({ page }) => {
 	await openBlankWorkflow(page);
 	await searchDomusCrmInCreator(page);
-	await expect(page.getByText('Domus CRM', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Domus', { exact: true }).first()).toBeVisible();
 	await expect(page.getByText('Search meetings', { exact: true })).toBeVisible();
 	await expect(page.getByText('Get a meeting', { exact: true })).toBeVisible();
 });

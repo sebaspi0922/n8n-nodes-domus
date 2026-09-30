@@ -12,7 +12,11 @@ describe('packaged example workflows', () => {
 		acquisition: ['search', 'get'],
 		advisor: ['search', 'create', 'update'],
 		branch: ['search'],
+		contact: ['search', 'get', 'create', 'update'],
+		meeting: ['search', 'get', 'create', 'update', 'confirm'],
+		opportunity: ['search', 'get', 'create'],
 		owner: ['search', 'get', 'create', 'update', 'unlink'],
+		profile: ['search'],
 		project: ['search', 'get'],
 		property: [
 			'search',
@@ -77,34 +81,7 @@ describe('packaged example workflows', () => {
 			assert.doesNotMatch(serialized, /DOMUS_TEST_TOKEN/);
 			assert.doesNotMatch(serialized, /DOMUS_CRM_TEST_TOKEN/);
 			assert.equal(workflow.pinData && Object.keys(workflow.pinData).length, 0);
-
-			const crmOperations = {
-				'confirm-meeting.json': { resource: 'meeting', operation: 'confirm' },
-				'create-contact.json': { resource: 'contact', operation: 'create' },
-				'create-meeting.json': { resource: 'meeting', operation: 'create' },
-				'create-opportunity.json': { resource: 'opportunity', operation: 'create' },
-				'get-contact.json': { resource: 'contact', operation: 'get' },
-				'get-opportunity.json': { resource: 'opportunity', operation: 'get' },
-				'search-contacts.json': { resource: 'contact', operation: 'search' },
-				'search-meetings.json': { resource: 'meeting', operation: 'search' },
-				'search-opportunities.json': { resource: 'opportunity', operation: 'search' },
-				'search-profiles.json': { resource: 'profile', operation: 'search' },
-				'update-contact.json': { resource: 'contact', operation: 'update' },
-				'update-meeting.json': { resource: 'meeting', operation: 'update' },
-			};
-			if (crmOperations[fileName]) {
-				const crmNodes = workflow.nodes.filter((node) => node.type === 'n8n-nodes-domus.domusCrm');
-				assert.equal(crmNodes.length, 1);
-				assert.equal(crmNodes[0].credentials, undefined);
-				assert.equal(crmNodes[0].parameters.resource, crmOperations[fileName].resource);
-				assert.equal(crmNodes[0].parameters.operation, crmOperations[fileName].operation);
-				assert.doesNotMatch(serialized, /"id":\s*"[^"]*credential/i);
-				assert.equal(
-					workflow.nodes.some((node) => node.type === 'n8n-nodes-domus.domus'),
-					false,
-				);
-				return;
-			}
+			assert.equal(workflow.nodes.some((node) => node.type === 'n8n-nodes-domus.domusCrm'), false);
 
 			const domusNodes = workflow.nodes.filter((node) => node.type === 'n8n-nodes-domus.domus');
 			assert.ok(domusNodes.length >= 1);

@@ -1,4 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
+import { DOMUS_CRM_BASE_URL } from '../../constants';
 import { profileSearchDescription } from './search';
 
 const showOnlyForProfiles = {
@@ -22,6 +23,7 @@ export const profileDescription: INodeProperties[] = [
 				description: 'Search profiles and return each result as an n8n item',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'GET',
 						url: '/profiles',
 					},

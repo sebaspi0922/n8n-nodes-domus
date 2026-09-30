@@ -1,4 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
+import { DOMUS_CRM_BASE_URL } from '../../constants';
 import { opportunityCreateDescription } from './create';
 import { opportunityGetDescription } from './get';
 import { opportunitySearchDescription } from './search';
@@ -24,6 +25,7 @@ export const opportunityDescription: INodeProperties[] = [
 				description: 'Search opportunities and return each result as an n8n item',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'GET',
 						url: '/opportunities',
 					},
@@ -46,6 +48,7 @@ export const opportunityDescription: INodeProperties[] = [
 				description: 'Get one opportunity by opportunity_id. Follow-ups are included in the object.',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'GET',
 						url: '=/opportunities/{{$parameter.opportunityId}}',
 					},
@@ -69,6 +72,7 @@ export const opportunityDescription: INodeProperties[] = [
 					'Create an opportunity. Send the fields as form-urlencoded. The response object includes opportunity_id.',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'POST',
 						url: '/opportunities',
 						headers: {

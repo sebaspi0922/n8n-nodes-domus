@@ -154,7 +154,7 @@ export async function searchDomusCrmInCreator(page: Page): Promise<void> {
 	await openNodeCreator(page);
 	const search = page.getByTestId('node-creator-search-bar');
 	await expect(search).toBeVisible();
-	await search.fill('Domus CRM');
+	await search.fill('Domus');
 
 	const actionsVisible = await page
 		.getByText('Search meetings', { exact: true })
@@ -162,7 +162,7 @@ export async function searchDomusCrmInCreator(page: Page): Promise<void> {
 		.isVisible()
 		.catch(() => false);
 	if (!actionsVisible) {
-		await page.getByText('Domus CRM', { exact: true }).first().click();
+		await page.getByText('Domus', { exact: true }).first().click();
 	}
 
 	await expect(page.getByText('Search meetings', { exact: true }).first()).toBeVisible();

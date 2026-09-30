@@ -65,8 +65,7 @@
 			"dist/credentials/DomusCrmApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/Domus/Domus.node.js",
-			"dist/nodes/DomusCrm/DomusCrm.node.js"
+			"dist/nodes/Domus/Domus.node.js"
 		]
 	},
 	"devDependencies": {

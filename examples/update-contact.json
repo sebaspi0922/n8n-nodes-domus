@@ -8,7 +8,10 @@
 			"name": "When clicking Execute workflow",
 			"type": "n8n-nodes-base.manualTrigger",
 			"typeVersion": 1,
-			"position": [0, 0]
+			"position": [
+				0,
+				0
+			]
 		},
 		{
 			"parameters": {
@@ -17,13 +20,17 @@
 				"code": "",
 				"name": "",
 				"email": "",
-				"description": ""
+				"description": "",
+				"authentication": "={{[\"contact\", \"meeting\", \"opportunity\", \"profile\"].includes($parameter[\"resource\"]) ? \"domusCrmApi\" : \"domusApi\"}}"
 			},
 			"id": "8c4f6290-ab13-4d5e-a7f6-09badb3c4d4f",
 			"name": "Update contact",
-			"type": "n8n-nodes-domus.domusCrm",
-			"typeVersion": 1,
-			"position": [260, 0]
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 2,
+			"position": [
+				260,
+				0
+			]
 		}
 	],
 	"pinData": {},

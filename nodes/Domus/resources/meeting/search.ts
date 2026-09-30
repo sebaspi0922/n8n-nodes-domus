@@ -1,5 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { createCrmLocator } from '../locators';
+import { createCrmLocator } from '../crmLocators';
 
 const showOnlyForMeetingSearch = {
 	operation: ['search'],

@@ -632,7 +632,7 @@ Source: [Domus CRM API](https://apind.domus.la/docs), including
 | Credential | Domus CRM API (`domusCrmApi`) |
 | Auth header | `Authorization: <TOKEN>` without `Bearer` |
 | Token | A CRM token. It is not the API 3.0 token and there is no environment selector |
-| Node | Domus CRM (`domusCrm`), version 1, declarative |
+| Node | Domus (`domus`), version 1, declarative. CRM resources use the Domus CRM API credential |
 
 Meeting Search sends `profile` from the `searchProfiles` selector. The value is `code` from this API, not an advisor code from the property node.
 
@@ -680,7 +680,7 @@ The documented API has no profile detail, create, update, or DELETE. Search sets
 
 ### Contact
 
-Contacts are API 2.0. Each operation sets its request host to exactly `https://api.domus.la`. The node `requestDefaults` stays on `https://apind.domus.la`. These four methods do not call `https://apind.domus.la`, `https://newapi.domus.la`, or `https://api.domus.la/3.0`. They use the same Domus CRM API credential and the same raw `Authorization` token. There is no DELETE.
+Contacts are API 2.0. Each operation sets its request host to exactly `https://api.domus.la`. Meeting, opportunity, and profile operations set `https://apind.domus.la` on the request. The node `requestDefaults` stays the API 3.0 environment expression, so those resources do not inherit it. These four contact methods do not call `https://apind.domus.la`, `https://newapi.domus.la`, or `https://api.domus.la/3.0`. They use the Domus CRM API credential and the same raw `Authorization` token. There is no DELETE.
 
 | Operation | API | Role | Status |
 | --------- | --- | ---- | ------ |

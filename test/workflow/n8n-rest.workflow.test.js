@@ -133,7 +133,7 @@ describe('n8n REST workflow execution', () => {
 
 		const workflowTemplate = loadExample(exampleFile);
 		const [crmNode] = workflowTemplate.nodes.filter(
-			(node) => node.type === 'n8n-nodes-domus.domusCrm',
+			(node) => node.type === 'n8n-nodes-domus.domus',
 		);
 		crmNode.credentials = {
 			domusCrmApi: {

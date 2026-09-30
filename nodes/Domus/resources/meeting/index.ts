@@ -1,4 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
+import { DOMUS_CRM_BASE_URL } from '../../constants';
 import { meetingConfirmDescription } from './confirm';
 import { meetingCreateDescription, requireMeetingPlaceOrPropertyCode } from './create';
 import { meetingGetDescription } from './get';
@@ -26,6 +27,7 @@ export const meetingDescription: INodeProperties[] = [
 				description: 'Search meetings and return each result as an n8n item',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'GET',
 						url: '/meetings',
 					},
@@ -48,6 +50,7 @@ export const meetingDescription: INodeProperties[] = [
 				description: 'Get one meeting by meeting_id',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'GET',
 						url: '=/meetings/{{$parameter.meetingId}}',
 					},
@@ -71,6 +74,7 @@ export const meetingDescription: INodeProperties[] = [
 					'Create a meeting. Send the fields as form-urlencoded. The response object includes an ID.',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'POST',
 						url: '/meetings',
 						headers: {
@@ -89,6 +93,7 @@ export const meetingDescription: INodeProperties[] = [
 				description: 'Update a meeting status and result by meeting_id',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'PUT',
 						url: '=/meetings/{{$parameter.meetingId}}',
 						headers: {
@@ -104,6 +109,7 @@ export const meetingDescription: INodeProperties[] = [
 				description: 'Confirm or reject attendance. The response is a message.',
 				routing: {
 					request: {
+						baseURL: DOMUS_CRM_BASE_URL,
 						method: 'PUT',
 						url: '=/meetings/verify/{{$parameter.meetingId}}',
 						headers: {

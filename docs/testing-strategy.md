@@ -200,7 +200,7 @@ Current specs:
 | `property-status.spec.ts` | Change Status and Get Status History fields; history execute is read-only |
 | `property-write.spec.ts` | Create and Update field surfaces; no live write |
 | `new-operations.spec.ts` | Search Map, Separate, Unlink, Advisor Create/Update, Branch Search, and the new property catalogs. Writes and DELETE are not executed |
-| `crm-meetings.spec.ts` | Domus CRM in the panel; Token without an environment field; Meeting Search dates, type selector, and Profile selector. Create, Update, and Confirm show their own fields and do not execute writes. Opportunity Search, Get, and Create show their own fields. Profile Search shows branch, name, and alternative code. Contact Search shows name and phone. Contact Create and Update show their fields and do not execute. Live Search only with `DOMUS_CRM_TEST_TOKEN` |
+| `crm-meetings.spec.ts` | Meeting actions on the Domus node; Token without an environment field; Meeting Search dates, type selector, and Profile selector. Create, Update, and Confirm show their own fields and do not execute writes. Opportunity Search, Get, and Create show their own fields. Profile Search shows branch, name, and alternative code. Contact Search shows name and phone. Contact Create and Update show their fields and do not execute. Live Search only with `DOMUS_CRM_TEST_TOKEN` |
 
 Playwright does **not** assert every query parameter. That belongs in capas 1–2.
 
@@ -279,7 +279,7 @@ Do not add a production token. Do not pass secrets to `pull_request` from forks
 
 ## Domus CRM
 
-The CRM node calls `https://apind.domus.la` with `DOMUS_CRM_TEST_TOKEN` for
+The Domus node calls `https://apind.domus.la` with `DOMUS_CRM_TEST_TOKEN` for
 meetings, opportunities, and profiles. Contacts call `https://api.domus.la`.
 That token is separate from `DOMUS_TEST_TOKEN`. The CRM read suite skips when the
 CRM token is missing. `requestDomusCrm` allows only `https://apind.domus.la` and

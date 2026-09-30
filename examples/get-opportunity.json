@@ -8,19 +8,26 @@
 			"name": "When clicking Execute workflow",
 			"type": "n8n-nodes-base.manualTrigger",
 			"typeVersion": 1,
-			"position": [0, 0]
+			"position": [
+				0,
+				0
+			]
 		},
 		{
 			"parameters": {
 				"resource": "opportunity",
 				"operation": "get",
-				"opportunityId": ""
+				"opportunityId": "",
+				"authentication": "={{[\"contact\", \"meeting\", \"opportunity\", \"profile\"].includes($parameter[\"resource\"]) ? \"domusCrmApi\" : \"domusApi\"}}"
 			},
 			"id": "6a7b8c9d-0e1f-4a2b-8c4d-5e6f7a8b9c0d",
 			"name": "Get opportunity",
-			"type": "n8n-nodes-domus.domusCrm",
-			"typeVersion": 1,
-			"position": [260, 0]
+			"type": "n8n-nodes-domus.domus",
+			"typeVersion": 2,
+			"position": [
+				260,
+				0
+			]
 		}
 	],
 	"pinData": {},

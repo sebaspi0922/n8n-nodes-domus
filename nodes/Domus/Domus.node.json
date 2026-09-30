@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-domus",
+	"node": "n8n-nodes-domus.domus",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Sales", "Productivity"],
@@ -7,11 +7,23 @@
 		"credentialDocumentation": [
 			{
 				"url": "https://apiv3get.domus.la/docs/3.0/comenzar"
+			},
+			{
+				"url": "https://apind.domus.la/docs"
 			}
 		],
 		"primaryDocumentation": [
 			{
 				"url": "https://apiv3get.domus.la/docs/3.0/"
+			},
+			{
+				"url": "https://apind.domus.la/docs/meetings/list"
+			},
+			{
+				"url": "https://apind.domus.la/docs/opportunities/list"
+			},
+			{
+				"url": "https://apind.domus.la/docs/profiles/list"
 			}
 		]
 	}

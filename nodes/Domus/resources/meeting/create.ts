@@ -4,7 +4,7 @@ import {
 	type IHttpRequestOptions,
 	type INodeProperties,
 } from 'n8n-workflow';
-import { createCrmLocator } from '../locators';
+import { createCrmLocator } from '../crmLocators';
 
 const showOnlyForMeetingCreate = {
 	operation: ['create'],

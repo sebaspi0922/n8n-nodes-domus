@@ -13,7 +13,7 @@ const {
 } = require('../dist/nodes/Domus/methods/listSearch.js');
 
 const operationFor = (resource) => {
-	const node = new Domus();
+	const node = new Domus().getNodeType();
 	return node.description.properties.find(
 		(property) =>
 			property.name === 'operation' &&
@@ -22,7 +22,7 @@ const operationFor = (resource) => {
 };
 
 const propertiesFor = (resource, name) => {
-	const node = new Domus();
+	const node = new Domus().getNodeType();
 	return node.description.properties.find(
 		(property) =>
 			property.name === name && property.displayOptions?.show?.resource?.includes(resource),
@@ -51,8 +51,8 @@ const createListSearchContext = ({ data, parameters = {} }) => {
 };
 
 describe('Domus node version', () => {
-	it('stays on version 1 and keeps the original resources plus Branch', () => {
-		const node = new Domus();
+	it('keeps version 1 on the original resources and a single credential', () => {
+		const node = new Domus().getNodeType(1);
 
 		assert.equal(node.description.version, 1);
 		assert.equal(node.description.name, 'domus');
@@ -62,9 +62,33 @@ describe('Domus node version', () => {
 			),
 			['acquisition', 'advisor', 'branch', 'owner', 'project', 'property'],
 		);
+		assert.deepEqual(node.description.credentials, [{ name: 'domusApi', required: true }]);
+	});
+
+	it('adds CRM resources on version 2 with both credentials', () => {
+		const node = new Domus().getNodeType();
+
+		assert.equal(node.description.version, 2);
+		assert.deepEqual(
+			node.description.properties.find((property) => property.name === 'resource').options.map(
+				(option) => option.value,
+			),
+			[
+				'acquisition',
+				'advisor',
+				'branch',
+				'contact',
+				'meeting',
+				'opportunity',
+				'owner',
+				'profile',
+				'project',
+				'property',
+			],
+		);
 		assert.deepEqual(
 			node.description.credentials.map((credential) => credential.name),
-			['domusApi'],
+			['domusApi', 'domusCrmApi'],
 		);
 	});
 });
@@ -82,7 +106,7 @@ describe('Property Search Map', () => {
 	});
 
 	it('paginates with the map query parameters and the agency header', () => {
-		const node = new Domus();
+		const node = new Domus().getNodeType();
 		const returnAll = node.description.properties.find(
 			(property) =>
 				property.name === 'returnAll' &&
@@ -144,7 +168,7 @@ describe('Property Search Map', () => {
 	});
 
 	it('sends polygon and destination on the map filters only', () => {
-		const node = new Domus();
+		const node = new Domus().getNodeType();
 		const filters = node.description.properties.find(
 			(property) =>
 				property.name === 'filters' &&
@@ -166,7 +190,7 @@ describe('Property Search Map', () => {
 describe('Property Separate', () => {
 	it('uses the Guzzle detach path and the detach-status catalog', () => {
 		const separate = operationFor('property').options.find((option) => option.value === 'separate');
-		const node = new Domus();
+		const node = new Domus().getNodeType();
 		const status = node.description.properties.find((property) => property.name === 'separationStatus');
 		const fields = node.description.properties.find((property) => property.name === 'separateFields')
 			.options;
@@ -225,7 +249,7 @@ describe('Advisor create and update', () => {
 		const operation = operationFor('advisor');
 		const create = operation.options.find((option) => option.value === 'create');
 		const update = operation.options.find((option) => option.value === 'update');
-		const node = new Domus();
+		const node = new Domus().getNodeType();
 		const createFields = node.description.properties.find(
 			(property) => property.name === 'advisorFields',
 		).options;

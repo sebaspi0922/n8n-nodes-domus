@@ -1,8 +1,6 @@
 # n8n-nodes-domus
 
-An n8n community node for integrating workflows with **Domus CRM** through
-Domus API 3.0.
-The same package includes a separate **Domus CRM** node for meetings, opportunities, and profiles on `https://apind.domus.la`, and contacts on `https://api.domus.la`. It uses its own token.
+An n8n community node for integrating workflows with **Domus**. Property, owner, advisor, branch, project, and acquisition operations use Domus API 3.0. Meeting, opportunity, and profile operations use `https://apind.domus.la`, and contacts use `https://api.domus.la`, each with its own token.
 
 > [`n8n-nodes-domus@1.0.0`](https://www.npmjs.com/package/n8n-nodes-domus)
 > is the n8n-verified release. `1.1.0` adds Search Map, Separate, Owner
@@ -448,7 +446,9 @@ destination selectors. Image upload, the `amenities_extra` JSON body,
 multilingual descriptions, per-entry owner phone edits, MLS projects,
 partners, and tags stay out.
 
-`1.2.0` adds the Domus CRM node. To publish a later version:
+`1.2.0` adds Meeting, Opportunity, Profile, and Contact.
+
+`1.3.0` keeps those resources on the Domus node. Inventory operations use the Domus API credential. Meetings, opportunities, profiles, and contacts use the Domus CRM API credential. To publish a later version:
 
 ```bash
 npm run release

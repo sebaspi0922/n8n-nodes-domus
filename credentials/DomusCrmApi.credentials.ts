@@ -4,7 +4,7 @@ import type {
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
-import { DOMUS_CRM_BASE_URL } from '../nodes/DomusCrm/constants';
+import { DOMUS_CRM_BASE_URL } from '../nodes/Domus/constants';
 
 export class DomusCrmApi implements ICredentialType {
 	name = 'domusCrmApi';
