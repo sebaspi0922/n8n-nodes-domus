@@ -72,7 +72,7 @@ export async function searchDomusInCreator(page: Page): Promise<void> {
 	const search = page.getByTestId('node-creator-search-bar');
 	await expect(search).toBeVisible();
 	await search.fill('Domus');
-	await expect(page.getByText(/interact with domus crm/i).first()).toBeVisible();
+	await expect(page.getByText(/interact with domus properties/i).first()).toBeVisible();
 
 	const actionsVisible = await page
 		.getByText(/search properties/i)

@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 test('loads Domus with all Property operations in the editor', async ({ page }) => {
 	await openBlankWorkflow(page);
 	await searchDomusInCreator(page);
-	await expect(page.getByText('Search properties')).toBeVisible();
+	await expect(page.getByText('Search properties', { exact: true })).toBeVisible();
 	await expect(page.getByText('Get a property')).toBeVisible();
 	await expect(page.getByText('Create a property')).toBeVisible();
 	await expect(page.getByText('Update a property')).toBeVisible();
