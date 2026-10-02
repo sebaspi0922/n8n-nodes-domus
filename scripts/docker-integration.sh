@@ -56,12 +56,50 @@ docker compose --file "${compose_file}" exec --no-TTY n8n \
 
 docker compose --file "${compose_file}" exec --no-TTY n8n node -e '
 const nodes = require("/tmp/n8n-domus-nodes.json");
-const domus = nodes.find((node) => node.name === "n8n-nodes-domus.domus");
-if (!domus) throw new Error("The Domus node was not loaded by n8n");
-if (!domus.credentials?.some((credential) => credential.name === "domusApi")) {
-	throw new Error("The Domus API credential was not registered");
+// n8n exports one entry per node version and appends a Custom API Call option
+// to every resource and operation list, so that value is ignored below.
+const CUSTOM_API_CALL = "__CUSTOM_API_CALL__";
+const versions = nodes.filter((node) => node.name === "n8n-nodes-domus.domus");
+const v1 = versions.find((node) => node.version === 1);
+const v2 = versions.find((node) => node.version === 2);
+if (!v1 || !v2) throw new Error("Domus node versions 1 and 2 were not both loaded by n8n");
+if (nodes.some((node) => node.name === "n8n-nodes-domus.domusCrm")) {
+	throw new Error("The separate Domus CRM node is still registered");
 }
-const expected = {
+function optionValues(property) {
+	return (property?.options ?? [])
+		.map((option) => option.value)
+		.filter((value) => value !== CUSTOM_API_CALL);
+}
+function operationsFor(node, resource) {
+	return optionValues(node.properties.find((property) =>
+		property.name === "operation" && property.displayOptions?.show?.resource?.includes(resource),
+	));
+}
+function check(node, credentials, expected) {
+	const label = `Domus v${node.version}`;
+	for (const name of credentials) {
+		if (!node.credentials?.some((credential) => credential.name === name)) {
+			throw new Error(`${label}: credential ${name} was not registered`);
+		}
+	}
+	const resources = optionValues(node.properties.find((property) => property.name === "resource"));
+	let operationCount = 0;
+	for (const [resource, names] of Object.entries(expected)) {
+		if (!resources.includes(resource)) {
+			throw new Error(`${label}: resource ${resource} was not registered`);
+		}
+		const registered = operationsFor(node, resource);
+		for (const name of names) {
+			if (!registered.includes(name)) {
+				throw new Error(`${label}: ${resource} operation ${name} was not registered`);
+			}
+		}
+		operationCount += names.length;
+	}
+	console.log(`Loaded n8n-nodes-domus.domus v${node.version} with ${resources.length} resources and ${operationCount} operations`);
+}
+const apiExpected = {
 	property: ["search", "searchMap", "get", "create", "update", "getStatusHistory", "getPortalPublications", "retryPortalPublication", "changeStatus", "separate"],
 	owner: ["search", "get", "create", "update", "unlink"],
 	advisor: ["search", "create", "update"],
@@ -69,89 +107,18 @@ const expected = {
 	project: ["search", "get"],
 	acquisition: ["search", "get"],
 };
-const resources = (domus.properties.find((property) => property.name === "resource")?.options ?? [])
-	.map((option) => option.value);
-for (const resource of Object.keys(expected)) {
-	if (!resources.includes(resource)) {
-		throw new Error(`Resource ${resource} was not registered`);
-	}
+const crmExpected = {
+	meeting: ["search", "get", "create", "update", "confirm"],
+	opportunity: ["search", "get", "create"],
+	profile: ["search"],
+	contact: ["search", "get", "create", "update"],
+};
+check(v1, ["domusApi"], apiExpected);
+check(v2, ["domusApi", "domusCrmApi"], { ...apiExpected, ...crmExpected });
+const profileOperations = operationsFor(v2, "profile");
+if (profileOperations.length !== 1) {
+	throw new Error(`Domus v2: profile should only offer search, found ${profileOperations.join(", ")}`);
 }
-const operationProperties = domus.properties.filter((property) => property.name === "operation");
-function operationsFor(resource) {
-	const property = operationProperties.find((candidate) =>
-		candidate.displayOptions?.show?.resource?.includes(resource),
-	);
-	return (property?.options ?? []).map((option) => option.value);
-}
-for (const [resource, names] of Object.entries(expected)) {
-	const registered = operationsFor(resource);
-	for (const name of names) {
-		if (!registered.includes(name)) {
-			throw new Error(`${resource} operation ${name} was not registered`);
-		}
-	}
-}
-console.log("Loaded n8n-nodes-domus.domus with 6 resources and 23 operations");
-
-const crm = nodes.find((node) => node.name === "n8n-nodes-domus.domusCrm");
-if (!crm) throw new Error("The Domus CRM node was not loaded by n8n");
-if (!crm.credentials?.some((credential) => credential.name === "domusCrmApi")) {
-	throw new Error("The Domus CRM API credential was not registered");
-}
-const crmResources = (crm.properties.find((property) => property.name === "resource")?.options ?? [])
-	.map((option) => option.value);
-if (!crmResources.includes("meeting")) {
-	throw new Error("The Meeting resource was not registered");
-}
-if (!crmResources.includes("opportunity")) {
-	throw new Error("The Opportunity resource was not registered");
-}
-if (!crmResources.includes("profile")) {
-	throw new Error("The Profile resource was not registered");
-}
-const crmOperationProperty = crm.properties.find((property) =>
-	property.name === "operation" && property.displayOptions?.show?.resource?.includes("meeting"),
-);
-const crmOperations = (crmOperationProperty?.options ?? []).map((option) => option.value);
-for (const name of ["search", "get", "create", "update", "confirm"]) {
-	if (!crmOperations.includes(name)) {
-		throw new Error(`meeting operation ${name} was not registered`);
-	}
-}
-const opportunityOperationProperty = crm.properties.find((property) =>
-	property.name === "operation" && property.displayOptions?.show?.resource?.includes("opportunity"),
-);
-const opportunityOperations = (opportunityOperationProperty?.options ?? []).map((option) => option.value);
-for (const name of ["search", "get", "create"]) {
-	if (!opportunityOperations.includes(name)) {
-		throw new Error(`opportunity operation ${name} was not registered`);
-	}
-}
-const profileOperationProperty = crm.properties.find((property) =>
-	property.name === "operation" && property.displayOptions?.show?.resource?.includes("profile"),
-);
-const profileOperations = (profileOperationProperty?.options ?? []).map((option) => option.value);
-if (!profileOperations.includes("search")) {
-	throw new Error("profile operation search was not registered");
-}
-for (const name of profileOperations) {
-	if (name !== "search") {
-		throw new Error(`profile operation ${name} was not requested`);
-	}
-}
-if (!crmResources.includes("contact")) {
-	throw new Error("The Contact resource was not registered");
-}
-const contactOperationProperty = crm.properties.find((property) =>
-	property.name === "operation" && property.displayOptions?.show?.resource?.includes("contact"),
-);
-const contactOperations = (contactOperationProperty?.options ?? []).map((option) => option.value);
-for (const name of ["search", "get", "create", "update"]) {
-	if (!contactOperations.includes(name)) {
-		throw new Error(`contact operation ${name} was not registered`);
-	}
-}
-console.log("Loaded n8n-nodes-domus.domusCrm with Meeting search, get, create, update, and confirm, Opportunity search, get, and create, Profile search, and Contact search, get, create, and update");
 '
 
 docker compose --file "${compose_file}" exec --no-TTY n8n sh -c \
