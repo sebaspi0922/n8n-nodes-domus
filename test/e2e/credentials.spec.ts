@@ -32,5 +32,7 @@ test('can save a Testing credential created outside the screenshotable form', as
 
 	await openBlankWorkflow(page);
 	await addDomusNode(page, 'Search properties');
-	await expect(page.getByTestId('setup-credential-button').or(page.getByText(/domus api/i).first())).toBeVisible();
+	await expect(page.getByTestId('ndv').getByRole('combobox', { name: 'Select Credential' })).toHaveValue(
+		/Domus E2E/,
+	);
 });

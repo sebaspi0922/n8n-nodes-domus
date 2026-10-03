@@ -34,8 +34,16 @@ test('shows a token field and no environment selector on the CRM credential', as
 	await addDomusCrmNode(page);
 	await expectDomusCrmNodeOpen(page);
 
-	await expect(page.getByTestId('setup-credential-button')).toBeVisible();
-	await page.getByTestId('setup-credential-button').click();
+	// Once any Domus credential is saved, n8n shows a credential dropdown instead of the setup button.
+	const setupButton = page.getByTestId('setup-credential-button');
+	const credentialSelect = page.getByTestId('node-credentials-select');
+	await expect(setupButton.or(credentialSelect)).toBeVisible();
+	if (await setupButton.isVisible()) {
+		await setupButton.click();
+	} else {
+		await credentialSelect.click();
+		await page.getByTestId('node-credentials-select-item-new').click();
+	}
 
 	const modal = page.getByTestId('editCredential-modal');
 	await expect(modal).toBeVisible();
@@ -127,7 +135,7 @@ test('shows opportunity search filters without meeting fields', async ({ page })
 
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
-	await expect(panel.getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Opportunity');
+	await expect(panel.getByTestId('parameter-input-resource').getByRole('combobox')).toHaveValue('Opportunity');
 	await expect(panel.getByText('Contact', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Activity Status', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Opportunity Status', { exact: true })).toBeVisible();
@@ -195,7 +203,7 @@ test('shows profile search filters without meeting or opportunity fields', async
 
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
-	await expect(panel.getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Profile');
+	await expect(panel.getByTestId('parameter-input-resource').getByRole('combobox')).toHaveValue('Profile');
 	await expect(panel.getByTestId('parameter-input-branch')).toBeVisible();
 	await expect(panel.getByTestId('parameter-input-name')).toBeVisible();
 	await expect(panel.getByTestId('parameter-input-altCode')).toBeVisible();
@@ -219,7 +227,7 @@ test('shows contact search name and phone without other resource fields', async 
 
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
-	await expect(panel.getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Contact');
+	await expect(panel.getByTestId('parameter-input-resource').getByRole('combobox')).toHaveValue('Contact');
 	await expect(panel.getByTestId('parameter-input-name')).toBeVisible();
 	await expect(panel.getByTestId('parameter-input-phone')).toBeVisible();
 	await expect(panel.getByText('Name', { exact: true })).toBeVisible();

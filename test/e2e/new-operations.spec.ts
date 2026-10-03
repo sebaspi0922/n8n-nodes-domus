@@ -61,7 +61,7 @@ test('shows Branch Search as its own resource', async ({ page }) => {
 	await addDomusNode(page, 'Search branches');
 	await expectDomusNodeOpen(page);
 	await expect(page.getByText('Return All')).toBeVisible();
-	await expect(page.getByTestId('ndv').getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Branch');
+	await expect(page.getByTestId('ndv').getByTestId('parameter-input-resource').getByRole('combobox')).toHaveValue('Branch');
 });
 
 test('shows the new property catalogs on Create without sending extra-amenities JSON', async ({
