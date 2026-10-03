@@ -448,7 +448,12 @@ partners, and tags stay out.
 
 `1.2.0` adds Meeting, Opportunity, Profile, and Contact.
 
-`1.3.0` keeps those resources on the Domus node. Inventory operations use the Domus API credential. Meetings, opportunities, profiles, and contacts use the Domus CRM API credential. To publish a later version:
+`1.3.0` keeps those resources on the Domus node. Inventory operations use the Domus API credential. Meetings, opportunities, profiles, and contacts use the Domus CRM API credential.
+
+`1.3.1` drops the `VersionedNodeType` split (`DomusV1.ts`, `DomusV2.ts`) that the
+n8n community node scanner rejects. The whole node now lives in
+`Domus.node.ts` with light versioning (`version: [1, 2]`, default `2`), so
+workflows saved on version 1 keep loading. To publish a later version:
 
 ```bash
 npm run release

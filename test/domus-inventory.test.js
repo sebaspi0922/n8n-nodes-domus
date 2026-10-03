@@ -13,7 +13,7 @@ const {
 } = require('../dist/nodes/Domus/methods/listSearch.js');
 
 const operationFor = (resource) => {
-	const node = new Domus().getNodeType();
+	const node = new Domus();
 	return node.description.properties.find(
 		(property) =>
 			property.name === 'operation' &&
@@ -22,7 +22,7 @@ const operationFor = (resource) => {
 };
 
 const propertiesFor = (resource, name) => {
-	const node = new Domus().getNodeType();
+	const node = new Domus();
 	return node.description.properties.find(
 		(property) =>
 			property.name === name && property.displayOptions?.show?.resource?.includes(resource),
@@ -51,24 +51,33 @@ const createListSearchContext = ({ data, parameters = {} }) => {
 };
 
 describe('Domus node version', () => {
-	it('keeps version 1 on the original resources and a single credential', () => {
-		const node = new Domus().getNodeType(1);
+	it('is a single-file node, not a VersionedNodeType with split version files', () => {
+		const fs = require('node:fs');
+		const path = require('node:path');
+		const nodeDir = path.join(__dirname, '..', 'nodes', 'Domus');
+		const node = new Domus();
 
-		assert.equal(node.description.version, 1);
-		assert.equal(node.description.name, 'domus');
-		assert.deepEqual(
-			node.description.properties.find((property) => property.name === 'resource').options.map(
-				(option) => option.value,
-			),
-			['acquisition', 'advisor', 'branch', 'owner', 'project', 'property'],
+		assert.equal(typeof node.getNodeType, 'undefined');
+		assert.equal(node.nodeVersions, undefined);
+		assert.equal(fs.existsSync(path.join(nodeDir, 'DomusV1.ts')), false);
+		assert.equal(fs.existsSync(path.join(nodeDir, 'DomusV2.ts')), false);
+		assert.doesNotMatch(
+			fs.readFileSync(path.join(nodeDir, 'Domus.node.ts'), 'utf8'),
+			/VersionedNodeType|eslint-disable/,
 		);
-		assert.deepEqual(node.description.credentials, [{ name: 'domusApi', required: true }]);
 	});
 
-	it('adds CRM resources on version 2 with both credentials', () => {
-		const node = new Domus().getNodeType();
+	it('keeps version 1 workflows loadable and defaults new nodes to version 2', () => {
+		const node = new Domus();
 
-		assert.equal(node.description.version, 2);
+		assert.deepEqual(node.description.version, [1, 2]);
+		assert.equal(node.description.defaultVersion, 2);
+		assert.equal(node.description.name, 'domus');
+	});
+
+	it('exposes the property and CRM resources with both credentials', () => {
+		const node = new Domus();
+
 		assert.deepEqual(
 			node.description.properties.find((property) => property.name === 'resource').options.map(
 				(option) => option.value,
@@ -106,7 +115,7 @@ describe('Property Search Map', () => {
 	});
 
 	it('paginates with the map query parameters and the agency header', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const returnAll = node.description.properties.find(
 			(property) =>
 				property.name === 'returnAll' &&
@@ -168,7 +177,7 @@ describe('Property Search Map', () => {
 	});
 
 	it('sends polygon and destination on the map filters only', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const filters = node.description.properties.find(
 			(property) =>
 				property.name === 'filters' &&
@@ -190,7 +199,7 @@ describe('Property Search Map', () => {
 describe('Property Separate', () => {
 	it('uses the Guzzle detach path and the detach-status catalog', () => {
 		const separate = operationFor('property').options.find((option) => option.value === 'separate');
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const status = node.description.properties.find((property) => property.name === 'separationStatus');
 		const fields = node.description.properties.find((property) => property.name === 'separateFields')
 			.options;
@@ -249,7 +258,7 @@ describe('Advisor create and update', () => {
 		const operation = operationFor('advisor');
 		const create = operation.options.find((option) => option.value === 'create');
 		const update = operation.options.find((option) => option.value === 'update');
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const createFields = node.description.properties.find(
 			(property) => property.name === 'advisorFields',
 		).options;

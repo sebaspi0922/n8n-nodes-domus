@@ -168,11 +168,11 @@ describe('Domus CRM API credentials', () => {
 
 describe('Domus CRM meeting node', () => {
 	it('keeps Branch and the CRM resources on the current Domus node', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const resource = getProperty(node.description.properties, 'resource');
 
 		assert.equal(node.description.name, 'domus');
-		assert.equal(node.description.version, 2);
+		assert.deepEqual(node.description.version, [1, 2]);
 		assert.deepEqual(
 			resource.options.map((option) => option.value),
 			DOMUS_RESOURCES,
@@ -180,13 +180,13 @@ describe('Domus CRM meeting node', () => {
 	});
 
 	it('keeps CRM calls on the CRM host and selects the CRM credential for those resources', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const meetingSearch = operationFor(node, 'meeting').options.find((option) => option.value === 'search');
 		const [apiCredential, crmCredential] = node.description.credentials;
 
 		assert.equal(node.description.displayName, 'Domus');
 		assert.equal(node.description.name, 'domus');
-		assert.equal(node.description.version, 2);
+		assert.deepEqual(node.description.version, [1, 2]);
 		assert.equal(node.description.usableAsTool, true);
 		assert.equal(node.execute, undefined);
 		assert.equal(DOMUS_CRM_BASE_URL, 'https://apind.domus.la');
@@ -209,7 +209,7 @@ describe('Domus CRM meeting node', () => {
 	});
 
 	it('routes Meeting Search to GET /meetings and splits data into items', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const resource = getProperty(node.description.properties, 'resource');
 		const operation = operationFor(node, 'meeting');
 		const search = operation.options.find((option) => option.value === 'search');
@@ -247,7 +247,7 @@ describe('Domus CRM meeting node', () => {
 	});
 
 	it('routes Meeting Get to GET /meetings/{meeting_id}', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = operationFor(node, 'meeting');
 		const get = operation.options.find((option) => option.value === 'get');
 		const meetingId = getProperty(node.description.properties, 'meetingId');
@@ -264,7 +264,7 @@ describe('Domus CRM meeting node', () => {
 	});
 
 	it('shows Search and Get fields on separate operations', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const searchNames = ['startDate', 'endDate', 'profile', 'meetingType'];
 
@@ -331,7 +331,7 @@ describe('Domus CRM meeting node', () => {
 	});
 
 	it('routes Create, Update, and Confirm as form bodies on separate operations', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const operation = operationFor(node, 'meeting');
 		const shownFor = (name) =>
@@ -512,7 +512,7 @@ describe('Domus CRM opportunity node', () => {
 		);
 
 	it('routes Opportunity Search, Get, and Create without Meeting fields or pagination', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const operation = opportunityOperation(node);
 		const search = operation.options.find((option) => option.value === 'search');
@@ -708,8 +708,8 @@ describe('Domus CRM profile node', () => {
 		);
 
 	it('routes Profile Search to GET /profiles and keeps Meeting and Opportunity operations', () => {
-		const domus = new Domus().getNodeType();
-		const node = new Domus().getNodeType();
+		const domus = new Domus();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const domusResource = getProperty(domus.description.properties, 'resource');
 		const meeting = operationFor(node, 'meeting');
@@ -842,8 +842,8 @@ describe('Domus CRM contact node', () => {
 		);
 
 	it('routes Contact Search, Get, Create, and Update on https://api.domus.la', () => {
-		const domus = new Domus().getNodeType();
-		const node = new Domus().getNodeType();
+		const domus = new Domus();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const domusResource = getProperty(domus.description.properties, 'resource');
 		const meeting = operationFor(node, 'meeting');
@@ -869,8 +869,8 @@ describe('Domus CRM contact node', () => {
 			domusResource.options.map((option) => option.value),
 			DOMUS_RESOURCES,
 		);
-		assert.equal(domus.description.version, 2);
-		assert.equal(node.description.version, 2);
+		assert.deepEqual(domus.description.version, [1, 2]);
+		assert.deepEqual(node.description.version, [1, 2]);
 		assert.equal(DOMUS_CRM_BASE_URL, 'https://apind.domus.la');
 		assert.equal(node.description.requestDefaults.baseURL, DOMUS_BASE_URL_EXPRESSION);
 		assert.equal(DOMUS_CONTACTS_BASE_URL, 'https://api.domus.la');
