@@ -111,12 +111,12 @@ describe('Domus property search node', () => {
 		assert.equal(DOMUS_TEST_BASE_URL, 'https://newapi.domus.la');
 		assert.equal(DOMUS_PRODUCTION_BASE_URL, 'https://api.domus.la/3.0');
 
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		assert.equal(node.description.requestDefaults.baseURL, DOMUS_BASE_URL_EXPRESSION);
 	});
 
 	it('routes Inmueble → Buscar to GET /properties and emits each data item', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const resource = getProperty(node.description.properties, 'resource');
 		const operation = getProperty(node.description.properties, 'operation');
 		const search = operation.options.find((option) => option.value === 'search');
@@ -145,7 +145,7 @@ describe('Domus property search node', () => {
 	});
 
 	it('configures automatic pagination and a bounded result mode', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const returnAll = getProperty(properties, 'returnAll');
 		const limit = getProperty(properties, 'limit');
@@ -203,7 +203,7 @@ describe('Domus property search node', () => {
 	});
 
 	it('maps Domus headers and initial filters correctly', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const filters = getProperty(properties, 'filters').options;
 
@@ -263,7 +263,7 @@ describe('Domus property search node', () => {
 	});
 
 	it('exposes searchable dynamic filters with a manual-code fallback', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const filters = getProperty(node.description.properties, 'filters').options;
 		const expectedMethods = {
 			amenities: 'searchAmenities',
@@ -433,7 +433,7 @@ describe('Domus property search node', () => {
 
 describe('Domus property get operation', () => {
 	it('registers Inmueble → Obtener with the documented detail endpoint', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = getProperty(node.description.properties, 'operation');
 		const get = operation.options.find((option) => option.value === 'get');
 
@@ -448,7 +448,7 @@ describe('Domus property get operation', () => {
 	});
 
 	it('requires codpro and supports the optional idpro path segment', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const propertyCode = getProperty(node.description.properties, 'propertyCode');
 		const propertyId = getProperty(node.description.properties, 'propertyId');
 
@@ -468,7 +468,7 @@ describe('Domus property get operation', () => {
 	});
 
 	it('reuses Domus authentication and maps every documented detail header', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const getOptions = getProperty(properties, 'getOptions').options;
 
@@ -494,7 +494,7 @@ describe('Domus property get operation', () => {
 	});
 
 	it('lets n8n propagate authentication, not-found, HTTP, and network errors', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = getProperty(node.description.properties, 'operation');
 		const get = operation.options.find((option) => option.value === 'get');
 
@@ -506,7 +506,7 @@ describe('Domus property get operation', () => {
 
 describe('Domus property status history operation', () => {
 	it('registers GET /properties/status/{codpro} and splits nested history rows', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = getProperty(node.description.properties, 'operation');
 		const getStatusHistory = operation.options.find(
 			(option) => option.value === 'getStatusHistory',
@@ -521,7 +521,7 @@ describe('Domus property status history operation', () => {
 	});
 
 	it('paginates through the nested Domus history envelope', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const returnAll = getProperty(properties, 'historyReturnAll');
 		const pagination = returnAll.routing.operations.pagination;
@@ -567,7 +567,7 @@ describe('Domus property status history operation', () => {
 
 describe('Domus property change status operation', () => {
 	it('registers PUT /properties/status/{codpro} as form-urlencoded', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = getProperty(node.description.properties, 'operation');
 		const changeStatus = operation.options.find((option) => option.value === 'changeStatus');
 
@@ -586,7 +586,7 @@ describe('Domus property change status operation', () => {
 	});
 
 	it('requires status and maps optional form fields to the documented body keys', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const status = getProperty(properties, 'status');
 		const extraFields = getProperty(properties, 'changeStatusFields').options;
@@ -638,7 +638,7 @@ describe('Domus property change status operation', () => {
 
 describe('Domus property portal operations', () => {
 	it('registers the publications endpoint with idpro first and codpro optional', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = getProperty(node.description.properties, 'operation');
 		const publications = operation.options.find(
 			(option) => option.value === 'getPortalPublications',
@@ -653,7 +653,7 @@ describe('Domus property portal operations', () => {
 	});
 
 	it('requires idpro and maps the agency header for publications', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 
 		assert.equal(getProperty(properties, 'portalPropertyId').required, true);
@@ -665,7 +665,7 @@ describe('Domus property portal operations', () => {
 	});
 
 	it('uses the documented retry path, not the colliding badge path', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = getProperty(node.description.properties, 'operation');
 		const retry = operation.options.find((option) => option.value === 'retryPortalPublication');
 
@@ -677,7 +677,7 @@ describe('Domus property portal operations', () => {
 	});
 
 	it('sends the retry transaction as the documented method query parameter', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const retryMethod = getProperty(node.description.properties, 'retryMethod');
 
 		assert.equal(retryMethod.required, true);
@@ -694,7 +694,7 @@ describe('Domus property portal operations', () => {
 	});
 
 	it('reuses the shared property code field for the retry operation', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const propertyCode = getProperty(node.description.properties, 'propertyCode');
 
 		assert.ok(propertyCode.displayOptions.show.operation.includes('retryPortalPublication'));
@@ -746,7 +746,7 @@ describe('Domus advisor and branch locators', () => {
 	});
 
 	it('wires advisor and branch locators into every operation that sends those codes', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const filters = getProperty(properties, 'filters').options;
 		const createFields = getProperty(properties, 'additionalFields').options;
@@ -767,7 +767,7 @@ describe('Domus advisor and branch locators', () => {
 
 describe('Domus property create operation', () => {
 	it('registers POST /properties as form-urlencoded and unwraps property', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = getProperty(node.description.properties, 'operation');
 		const create = operation.options.find((option) => option.value === 'create');
 
@@ -783,7 +783,7 @@ describe('Domus property create operation', () => {
 	});
 
 	it('requires city, address, business type, and property type', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 
 		assert.equal(getProperty(properties, 'city').required, true);
@@ -803,7 +803,7 @@ describe('Domus property create operation', () => {
 	});
 
 	it('maps additional create fields to documented form keys', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const extraFields = getProperty(node.description.properties, 'additionalFields').options;
 
 		assert.deepEqual(
@@ -890,7 +890,7 @@ describe('Domus property create operation', () => {
 
 describe('Domus property update operation', () => {
 	it('registers PUT /properties/{codpro} as form-urlencoded without a status field', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = getProperty(node.description.properties, 'operation');
 		const update = operation.options.find((option) => option.value === 'update');
 		const extraFields = getProperty(node.description.properties, 'updateFields').options;
@@ -913,7 +913,7 @@ describe('Domus property update operation', () => {
 });
 
 const getOwnerOperation = (value) => {
-	const node = new Domus().getNodeType();
+	const node = new Domus();
 	const operation = node.description.properties.find(
 		(property) =>
 			property.name === 'operation' &&
@@ -963,7 +963,7 @@ describe('Domus owner resource', () => {
 	});
 
 	it('maps every documented search filter to its query parameter', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const filters = getResourceProperty(node.description.properties, 'owner', 'filters').options;
 
 		assert.deepEqual(
@@ -994,7 +994,7 @@ describe('Domus owner resource', () => {
 	});
 
 	it('follows Domus pagination for owners while repeating the active filters', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const returnAll = getResourceProperty(node.description.properties, 'owner', 'returnAll');
 		const pagination = returnAll.routing.operations.pagination;
 
@@ -1011,7 +1011,7 @@ describe('Domus owner resource', () => {
 	});
 
 	it('requires name, last name, and document on create and maps the optional fields', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const required = ['name', 'lastName', 'document'].map((name) =>
 			getResourceProperty(properties, 'owner', name),
@@ -1061,7 +1061,7 @@ describe('Domus owner resource', () => {
 	});
 
 	it('lets update rewrite the identity fields and replace the phone list', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const extraFields = getResourceProperty(
 			node.description.properties,
 			'owner',
@@ -1082,7 +1082,7 @@ describe('Domus owner resource', () => {
 	});
 
 	it('offers the owner code and property status filters on get', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const document = getResourceProperty(properties, 'owner', 'ownerDocument');
 		const options = getResourceProperty(properties, 'owner', 'ownerGetOptions').options;
@@ -1118,7 +1118,7 @@ describe('Domus owner resource', () => {
 
 describe('Domus advisor resource', () => {
 	const getAdvisorOperation = () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = node.description.properties.find(
 			(property) =>
 				property.name === 'operation' &&
@@ -1129,7 +1129,7 @@ describe('Domus advisor resource', () => {
 	};
 
 	it('registers Advisor as a resource alongside Owner and Property', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const resource = getProperty(node.description.properties, 'resource');
 
 		assert.deepEqual(resource.options, [
@@ -1166,7 +1166,7 @@ describe('Domus advisor resource', () => {
 	});
 
 	it('maps every documented advisor filter to its query parameter', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const filters = getResourceProperty(node.description.properties, 'advisor', 'filters')
 			.options;
 
@@ -1195,7 +1195,7 @@ describe('Domus advisor resource', () => {
 	});
 
 	it('bounds results client-side because Domus does not paginate advisors', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const returnAll = getResourceProperty(properties, 'advisor', 'returnAll');
 		const limit = getResourceProperty(properties, 'advisor', 'limit');
@@ -1213,7 +1213,7 @@ describe('Domus advisor resource', () => {
 
 describe('Domus project resource', () => {
 	const getProjectOperation = (value) => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const operation = node.description.properties.find(
 			(property) =>
 				property.name === 'operation' &&
@@ -1241,7 +1241,7 @@ describe('Domus project resource', () => {
 	});
 
 	it('identifies a project by assigned code with unique code as the fallback', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const code = getResourceProperty(properties, 'project', 'projectCode');
 		const uniqueCode = getResourceProperty(properties, 'project', 'projectUniqueCode');
@@ -1254,7 +1254,7 @@ describe('Domus project resource', () => {
 	});
 
 	it('maps every documented project filter to its query parameter', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const filters = getResourceProperty(node.description.properties, 'project', 'filters')
 			.options;
 
@@ -1284,7 +1284,7 @@ describe('Domus project resource', () => {
 	});
 
 	it('follows the Laravel envelope while repeating the active project filters', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const returnAll = getResourceProperty(node.description.properties, 'project', 'returnAll');
 		const pagination = returnAll.routing.operations.pagination;
 
@@ -1326,7 +1326,7 @@ describe('Domus project resource', () => {
 
 describe('Domus acquisition resource', () => {
 	const getAcquisitionOperation = () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		return node.description.properties.find(
 			(property) =>
 				property.name === 'operation' &&
@@ -1352,7 +1352,7 @@ describe('Domus acquisition resource', () => {
 	});
 
 	it('identifies an acquisition by assigned code with unique code as the fallback', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const properties = node.description.properties;
 		const code = getResourceProperty(properties, 'acquisition', 'acquisitionCode');
 		const uniqueCode = getResourceProperty(properties, 'acquisition', 'acquisitionUniqueCode');
@@ -1363,7 +1363,7 @@ describe('Domus acquisition resource', () => {
 	});
 
 	it('maps every documented acquisition filter to its query parameter', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const filters = getResourceProperty(node.description.properties, 'acquisition', 'filters')
 			.options;
 
@@ -1403,7 +1403,7 @@ describe('Domus acquisition resource', () => {
 	});
 
 	it('repeats every acquisition filter across paginated requests', () => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		const returnAll = getResourceProperty(
 			node.description.properties,
 			'acquisition',
@@ -1439,7 +1439,7 @@ describe('Domus acquisition resource', () => {
 
 describe('Domus resource isolation', () => {
 	const resolve = (values) => {
-		const node = new Domus().getNodeType();
+		const node = new Domus();
 		return getNodeParameters(
 			node.description.properties,
 			values,
