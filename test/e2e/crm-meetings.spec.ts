@@ -34,8 +34,16 @@ test('shows a token field and no environment selector on the CRM credential', as
 	await addDomusCrmNode(page);
 	await expectDomusCrmNodeOpen(page);
 
-	await expect(page.getByTestId('setup-credential-button')).toBeVisible();
-	await page.getByTestId('setup-credential-button').click();
+	// Once any Domus credential is saved, n8n shows a credential dropdown instead of the setup button.
+	const setupButton = page.getByTestId('setup-credential-button');
+	const credentialSelect = page.getByTestId('node-credentials-select');
+	await expect(setupButton.or(credentialSelect)).toBeVisible();
+	if (await setupButton.isVisible()) {
+		await setupButton.click();
+	} else {
+		await credentialSelect.click();
+		await page.getByTestId('node-credentials-select-item-new').click();
+	}
 
 	const modal = page.getByTestId('editCredential-modal');
 	await expect(modal).toBeVisible();
@@ -54,7 +62,7 @@ test('shows meeting search dates and the type selector', async ({ page }) => {
 	await expect(page.getByText('Meeting Type', { exact: true })).toBeVisible();
 	const profile = page.getByTestId('parameter-input-profile');
 	await expect(profile).toBeVisible();
-	await expect(profile.getByText('From List', { exact: true })).toBeVisible();
+	await expect(profile.getByTestId('rlc-mode-selector').getByRole('combobox')).toHaveValue(/from list/i);
 	await expect(page.getByTestId('parameter-input-branch')).toHaveCount(0);
 	await expect(page.getByTestId('parameter-input-name')).toHaveCount(0);
 	await expect(page.getByTestId('parameter-input-altCode')).toHaveCount(0);
@@ -62,7 +70,8 @@ test('shows meeting search dates and the type selector', async ({ page }) => {
 	await expect(page.getByText('Source', { exact: true })).toHaveCount(0);
 	await expect(page.getByText('Meeting ID', { exact: true })).toHaveCount(0);
 	await expect(page.getByText('Finish Date', { exact: true })).toHaveCount(0);
-	await expect(page.getByText('Notes', { exact: true })).toHaveCount(0);
+	// n8n keeps its own hidden Notes setting in the panel, so only visible matches count.
+	await expect(page.getByText('Notes', { exact: true }).filter({ visible: true })).toHaveCount(0);
 	await expect(page.getByText('Confirm Attendance', { exact: true })).toHaveCount(0);
 });
 
@@ -74,7 +83,7 @@ test('shows meeting create fields without search or confirm fields', async ({ pa
 	await expect(panel).toBeVisible();
 	await expect(panel.getByText('Start Date', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Finish Date', { exact: true })).toBeVisible();
-	await expect(panel.getByText('Notes', { exact: true })).toBeVisible();
+	await expect(panel.getByText('Notes', { exact: true }).filter({ visible: true })).toBeVisible();
 	await expect(panel.getByText('Meeting Type', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Place', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Property Code', { exact: true })).toBeVisible();
@@ -101,7 +110,7 @@ test('shows meeting update fields without create or confirm fields', async ({ pa
 	await expect(panel.getByText('Comment', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Opportunity Status', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Start Date', { exact: true })).toHaveCount(0);
-	await expect(panel.getByText('Notes', { exact: true })).toHaveCount(0);
+	await expect(panel.getByText('Notes', { exact: true }).filter({ visible: true })).toHaveCount(0);
 	await expect(panel.getByText('Place', { exact: true })).toHaveCount(0);
 	await expect(panel.getByText('Confirm Attendance', { exact: true })).toHaveCount(0);
 });
@@ -115,7 +124,7 @@ test('shows meeting confirm fields without create or update fields', async ({ pa
 	await expect(panel.getByText('Meeting ID', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Confirm Attendance', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Start Date', { exact: true })).toHaveCount(0);
-	await expect(panel.getByText('Notes', { exact: true })).toHaveCount(0);
+	await expect(panel.getByText('Notes', { exact: true }).filter({ visible: true })).toHaveCount(0);
 	await expect(panel.getByText('Status', { exact: true })).toHaveCount(0);
 	await expect(panel.getByText('Result', { exact: true })).toHaveCount(0);
 });
@@ -126,7 +135,7 @@ test('shows opportunity search filters without meeting fields', async ({ page })
 
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
-	await expect(panel.getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Opportunity');
+	await expect(panel.getByTestId('parameter-input-resource').getByRole('combobox')).toHaveValue('Opportunity');
 	await expect(panel.getByText('Contact', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Activity Status', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Opportunity Status', { exact: true })).toBeVisible();
@@ -139,7 +148,7 @@ test('shows opportunity search filters without meeting fields', async ({ page })
 	await expect(panel.getByText('Start Date', { exact: true })).toHaveCount(0);
 	await expect(panel.getByText('Meeting Type', { exact: true })).toHaveCount(0);
 	await expect(panel.getByText('Meeting ID', { exact: true })).toHaveCount(0);
-	await expect(panel.getByText('Notes', { exact: true })).toHaveCount(0);
+	await expect(panel.getByText('Notes', { exact: true }).filter({ visible: true })).toHaveCount(0);
 	await expect(panel.getByText('Profile', { exact: true })).toHaveCount(0);
 	await expect(panel.getByTestId('parameter-input-branch')).toHaveCount(0);
 	await expect(panel.getByText('Alternative Code', { exact: true })).toHaveCount(0);
@@ -181,7 +190,7 @@ test('shows opportunity create fields without executing a write', async ({ page 
 	await expect(panel.getByText('Opportunity ID', { exact: true })).toHaveCount(0);
 	await expect(panel.getByText('Last Follow Update From', { exact: true })).toHaveCount(0);
 	await expect(panel.getByText('Start Date', { exact: true })).toHaveCount(0);
-	await expect(panel.getByText('Notes', { exact: true })).toHaveCount(0);
+	await expect(panel.getByText('Notes', { exact: true }).filter({ visible: true })).toHaveCount(0);
 	await expect(panel.getByText('Meeting Type', { exact: true })).toHaveCount(0);
 	await expect(panel.getByText('Profile', { exact: true })).toHaveCount(0);
 	await expect(panel.getByTestId('parameter-input-branch')).toHaveCount(0);
@@ -194,7 +203,7 @@ test('shows profile search filters without meeting or opportunity fields', async
 
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
-	await expect(panel.getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Profile');
+	await expect(panel.getByTestId('parameter-input-resource').getByRole('combobox')).toHaveValue('Profile');
 	await expect(panel.getByTestId('parameter-input-branch')).toBeVisible();
 	await expect(panel.getByTestId('parameter-input-name')).toBeVisible();
 	await expect(panel.getByTestId('parameter-input-altCode')).toBeVisible();
@@ -218,7 +227,7 @@ test('shows contact search name and phone without other resource fields', async 
 
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
-	await expect(panel.getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Contact');
+	await expect(panel.getByTestId('parameter-input-resource').getByRole('combobox')).toHaveValue('Contact');
 	await expect(panel.getByTestId('parameter-input-name')).toBeVisible();
 	await expect(panel.getByTestId('parameter-input-phone')).toBeVisible();
 	await expect(panel.getByText('Name', { exact: true })).toBeVisible();

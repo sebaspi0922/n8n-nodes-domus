@@ -72,7 +72,7 @@ export async function searchDomusInCreator(page: Page): Promise<void> {
 	const search = page.getByTestId('node-creator-search-bar');
 	await expect(search).toBeVisible();
 	await search.fill('Domus');
-	await expect(page.getByText(/interact with domus crm/i).first()).toBeVisible();
+	await expect(page.getByText(/interact with domus properties/i).first()).toBeVisible();
 
 	const actionsVisible = await page
 		.getByText(/search properties/i)
@@ -204,7 +204,7 @@ export async function addDomusCrmNode(
 export async function expectDomusCrmNodeOpen(page: Page): Promise<void> {
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
-	await expect(panel.getByRole('combobox', { name: 'Select' }).first()).toHaveValue('Meeting');
+	await expect(panel.getByTestId('parameter-input-resource').getByRole('combobox')).toHaveValue('Meeting');
 	await expect(panel.getByText('Start Date', { exact: true })).toBeVisible();
 }
 
