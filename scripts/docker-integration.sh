@@ -56,13 +56,19 @@ docker compose --file "${compose_file}" exec --no-TTY n8n \
 
 docker compose --file "${compose_file}" exec --no-TTY n8n node -e '
 const nodes = require("/tmp/n8n-domus-nodes.json");
-// n8n exports one entry per node version and appends a Custom API Call option
-// to every resource and operation list, so that value is ignored below.
+// Domus is a single node type with version [1, 2], so n8n exports one entry for
+// it. n8n appends a Custom API Call option to every resource and operation list,
+// so that value is ignored below.
 const CUSTOM_API_CALL = "__CUSTOM_API_CALL__";
-const versions = nodes.filter((node) => node.name === "n8n-nodes-domus.domus");
-const v1 = versions.find((node) => node.version === 1);
-const v2 = versions.find((node) => node.version === 2);
-if (!v1 || !v2) throw new Error("Domus node versions 1 and 2 were not both loaded by n8n");
+const entries = nodes.filter((node) => node.name === "n8n-nodes-domus.domus");
+if (entries.length !== 1) {
+	throw new Error(`Expected one n8n-nodes-domus.domus entry, found ${entries.length}`);
+}
+const domus = entries[0];
+const loadedVersions = [domus.version].flat();
+if (!loadedVersions.includes(1) || !loadedVersions.includes(2)) {
+	throw new Error(`Domus node versions 1 and 2 were not both loaded by n8n (found ${loadedVersions.join(", ")})`);
+}
 if (nodes.some((node) => node.name === "n8n-nodes-domus.domusCrm")) {
 	throw new Error("The separate Domus CRM node is still registered");
 }
@@ -77,7 +83,7 @@ function operationsFor(node, resource) {
 	));
 }
 function check(node, credentials, expected) {
-	const label = `Domus v${node.version}`;
+	const label = `Domus v${loadedVersions.join(", v")}`;
 	for (const name of credentials) {
 		if (!node.credentials?.some((credential) => credential.name === name)) {
 			throw new Error(`${label}: credential ${name} was not registered`);
@@ -97,7 +103,7 @@ function check(node, credentials, expected) {
 		}
 		operationCount += names.length;
 	}
-	console.log(`Loaded n8n-nodes-domus.domus v${node.version} with ${resources.length} resources and ${operationCount} operations`);
+	console.log(`Loaded n8n-nodes-domus.domus (${label}) with ${resources.length} resources and ${operationCount} operations`);
 }
 const apiExpected = {
 	property: ["search", "searchMap", "get", "create", "update", "getStatusHistory", "getPortalPublications", "retryPortalPublication", "changeStatus", "separate"],
@@ -113,11 +119,10 @@ const crmExpected = {
 	profile: ["search"],
 	contact: ["search", "get", "create", "update"],
 };
-check(v1, ["domusApi"], apiExpected);
-check(v2, ["domusApi", "domusCrmApi"], { ...apiExpected, ...crmExpected });
-const profileOperations = operationsFor(v2, "profile");
+check(domus, ["domusApi", "domusCrmApi"], { ...apiExpected, ...crmExpected });
+const profileOperations = operationsFor(domus, "profile");
 if (profileOperations.length !== 1) {
-	throw new Error(`Domus v2: profile should only offer search, found ${profileOperations.join(", ")}`);
+	throw new Error(`Domus: profile should only offer search, found ${profileOperations.join(", ")}`);
 }
 '
 
