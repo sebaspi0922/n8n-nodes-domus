@@ -59,12 +59,18 @@ export async function openNodeCreator(page: Page): Promise<void> {
 	await expect(firstStep).toBeVisible();
 	await firstStep.click();
 
-	const search = page.getByPlaceholder(/search nodes/i);
-	if (!(await search.isVisible().catch(() => false))) {
+	// The nodes panel can take a moment to open after the click, so wait for its
+	// search bar before falling back to the "Open nodes panel" button.
+	const search = page.getByTestId('node-creator-search-bar');
+	const opened = await search
+		.waitFor({ state: 'visible', timeout: 5_000 })
+		.then(() => true)
+		.catch(() => false);
+	if (!opened) {
 		await page.getByRole('button', { name: /open nodes panel/i }).click({ force: true });
 	}
 
-	await expect(page.getByTestId('node-creator-search-bar')).toBeVisible();
+	await expect(search).toBeVisible();
 }
 
 export async function searchDomusInCreator(page: Page): Promise<void> {
