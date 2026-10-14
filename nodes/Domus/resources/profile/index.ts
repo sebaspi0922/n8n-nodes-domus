@@ -1,5 +1,6 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { DOMUS_CRM_BASE_URL } from '../../constants';
+import { rejectDomusErrorEnvelope } from '../../rejectDomusErrorEnvelope';
 import { profileSearchDescription } from './search';
 
 const showOnlyForProfiles = {
@@ -29,6 +30,7 @@ export const profileDescription: INodeProperties[] = [
 					},
 					output: {
 						postReceive: [
+							rejectDomusErrorEnvelope,
 							{
 								type: 'rootProperty',
 								properties: {

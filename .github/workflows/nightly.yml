@@ -3,6 +3,8 @@
 #
 # The scheduled job is read-only. Write tests (Create/Update) require a
 # manual workflow_dispatch with write_tests=true because Domus has no DELETE.
+# Contract and workflow steps still run when Playwright fails, so a CRM token
+# problem is visible instead of being skipped.
 # CRM writes (meetings, opportunities, and contacts) are not part of this workflow.
 # They need DOMUS_CRM_TEST_WRITE=1 and are never scheduled here.
 # Contact create also needs DOMUS_CRM_TEST_SOURCE_ID. There is no DELETE.
@@ -59,6 +61,7 @@ jobs:
           DOMUS_TEST_WRITE: '0'
 
       - name: Domus contract tests (read-only)
+        if: always()
         run: npm run test:integration
         env:
           DOMUS_TEST_TOKEN: ${{ secrets.DOMUS_TEST_TOKEN }}
@@ -67,6 +70,7 @@ jobs:
           DOMUS_TEST_WRITE: '0'
 
       - name: n8n workflow REST tests
+        if: always()
         run: npm run test:workflow
         env:
           DOMUS_TEST_TOKEN: ${{ secrets.DOMUS_TEST_TOKEN }}

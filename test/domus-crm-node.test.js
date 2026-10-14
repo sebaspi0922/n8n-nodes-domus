@@ -6,6 +6,7 @@ const { describe, it } = require('node:test');
 const { DOMUS_BASE_URL_EXPRESSION, DOMUS_CONTACTS_BASE_URL, DOMUS_CRM_BASE_URL } = require('../dist/nodes/Domus/constants.js');
 const { DomusCrmApi } = require('../dist/credentials/DomusCrmApi.credentials.js');
 const { Domus } = require('../dist/nodes/Domus/Domus.node.js');
+const { rejectDomusErrorEnvelope } = require('../dist/nodes/Domus/rejectDomusErrorEnvelope.js');
 const {
 	searchMeetingResults,
 	searchMeetingStatuses,
@@ -36,6 +37,26 @@ const {
 } = require('./helpers/env');
 
 const getProperty = (properties, name) => properties.find((property) => property.name === name);
+
+describe('Domus error envelope', () => {
+	const context = { getNode: () => ({ name: 'Domus' }) };
+
+	it('rejects an HTTP 200 body that reports an auth failure', async () => {
+		const body = { error: 404, mensaje: 'El usuario no existe o no se encuentra activo' };
+		await assert.rejects(
+			() => rejectDomusErrorEnvelope.call(context, [{ json: body }], { body }),
+			{ message: 'El usuario no existe o no se encuentra activo' },
+		);
+	});
+
+	it('keeps a data array for the item split', async () => {
+		const items = [{ json: { data: [{ code: 1 }] } }];
+		const result = await rejectDomusErrorEnvelope.call(context, items, {
+			body: { data: [{ code: 1 }] },
+		});
+		assert.equal(result, items);
+	});
+});
 
 const DOMUS_RESOURCES = [
 	'acquisition',
@@ -227,6 +248,7 @@ describe('Domus CRM meeting node', () => {
 		assert.equal(search.routing.request.baseURL, 'https://apind.domus.la');
 		assert.equal(search.routing.request.url, '/meetings');
 		assert.deepEqual(search.routing.output.postReceive, [
+			rejectDomusErrorEnvelope,
 			{ type: 'rootProperty', properties: { property: 'data' } },
 		]);
 		assert.equal(search.routing.operations, undefined);
@@ -255,6 +277,7 @@ describe('Domus CRM meeting node', () => {
 		assert.equal(get.routing.request.method, 'GET');
 		assert.equal(get.routing.request.url, '=/meetings/{{$parameter.meetingId}}');
 		assert.deepEqual(get.routing.output.postReceive, [
+			rejectDomusErrorEnvelope,
 			{ type: 'rootProperty', properties: { property: 'data' } },
 		]);
 		assert.equal(meetingId.required, true);
@@ -362,7 +385,7 @@ describe('Domus CRM meeting node', () => {
 		assert.equal(create.routing.request.method, 'POST');
 		assert.equal(create.routing.request.url, '/meetings');
 		assert.equal(create.routing.request.headers['Content-Type'], 'application/x-www-form-urlencoded');
-		assert.equal(create.routing.output, undefined);
+		assert.deepEqual(create.routing.output.postReceive, [rejectDomusErrorEnvelope]);
 		assert.equal(create.routing.send.preSend[0], requireMeetingPlaceOrPropertyCode);
 
 		const createStartDate = named(createFields, 'startDate');
@@ -409,7 +432,7 @@ describe('Domus CRM meeting node', () => {
 		assert.equal(update.routing.request.method, 'PUT');
 		assert.equal(update.routing.request.url, '=/meetings/{{$parameter.meetingId}}');
 		assert.equal(update.routing.request.headers['Content-Type'], 'application/x-www-form-urlencoded');
-		assert.equal(update.routing.output, undefined);
+		assert.deepEqual(update.routing.output.postReceive, [rejectDomusErrorEnvelope]);
 
 		const status = named(updateFields, 'status');
 		const result = named(updateFields, 'result');
@@ -441,7 +464,7 @@ describe('Domus CRM meeting node', () => {
 			confirm.routing.request.headers['Content-Type'],
 			'application/x-www-form-urlencoded',
 		);
-		assert.equal(confirm.routing.output, undefined);
+		assert.deepEqual(confirm.routing.output.postReceive, [rejectDomusErrorEnvelope]);
 
 		const verify = named(confirmFields, 'verify');
 		assert.equal(verify.required, true);
@@ -536,6 +559,7 @@ describe('Domus CRM opportunity node', () => {
 		assert.equal(search.routing.request.baseURL, 'https://apind.domus.la');
 		assert.equal(search.routing.request.url, '/opportunities');
 		assert.deepEqual(search.routing.output.postReceive, [
+			rejectDomusErrorEnvelope,
 			{ type: 'rootProperty', properties: { property: 'data' } },
 		]);
 		assert.equal(search.routing.operations, undefined);
@@ -582,6 +606,7 @@ describe('Domus CRM opportunity node', () => {
 		assert.equal(get.routing.request.method, 'GET');
 		assert.equal(get.routing.request.url, '=/opportunities/{{$parameter.opportunityId}}');
 		assert.deepEqual(get.routing.output.postReceive, [
+			rejectDomusErrorEnvelope,
 			{ type: 'rootProperty', properties: { property: 'data' } },
 		]);
 		assert.deepEqual(
@@ -595,7 +620,7 @@ describe('Domus CRM opportunity node', () => {
 		assert.equal(create.routing.request.method, 'POST');
 		assert.equal(create.routing.request.url, '/opportunities');
 		assert.equal(create.routing.request.headers['Content-Type'], 'application/x-www-form-urlencoded');
-		assert.equal(create.routing.output, undefined);
+		assert.deepEqual(create.routing.output.postReceive, [rejectDomusErrorEnvelope]);
 
 		const date = named(createFields, 'date');
 		const comment = named(createFields, 'comment');
@@ -742,6 +767,7 @@ describe('Domus CRM profile node', () => {
 		assert.equal(search.routing.request.baseURL, 'https://apind.domus.la');
 		assert.equal(search.routing.request.url, '/profiles');
 		assert.deepEqual(search.routing.output.postReceive, [
+			rejectDomusErrorEnvelope,
 			{ type: 'rootProperty', properties: { property: 'data' } },
 		]);
 		assert.equal(search.routing.operations, undefined);
@@ -897,6 +923,7 @@ describe('Domus CRM contact node', () => {
 		assert.equal(search.routing.request.baseURL, 'https://api.domus.la');
 		assert.equal(search.routing.request.url, '/contacts');
 		assert.deepEqual(search.routing.output.postReceive, [
+			rejectDomusErrorEnvelope,
 			{ type: 'rootProperty', properties: { property: 'data' } },
 		]);
 		assert.equal(search.routing.operations, undefined);
@@ -921,6 +948,7 @@ describe('Domus CRM contact node', () => {
 		assert.equal(get.routing.request.baseURL, 'https://api.domus.la');
 		assert.equal(get.routing.request.url, '=/contacts/{{$parameter.code}}');
 		assert.deepEqual(get.routing.output.postReceive, [
+			rejectDomusErrorEnvelope,
 			{ type: 'rootProperty', properties: { property: 'data' } },
 		]);
 		assert.deepEqual(
@@ -935,7 +963,7 @@ describe('Domus CRM contact node', () => {
 		assert.equal(create.routing.request.baseURL, 'https://api.domus.la');
 		assert.equal(create.routing.request.url, '/contacts');
 		assert.equal(create.routing.request.headers['Content-Type'], 'application/x-www-form-urlencoded');
-		assert.equal(create.routing.output, undefined);
+		assert.deepEqual(create.routing.output.postReceive, [rejectDomusErrorEnvelope]);
 		assert.equal(create.routing.send.preSend[0].name, 'requireContactEmailOrPhone');
 		const createName = named(createFields, 'name');
 		const source = named(createFields, 'source');
@@ -984,7 +1012,7 @@ describe('Domus CRM contact node', () => {
 		assert.equal(update.routing.request.baseURL, 'https://api.domus.la');
 		assert.equal(update.routing.request.url, '=/contacts/{{$parameter.code}}');
 		assert.equal(update.routing.request.headers['Content-Type'], 'application/x-www-form-urlencoded');
-		assert.equal(update.routing.output, undefined);
+		assert.deepEqual(update.routing.output.postReceive, [rejectDomusErrorEnvelope]);
 		assert.equal(update.routing.send, undefined);
 		assert.deepEqual(
 			updateFields.map((property) => property.name),

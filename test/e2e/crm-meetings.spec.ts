@@ -5,6 +5,7 @@ import {
 	createDomusCrmCredentialViaApi,
 	ensureOwner,
 	executeOpenNode,
+	expectCrmExecutionOutput,
 	expectDomusCrmNodeOpen,
 	openBlankWorkflow,
 	searchDomusCrmInCreator,
@@ -304,12 +305,7 @@ test('executes Contact Search when a CRM token is available', async ({ page }) =
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
 	await executeOpenNode(page);
-
-	const output = panel.getByTestId('ndv-output-panel');
-	await expect(
-		output.getByTestId('run-data-item-count').or(output.getByText(/no output data/i)),
-	).toBeVisible({ timeout: 30_000 });
-	await expect(page.getByText(/problem in node/i)).toHaveCount(0);
+	await expectCrmExecutionOutput(page);
 });
 
 test('executes Profile Search when a CRM token is available', async ({ page }) => {
@@ -322,12 +318,7 @@ test('executes Profile Search when a CRM token is available', async ({ page }) =
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
 	await executeOpenNode(page);
-
-	const output = panel.getByTestId('ndv-output-panel');
-	await expect(
-		output.getByTestId('run-data-item-count').or(output.getByText(/no output data/i)),
-	).toBeVisible({ timeout: 30_000 });
-	await expect(page.getByText(/problem in node/i)).toHaveCount(0);
+	await expectCrmExecutionOutput(page);
 });
 
 test('executes Opportunity Search when a CRM token is available', async ({ page }) => {
@@ -340,12 +331,7 @@ test('executes Opportunity Search when a CRM token is available', async ({ page 
 	const panel = page.getByTestId('ndv');
 	await expect(panel).toBeVisible();
 	await executeOpenNode(page);
-
-	const output = panel.getByTestId('ndv-output-panel');
-	await expect(
-		output.getByTestId('run-data-item-count').or(output.getByText(/no output data/i)),
-	).toBeVisible({ timeout: 30_000 });
-	await expect(page.getByText(/problem in node/i)).toHaveCount(0);
+	await expectCrmExecutionOutput(page);
 });
 
 test('executes Meeting Search when a CRM token is available', async ({ page }) => {
@@ -368,10 +354,5 @@ test('executes Meeting Search when a CRM token is available', async ({ page }) =
 	await startDate.first().fill(day);
 	await endDate.first().fill(day);
 	await executeOpenNode(page);
-
-	const output = page.getByTestId('ndv').getByTestId('ndv-output-panel');
-	await expect(
-		output.getByTestId('run-data-item-count').or(output.getByText(/no output data/i)),
-	).toBeVisible({ timeout: 30_000 });
-	await expect(page.getByText(/problem in node/i)).toHaveCount(0);
+	await expectCrmExecutionOutput(page);
 });

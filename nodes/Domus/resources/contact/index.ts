@@ -1,5 +1,6 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { DOMUS_CONTACTS_BASE_URL } from '../../constants';
+import { rejectDomusErrorEnvelope } from '../../rejectDomusErrorEnvelope';
 import { contactCreateDescription, requireContactEmailOrPhone } from './create';
 import { contactGetDescription } from './get';
 import { contactSearchDescription } from './search';
@@ -36,6 +37,7 @@ export const contactDescription: INodeProperties[] = [
 					},
 					output: {
 						postReceive: [
+							rejectDomusErrorEnvelope,
 							{
 								type: 'rootProperty',
 								properties: {
@@ -59,6 +61,7 @@ export const contactDescription: INodeProperties[] = [
 					},
 					output: {
 						postReceive: [
+							rejectDomusErrorEnvelope,
 							{
 								type: 'rootProperty',
 								properties: {
@@ -87,6 +90,9 @@ export const contactDescription: INodeProperties[] = [
 					send: {
 						preSend: [requireContactEmailOrPhone],
 					},
+					output: {
+						postReceive: [rejectDomusErrorEnvelope],
+					},
 				},
 			},
 			{
@@ -103,6 +109,9 @@ export const contactDescription: INodeProperties[] = [
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded',
 						},
+					},
+					output: {
+						postReceive: [rejectDomusErrorEnvelope],
 					},
 				},
 			},

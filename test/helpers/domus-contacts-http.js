@@ -56,6 +56,17 @@ const requestDomusContacts = async (path, { method = 'GET', query } = {}) => {
 		data = text;
 	}
 
+	if (
+		data &&
+		typeof data === 'object' &&
+		!Array.isArray(data) &&
+		typeof data.mensaje === 'string' &&
+		data.error &&
+		!Array.isArray(data.data)
+	) {
+		throw new Error(`Domus rejected the CRM token: ${data.mensaje}`);
+	}
+
 	return {
 		ok: response.ok,
 		status: response.status,

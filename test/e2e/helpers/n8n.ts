@@ -267,6 +267,19 @@ export async function discoverPropertyCode(request: APIRequestContext): Promise<
 	return first?.codpro !== undefined ? String(first.codpro) : undefined;
 }
 
+export async function expectCrmExecutionOutput(page: Page): Promise<void> {
+	const panel = page.getByTestId('ndv');
+	const count = panel.getByTestId('run-data-item-count');
+	const error = panel.getByTestId('node-error-message');
+	// n8n also renders an item count on the error view, so either result is enough to stop waiting.
+	await expect(count.or(error).first()).toBeVisible({ timeout: 30_000 });
+	if (await error.isVisible()) {
+		const message = (await error.first().innerText()).replace(/\s+/g, ' ').trim();
+		throw new Error(`Domus node failed: ${message}`);
+	}
+	await expect(count).toBeVisible();
+}
+
 export async function executeOpenNode(page: Page): Promise<void> {
 	const ndv = page.getByTestId('ndv');
 	await expect(ndv).toBeVisible();

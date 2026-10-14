@@ -1,5 +1,6 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { DOMUS_CRM_BASE_URL } from '../../constants';
+import { rejectDomusErrorEnvelope } from '../../rejectDomusErrorEnvelope';
 import { opportunityCreateDescription } from './create';
 import { opportunityGetDescription } from './get';
 import { opportunitySearchDescription } from './search';
@@ -31,6 +32,7 @@ export const opportunityDescription: INodeProperties[] = [
 					},
 					output: {
 						postReceive: [
+							rejectDomusErrorEnvelope,
 							{
 								type: 'rootProperty',
 								properties: {
@@ -54,6 +56,7 @@ export const opportunityDescription: INodeProperties[] = [
 					},
 					output: {
 						postReceive: [
+							rejectDomusErrorEnvelope,
 							{
 								type: 'rootProperty',
 								properties: {
@@ -78,6 +81,9 @@ export const opportunityDescription: INodeProperties[] = [
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded',
 						},
+					},
+					output: {
+						postReceive: [rejectDomusErrorEnvelope],
 					},
 				},
 			},

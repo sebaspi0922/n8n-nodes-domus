@@ -1,5 +1,6 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { DOMUS_CRM_BASE_URL } from '../../constants';
+import { rejectDomusErrorEnvelope } from '../../rejectDomusErrorEnvelope';
 import { meetingConfirmDescription } from './confirm';
 import { meetingCreateDescription, requireMeetingPlaceOrPropertyCode } from './create';
 import { meetingGetDescription } from './get';
@@ -33,6 +34,7 @@ export const meetingDescription: INodeProperties[] = [
 					},
 					output: {
 						postReceive: [
+							rejectDomusErrorEnvelope,
 							{
 								type: 'rootProperty',
 								properties: {
@@ -56,6 +58,7 @@ export const meetingDescription: INodeProperties[] = [
 					},
 					output: {
 						postReceive: [
+							rejectDomusErrorEnvelope,
 							{
 								type: 'rootProperty',
 								properties: {
@@ -84,6 +87,9 @@ export const meetingDescription: INodeProperties[] = [
 					send: {
 						preSend: [requireMeetingPlaceOrPropertyCode],
 					},
+					output: {
+						postReceive: [rejectDomusErrorEnvelope],
+					},
 				},
 			},
 			{
@@ -100,6 +106,9 @@ export const meetingDescription: INodeProperties[] = [
 							'Content-Type': 'application/x-www-form-urlencoded',
 						},
 					},
+					output: {
+						postReceive: [rejectDomusErrorEnvelope],
+					},
 				},
 			},
 			{
@@ -115,6 +124,9 @@ export const meetingDescription: INodeProperties[] = [
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded',
 						},
+					},
+					output: {
+						postReceive: [rejectDomusErrorEnvelope],
 					},
 				},
 			},
